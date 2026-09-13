@@ -1,0 +1,37 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { createClient } from "@/lib/supabase/server"
+import { requireOrgRole } from "@/lib/auth/require-role"
+import { toActionError, type ActionResult } from "@/lib/errors"
+import { messages } from "@/lib/messages/es"
+import { contentMessages } from "@/lib/messages/admin-content"
+import { reorderModulesSchema, type ReorderModulesInput } from "../schemas/module-schemas"
+
+/** Wraps `reorder_modules`: one call, the full ordered id list (partial lists are rejected server-side). */
+export async function reorderModules(input: ReorderModulesInput): Promise<ActionResult<void>> {
+  const parsed = reorderModulesSchema.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false, code: "VALIDATION", message: messages.errors.VALIDATION }
+  }
+
+  await requireOrgRole(["ADMIN", "PROFESSOR"])
+  const supabase = await createClient()
+
+  const { error } = await supabase.rpc("reorder_modules", {
+    p_course: parsed.data.courseId,
+    p_ordered_ids: parsed.data.orderedIds,
+  })
+
+  if (error) {
+    if (error.code === "22023") {
+      return { ok: false, code: "VALIDATION", message: contentMessages.errors.orderedListMismatch }
+    }
+    return { ok: false, ...toActionError(error) }
+  }
+
+  revalidatePath(`/admin/courses/${parsed.data.courseId}/content`)
+  revalidatePath(`/teach/courses/${parsed.data.courseId}/content`)
+
+  return { ok: true, data: undefined }
+}

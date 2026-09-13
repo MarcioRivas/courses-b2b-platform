@@ -1,0 +1,118 @@
+/**
+ * Shared, cross-area copy (Spanish only). Never hardcode UI strings elsewhere.
+ * Area-specific dictionaries live next to this file (`admin-members.ts`,
+ * `admin-groups.ts`, …) so feature work never collides in one dictionary (C12).
+ */
+export const messages = {
+  common: {
+    appName: "ENECourses",
+    loading: "Cargando…",
+    logout: "Cerrar sesión",
+    retry: "Reintentar",
+    backHome: "Volver al inicio",
+    cancel: "Cancelar",
+    save: "Guardar",
+    create: "Crear",
+    edit: "Editar",
+    delete: "Eliminar",
+    copy: "Copiar",
+    copied: "Copiado al portapapeles.",
+    saved: "Cambios guardados.",
+    search: "Buscar",
+    all: "Todos",
+    yes: "Sí",
+    no: "No",
+  },
+  list: {
+    previous: "Anterior",
+    next: "Siguiente",
+    rangeLabel: (from: number, to: number, total: number) =>
+      `${from}–${to} de ${total}`,
+  },
+  roles: {
+    ADMIN: "Administrador",
+    PROFESSOR: "Profesor",
+    STUDENT: "Estudiante",
+  },
+  memberStatus: {
+    ACTIVE: "Activo",
+    INACTIVE: "Inactivo",
+  },
+  login: {
+    title: "Iniciar sesión",
+    emailLabel: "Correo electrónico",
+    emailPlaceholder: "nombre@organizacion.com",
+    submit: "Enviar código",
+    otpSentTitle: "Revisá tu correo",
+    otpSentDescriptionPrefix: "Te enviamos un código de 6 dígitos a",
+    otpLabel: "Código de verificación",
+    verify: "Verificar",
+    resend: "Reenviar código",
+    otpResent: "Te enviamos un nuevo código.",
+    invalidOtp: "El código ingresado no es válido o expiró.",
+    userNotFound: "No encontramos una cuenta con ese correo. Pedile un link de registro a tu organización.",
+    rateLimited: "Esperá unos minutos antes de pedir otro código.",
+  },
+  register: {
+    title: "Completar registro",
+    invalidLinkTitle: "Link no válido",
+    invalidLinkDescription:
+      "Este link de registro no existe, fue revocado o expiró. Pedile uno nuevo a tu organización.",
+    alreadyRegistered: "Ya estás registrado en esta organización. Iniciá sesión.",
+    membershipInactive:
+      "Tu acceso a esta organización fue desactivado. Contactá a tu administrador.",
+    joiningOrgPrefix: "Te vas a unir a",
+    profileTitle: "Completá tu perfil",
+    firstNameLabel: "Nombre",
+    lastNameLabel: "Apellido",
+    phoneLabel: "Teléfono",
+    dniLabel: "DNI",
+    submitProfile: "Finalizar registro",
+  },
+  registerRequired: {
+    title: "Todavía no formás parte de una organización",
+    description: "Pedile un link de registro a tu organización para poder acceder a la plataforma.",
+  },
+  nav: {
+    platformAdmin: "Organizaciones",
+    platformHome: "Panel",
+    admin: "Panel",
+    members: "Miembros",
+    groups: "Grupos",
+    links: "Links de registro",
+    settings: "Configuración",
+    professor: "Panel",
+    student: "Mi aprendizaje",
+    openMenu: "Abrir menú",
+  },
+  home: {
+    greeting: "Hola",
+    admin: "Administrador",
+    professor: "Profesor",
+    student: "Estudiante",
+    platformTitle: "Panel de super administrador",
+  },
+  multipleOrgs: {
+    title: "Pertenecés a más de una organización",
+    description: "Contactá a tu administrador para resolver esta situación.",
+  },
+  forbidden: {
+    title: "Acceso denegado",
+    description: "No tenés permiso para ver esta página.",
+  },
+  notFound: {
+    title: "Página no encontrada",
+    description: "La página que buscás no existe.",
+  },
+  errors: {
+    UNAUTHENTICATED: "Necesitás iniciar sesión.",
+    FORBIDDEN: "No tenés permiso para esta acción.",
+    NOT_FOUND: "No se encontró el recurso.",
+    VALIDATION: "Los datos ingresados no son válidos.",
+    CONFLICT: "Ya existe un registro con esos datos.",
+    EXPIRED: "El link de registro expiró.",
+    LOCKED: "El recurso está bloqueado.",
+    SAVE_FAILED: "No se pudo guardar. Intentá de nuevo.",
+    INTERNAL: "Ocurrió un error inesperado. Intentá de nuevo.",
+  },
+} as const

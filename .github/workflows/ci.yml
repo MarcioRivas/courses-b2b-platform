@@ -1,0 +1,68 @@
+name: CI
+
+# E2E (Playwright) is intentionally excluded from CI for now — it needs a running
+# `next dev`/`next start` server wired to OTP helpers; tracked for a later phase.
+# This workflow only runs Vitest (unit + integration) against local Supabase.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Write .env.local from supabase status
+        run: |
+          supabase status -o env > /tmp/supabase-status.env
+          set -a
+          source /tmp/supabase-status.env
+          set +a
+          cat <<EOF > .env.local
+          NEXT_PUBLIC_SUPABASE_URL=$API_URL
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
+          SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY
+          NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
+          RESEND_API_KEY=not-used-in-ci
+          EOF
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Reset database + seed
+        run: pnpm db:reset
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Verify generated types are committed
+        run: |
+          pnpm gen:types
+          git diff --exit-code src/types/database.types.ts
+
+      - name: Build
+        run: pnpm build

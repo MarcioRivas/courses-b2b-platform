@@ -1,0 +1,16 @@
+node_modules
+.next
+.env*
+!.env.example
+supabase/.temp
+supabase/.branches
+playwright-report
+test-results
+coverage
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+.claude*
+plans*
+docs*

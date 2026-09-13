@@ -1,0 +1,288 @@
+import path from "node:path"
+import { config } from "dotenv"
+import { createClient } from "@supabase/supabase-js"
+import type { Database, Json } from "../src/types/database.types"
+
+config({ path: path.resolve(process.cwd(), ".env.local") })
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local")
+}
+
+/**
+ * Demo course content for manual testing. Writes with the service role, which
+ * bypasses RLS — the same documented exception the test fixtures use. Nothing
+ * here is a substitute for exercising the real flows through the UI; it exists
+ * so the course, professor and enrollment screens have something to show.
+ *
+ * Idempotent: the demo courses are deleted by title and rebuilt on every run.
+ */
+const admin = createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+})
+
+const ORG_A = "11111111-1111-1111-1111-111111111111"
+const ORG_B = "22222222-2222-2222-2222-222222222222"
+const GROUP_A = "11111111-1111-1111-1111-111111111112"
+
+type BlockSeed =
+  | { type: "RICH_TEXT"; html: string }
+  | { type: "YOUTUBE_VIDEO"; videoId: string; title: string }
+  | { type: "EXTERNAL_LINK"; url: string; title: string }
+
+interface LessonSeed {
+  title: string
+  blocks: BlockSeed[]
+}
+
+interface ModuleSeed {
+  title: string
+  description: string
+  lessons: LessonSeed[]
+}
+
+const PHYSICAL_COURSE: ModuleSeed[] = [
+  {
+    title: "Fundamentos",
+    description: "Conceptos base antes de entrar a la cancha.",
+    lessons: [
+      {
+        title: "Qué es la preparación física",
+        blocks: [
+          {
+            type: "RICH_TEXT",
+            html: "<h2>Objetivo del módulo</h2><p>Entender los <strong>principios</strong> del entrenamiento: carga, adaptación y descanso.</p><ul><li>Sobrecarga progresiva</li><li>Especificidad</li><li>Reversibilidad</li></ul>",
+          },
+          { type: "YOUTUBE_VIDEO", videoId: "dQw4w9WgXcQ", title: "Introducción al entrenamiento" },
+        ],
+      },
+      {
+        title: "Evaluación inicial",
+        blocks: [
+          {
+            type: "RICH_TEXT",
+            html: "<p>Antes de planificar hay que medir. Registrá los valores de cada jugador en la planilla.</p><blockquote>Sin línea de base no hay progreso medible.</blockquote>",
+          },
+          {
+            type: "EXTERNAL_LINK",
+            url: "https://www.who.int/news-room/fact-sheets/detail/physical-activity",
+            title: "Recomendaciones de actividad física (OMS)",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Planificación semanal",
+    description: "Cómo armar una semana de trabajo.",
+    lessons: [
+      {
+        title: "Microciclos",
+        blocks: [
+          {
+            type: "RICH_TEXT",
+            html: "<h3>Estructura tipo</h3><p>Lunes fuerza, miércoles velocidad, viernes resistencia. Ajustá según el calendario de partidos.</p>",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Prevención de lesiones",
+    description: "Trabajo preventivo y vuelta a la competencia.",
+    lessons: [
+      {
+        title: "Entrada en calor",
+        blocks: [
+          {
+            type: "RICH_TEXT",
+            html: "<p>Diez minutos de activación general y específica antes de cada sesión.</p>",
+          },
+        ],
+      },
+    ],
+  },
+]
+
+const REGULATION_COURSE: ModuleSeed[] = [
+  {
+    title: "Reglamento general",
+    description: "Las reglas que todo árbitro debe dominar.",
+    lessons: [
+      {
+        title: "Faltas y sanciones",
+        blocks: [
+          { type: "RICH_TEXT", html: "<p>Clasificación de faltas y criterio de sanción.</p>" },
+        ],
+      },
+    ],
+  },
+]
+
+function blockData(block: BlockSeed): Json {
+  switch (block.type) {
+    case "RICH_TEXT":
+      return { html: block.html }
+    case "YOUTUBE_VIDEO":
+      return { videoId: block.videoId, title: block.title }
+    case "EXTERNAL_LINK":
+      return { url: block.url, title: block.title }
+  }
+}
+
+async function deleteCourseByTitle(organizationId: string, title: string): Promise<void> {
+  await admin.from("courses").delete().eq("organization_id", organizationId).eq("title", title)
+}
+
+async function createCourse(
+  organizationId: string,
+  title: string,
+  description: string,
+  status: "DRAFT" | "PUBLISHED",
+  modules: ModuleSeed[]
+): Promise<string> {
+  await deleteCourseByTitle(organizationId, title)
+
+  const { data: course, error } = await admin
+    .from("courses")
+    .insert({ organization_id: organizationId, title, description, status, access_type: "PRIVATE" })
+    .select("id")
+    .single()
+  if (error || !course) throw error ?? new Error(`course ${title} not created`)
+
+  for (const [moduleIndex, moduleSeed] of modules.entries()) {
+    const { data: mod, error: moduleError } = await admin
+      .from("modules")
+      .insert({
+        course_id: course.id,
+        title: moduleSeed.title,
+        description: moduleSeed.description,
+        position: moduleIndex + 1,
+      })
+      .select("id")
+      .single()
+    if (moduleError || !mod) throw moduleError ?? new Error("module not created")
+
+    for (const [lessonIndex, lessonSeed] of moduleSeed.lessons.entries()) {
+      const { data: lesson, error: lessonError } = await admin
+        .from("lessons")
+        .insert({ module_id: mod.id, title: lessonSeed.title, position: lessonIndex + 1 })
+        .select("id")
+        .single()
+      if (lessonError || !lesson) throw lessonError ?? new Error("lesson not created")
+
+      const rows = lessonSeed.blocks.map((block, index) => ({
+        lesson_id: lesson.id,
+        type: block.type,
+        position: index + 1,
+        data: blockData(block),
+        is_required: true,
+      }))
+
+      const { error: blockError } = await admin.from("lesson_content_blocks").insert(rows)
+      if (blockError) throw blockError
+    }
+  }
+
+  if (status === "PUBLISHED") {
+    await admin.from("courses").update({ published_at: new Date().toISOString() }).eq("id", course.id)
+  }
+
+  return course.id
+}
+
+async function findUserIdByEmail(email: string): Promise<string> {
+  const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 })
+  if (error) throw error
+  const found = data.users.find((user) => user.email?.toLowerCase() === email.toLowerCase())
+  if (!found) throw new Error(`Seed user ${email} not found — run pnpm db:reset first`)
+  return found.id
+}
+
+/** Mirrors what `sync_offering_enrollments` would produce for the group roster. */
+async function enrollGroup(courseId: string, offeringId: string, organizationId: string, groupId: string) {
+  const { count: totalBlocks } = await admin
+    .from("lesson_content_blocks")
+    .select("id, lessons!inner(modules!inner(course_id))", { count: "exact", head: true })
+    .eq("lessons.modules.course_id", courseId)
+    .eq("is_required", true)
+
+  const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", groupId)
+
+  const rows = (members ?? []).map((m) => ({
+    organization_id: organizationId,
+    course_id: courseId,
+    offering_id: offeringId,
+    user_id: m.user_id,
+    source: "GROUP_ASSIGNMENT" as const,
+    total_blocks: totalBlocks ?? 0,
+  }))
+
+  if (rows.length > 0) {
+    const { error } = await admin.from("course_enrollments").insert(rows)
+    if (error) throw error
+  }
+
+  return rows.length
+}
+
+async function main(): Promise<void> {
+  const physicalId = await createCourse(
+    ORG_A,
+    "Preparación Física Base",
+    "Curso introductorio de preparación física para categorías formativas.",
+    "PUBLISHED",
+    PHYSICAL_COURSE
+  )
+  console.log("seeded PUBLISHED course 'Preparación Física Base' (3 módulos, 4 lecciones, 6 bloques)")
+
+  const professorId = await findUserIdByEmail("prof@club-a.test")
+  await admin.from("course_professors").insert({ course_id: physicalId, user_id: professorId })
+  console.log("assigned prof@club-a.test as professor of that course")
+
+  const { data: offering, error: offeringError } = await admin
+    .from("course_offerings")
+    .insert({
+      course_id: physicalId,
+      organization_id: ORG_A,
+      kind: "GROUP",
+      group_id: GROUP_A,
+      name: "Cohorte 2026",
+      starts_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 90 * 86_400_000).toISOString(),
+    })
+    .select("id")
+    .single()
+  if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+
+  const enrolled = await enrollGroup(physicalId, offering.id, ORG_A, GROUP_A)
+  console.log(`created offering 'Cohorte 2026' for Grupo Principal — ${enrolled} estudiantes inscriptos`)
+
+  await createCourse(
+    ORG_A,
+    "Nutrición Deportiva",
+    "Curso vacío a propósito: sirve para probar que publicar exige contenido.",
+    "DRAFT",
+    []
+  )
+  console.log("seeded DRAFT course 'Nutrición Deportiva' with no content (publish must refuse it)")
+
+  await createCourse(
+    ORG_B,
+    "Reglamento y Arbitraje",
+    "Curso de la otra organización, para verificar aislamiento entre tenants.",
+    "PUBLISHED",
+    REGULATION_COURSE
+  )
+  console.log("seeded PUBLISHED course 'Reglamento y Arbitraje' in Federación Demo")
+
+  console.log("seed-demo-courses complete")
+}
+
+main().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
