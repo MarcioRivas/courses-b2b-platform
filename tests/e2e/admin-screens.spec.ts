@@ -35,20 +35,21 @@ test("every org-admin screen renders without hitting the error boundary", async 
   await expectRouteRenders(page, "/admin/links", "Links de registro")
   await expectRouteRenders(page, "/admin/settings", "Configuración")
   await expectRouteRenders(page, "/admin/settings/score-scale", "Escala de puntajes")
+  await expectRouteRenders(page, "/admin/analytics", "Estadísticas")
 })
 
 test("the dashboard counts the organization's seeded members and groups", async () => {
   await page.goto("/admin")
 
-  // Seeded org B: 3 students, 1 professor, 1 group, 1 active link. Assert the
-  // numbers, not just the labels — a broken count query still renders labels.
-  // Scoped to <main>: the side nav repeats "Grupos" and "Miembros".
+  // Seeded org B: 3 students, 1 professor. Phase 6 replaced the P2 cards with
+  // `org_overview_stats`; assert the numbers, not just the labels.
+  // Scoped to <main>: the side nav repeats some labels.
   const statCard = (label: string) =>
     page.getByRole("main").getByText(label, { exact: true }).locator("..")
   await expect(statCard("Estudiantes activos")).toContainText("3")
-  await expect(statCard("Profesores")).toContainText("1")
-  await expect(statCard("Grupos")).toContainText("1")
-  await expect(statCard("Links activos")).toContainText("1")
+  await expect(statCard("Profesores activos")).toContainText("1")
+  await expect(page.getByRole("main").getByText("Cursos publicados", { exact: true })).toBeVisible()
+  await expect(page.getByRole("main").getByText("Pendientes de corregir", { exact: true })).toBeVisible()
 })
 
 test("the member directory lists this org's members only, with admin-only PII", async () => {
@@ -94,6 +95,32 @@ test("org admin creates a group, adds a student, and the list shows the new coun
   const listRow = page.getByRole("row").filter({ hasText: groupName })
   await expect(listRow).toBeVisible()
   await expect(listRow).toContainText("1 miembro")
+})
+
+test("analytics page displays all four sections for org admin (Phase 6)", async () => {
+  await page.goto("/admin/analytics")
+
+  // Page header
+  await expect(page.getByRole("heading", { name: "Estadísticas", level: 1 })).toBeVisible()
+  await expect(page.getByText("Números clave de tu organización.")).toBeVisible()
+
+  // Four main sections
+  await expect(page.getByRole("heading", { name: "Estudiantes", level: 2 })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Cursos", level: 2 })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Profesores", level: 2 })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Evaluaciones", level: 2 })).toBeVisible()
+})
+
+test("admin dashboard still displays count cards", async () => {
+  await page.goto("/admin")
+
+  // The four stat cards from Phase 6
+  const statCard = (label: string) =>
+    page.getByRole("main").getByText(label, { exact: true }).locator("..")
+  await expect(statCard("Estudiantes activos")).toBeVisible()
+  await expect(statCard("Profesores activos")).toBeVisible()
+  await expect(statCard("Cursos publicados")).toBeVisible()
+  await expect(statCard("Pendientes de corregir")).toBeVisible()
 })
 
 test("a professor cannot reach the admin screens", async ({ page: professorPage }) => {

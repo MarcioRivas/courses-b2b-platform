@@ -25,6 +25,7 @@ test.afterAll(async () => {
 })
 
 test("every platform screen renders without hitting the error boundary", async () => {
+  await expectRouteRenders(page, "/platform", "Plataforma")
   await expectRouteRenders(page, "/platform/organizations", "Organizaciones")
   await expectRouteRenders(page, "/platform/organizations/new", "Nueva organización")
 })
@@ -77,6 +78,22 @@ test("the organization detail tabs render members and links for any org", async 
   // The bootstrap ADMIN link is listed for the org the platform admin picked.
   await page.getByRole("link", { name: "Links", exact: true }).click()
   await expect(page.getByRole("row").filter({ hasText: "Administrador inicial" })).toBeVisible()
+})
+
+test("platform page displays per-org rollup table with seeded organizations (Phase 6)", async () => {
+  await page.goto("/platform")
+
+  // Page header
+  await expect(page.getByRole("heading", { name: "Panel de super administrador", level: 1 })).toBeVisible()
+
+  // Per-org rollup table section
+  await expect(page.getByRole("heading", { name: "Por organización", level: 2 })).toBeVisible()
+
+  // The seeded orgs (at least Club A should be visible as per seed data)
+  const table = page.getByRole("table")
+  await expect(table).toBeVisible()
+  // Table header row has "Organización" column
+  await expect(page.getByRole("columnheader", { name: "Organización" })).toBeVisible()
 })
 
 test("a non-platform-admin cannot reach the platform screens", async ({ page: memberPage }) => {

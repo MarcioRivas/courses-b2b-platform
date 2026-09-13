@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test"
 import { loginViaOtp } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
-import { deleteUser, makeUser } from "../helpers/make-user"
+import { makeUser } from "../helpers/make-user"
 import {
   makeCourseFixture,
   enrollStudent,
