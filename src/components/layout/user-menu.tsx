@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -38,10 +39,13 @@ export function UserMenu({ userName, userEmail }: UserMenuProps) {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>
-          <p className="font-medium">{userName}</p>
-          <p className="text-xs font-normal text-muted-foreground">{userEmail}</p>
-        </DropdownMenuLabel>
+        {/* base-ui's GroupLabel needs a Group ancestor — rendering it bare throws MenuGroupContext missing. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <p className="font-medium">{userName}</p>
+            <p className="text-xs font-normal text-muted-foreground">{userEmail}</p>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {/* POST-only (W10): a plain link/prefetch must never trigger sign-out. */}
         <form action="/logout" method="post" className="contents">

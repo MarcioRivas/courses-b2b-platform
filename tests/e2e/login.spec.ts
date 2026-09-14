@@ -29,6 +29,14 @@ test("org admin logs in via OTP, lands on /admin, and the session survives reloa
   await page.goto("/admin")
   await expect(page).toHaveURL("/admin")
   await expect(page.getByText("Administrador")).toBeVisible()
+
+  // The avatar menu must open without tripping the error boundary (base-ui
+  // group-label context) and expose the account details + logout.
+  await page.getByRole("button", { name: "Ana Admin" }).click()
+  await expect(page.getByRole("menu")).toBeVisible()
+  await expect(page.getByRole("menu").getByText("admin@club-a.test")).toBeVisible()
+  await expect(page.getByRole("menuitem", { name: "Cerrar sesión" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Ocurrió un error inesperado. Intentá de nuevo." })).toBeHidden()
 })
 
 test("student logs in via OTP and lands on /learn", async ({ page }) => {
