@@ -74,7 +74,7 @@ interface SideNavProps {
 export function SideNav({ role, organizationName, className }: SideNavProps) {
   return (
     <aside
-      className={cn("hidden w-64 shrink-0 flex-col gap-6 border-r bg-sidebar p-4 md:flex", className)}
+      className={cn("sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r bg-sidebar p-4 md:flex", className)}
     >
       <BrandMark className="px-1" />
       <div className="flex flex-col gap-2">

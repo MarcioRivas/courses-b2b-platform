@@ -5,7 +5,36 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type SelectItemEntry = { value: unknown; label: React.ReactNode }
+
+/**
+ * base-ui's `Select.Value` renders the raw value (e.g. a UUID) unless `Root`
+ * receives an `items` list. Walk the JSX tree once and collect every
+ * `<SelectItem value label>` so callers don't have to repeat their options.
+ */
+function collectSelectItems(node: React.ReactNode, into: SelectItemEntry[] = []): SelectItemEntry[] {
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement<{ value?: unknown; children?: React.ReactNode }>(child)) return
+    if (child.type === SelectItem) {
+      into.push({ value: child.props.value, label: child.props.children })
+      return
+    }
+    if (child.props.children) collectSelectItems(child.props.children, into)
+  })
+  return into
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  items,
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  return (
+    <SelectPrimitive.Root items={items ?? collectSelectItems(children)} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (

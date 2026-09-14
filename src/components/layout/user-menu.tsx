@@ -38,18 +38,18 @@ export function UserMenu({ userName, userEmail }: UserMenuProps) {
           <AvatarFallback>{initials || <UserIcon className="size-4" />}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-56">
         {/* base-ui's GroupLabel needs a Group ancestor — rendering it bare throws MenuGroupContext missing. */}
         <DropdownMenuGroup>
           <DropdownMenuLabel>
-            <p className="font-medium">{userName}</p>
-            <p className="text-xs font-normal text-muted-foreground">{userEmail}</p>
+            <p className="truncate font-medium">{userName}</p>
+            <p className="truncate text-xs font-normal text-muted-foreground">{userEmail}</p>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {/* POST-only (W10): a plain link/prefetch must never trigger sign-out. */}
         <form action="/logout" method="post" className="contents">
-          <DropdownMenuItem variant="destructive" render={<button type="submit" className="w-full" />}>
+          <DropdownMenuItem variant="destructive" render={<button type="submit" className="w-full whitespace-nowrap" />}>
             <LogOutIcon />
             {messages.common.logout}
           </DropdownMenuItem>
