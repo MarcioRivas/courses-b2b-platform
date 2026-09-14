@@ -7,6 +7,7 @@ export type QuestionType = Database["public"]["Enums"]["question_type"]
 export interface AttemptHeader {
   attemptId: string
   assessmentId: string
+  enrollmentId: string
   status: AttemptStatus
   attemptNumber: number
   startedAt: string

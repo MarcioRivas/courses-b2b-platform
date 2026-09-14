@@ -87,6 +87,9 @@ export const learnAssessmentMessages = {
     yourAnswer: "Tu respuesta",
     noAnswer: "Sin responder",
     attemptNumberLabel: (n: number) => `Intento N.º ${n}`,
+    retryAttempt: "Intentar de nuevo",
+    attemptsLeft: (n: number) => (n === 1 ? "Te queda 1 intento." : `Te quedan ${n} intentos.`),
+    noAttemptsLeft: "No te quedan intentos.",
   },
   courseSection: {
     title: "Evaluaciones",

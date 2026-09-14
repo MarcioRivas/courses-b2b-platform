@@ -1637,6 +1637,7 @@ export type Database = {
           attempt_id: string
           attempt_number: number
           effective_end_at: string
+          enrollment_id: string
           server_now: string
           started_at: string
           status: Database["public"]["Enums"]["attempt_status"]

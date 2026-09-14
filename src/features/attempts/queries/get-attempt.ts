@@ -58,6 +58,7 @@ export async function getAttempt(attemptId: string): Promise<AttemptSnapshot | n
     header: {
       attemptId: headerRow.attempt_id,
       assessmentId: headerRow.assessment_id,
+      enrollmentId: headerRow.enrollment_id,
       status: headerRow.status,
       attemptNumber: headerRow.attempt_number,
       startedAt: headerRow.started_at,

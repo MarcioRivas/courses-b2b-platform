@@ -1,8 +1,12 @@
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { learnAssessmentMessages } from "@/lib/messages/learn-assessments"
 import { getAttemptResult } from "../queries/get-attempt-result"
+import { getAssessmentPreflight } from "../queries/get-assessment-preflight"
+import { listMyAttempts } from "../queries/list-my-attempts"
 import { formatScorePercent } from "../lib/format-score"
 import type { AttemptSnapshot } from "../types"
 import { QuestionCard } from "./question-card"
@@ -21,11 +25,24 @@ export async function AttemptResult({ snapshot }: AttemptResultProps) {
   const graded = header.status === "GRADED"
   const copy = learnAssessmentMessages.result
 
-  const result = graded ? await getAttemptResult(header.attemptId) : null
+  const [result, assessment, myAttempts] = await Promise.all([
+    graded ? getAttemptResult(header.attemptId) : null,
+    getAssessmentPreflight(header.assessmentId),
+    listMyAttempts(header.enrollmentId),
+  ])
   const scorePercent = result?.scorePercent ?? null
   const scoreLabel = result?.scoreLabel ?? null
   const passed = result?.passed ?? null
   const overallFeedback = result?.overallFeedback ?? null
+
+  // Retry only makes sense after a failed grade; the preflight page re-checks
+  // window/limits server-side, this just avoids offering a dead-end button.
+  const attemptsUsed = myAttempts.find((row) => row.assessmentId === header.assessmentId)?.attemptsUsed ?? 0
+  const maxAttempts = assessment?.maxAttempts ?? null
+  const attemptsLeft = maxAttempts === null ? null : Math.max(maxAttempts - attemptsUsed, 0)
+  const canRetry = graded && passed === false && (attemptsLeft === null || attemptsLeft > 0)
+  const courseHref = `/learn/courses/${header.enrollmentId}`
+  const retryHref = `/learn/assessments/${header.assessmentId}/start?enrollment=${header.enrollmentId}`
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,6 +82,20 @@ export async function AttemptResult({ snapshot }: AttemptResultProps) {
               <p className="text-sm text-muted-foreground">{copy.pendingGradingDescription}</p>
             </>
           )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {canRetry && (
+              <Button render={<Link href={retryHref} />}>{copy.retryAttempt}</Button>
+            )}
+            <Button variant={canRetry ? "outline" : "default"} render={<Link href={courseHref} />}>
+              {learnAssessmentMessages.common.backToCourse}
+            </Button>
+            {graded && passed === false && attemptsLeft !== null && (
+              <span className="text-xs text-muted-foreground">
+                {attemptsLeft > 0 ? copy.attemptsLeft(attemptsLeft) : copy.noAttemptsLeft}
+              </span>
+            )}
+          </div>
         </CardContent>
       </Card>
 
