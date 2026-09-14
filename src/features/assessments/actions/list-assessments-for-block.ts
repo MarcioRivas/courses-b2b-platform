@@ -10,7 +10,7 @@ import type { AssessmentKind } from "../types"
  * Read-only Server Action (not a mutation) so the content-block editor — a
  * deeply nested client component with no direct RSC data path — can fetch
  * the course's QUIZ/TASK assessments on demand without threading a new prop
- * through every layer of the builder (`ContentBuilder` is shared with the
+ * through every layer of the builder (`LessonDetailPage` is shared with the
  * admin route this feature doesn't own).
  */
 export async function listAssessmentsForBlock(

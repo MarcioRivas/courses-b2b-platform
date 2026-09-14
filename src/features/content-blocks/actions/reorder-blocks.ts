@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { toActionError, type ActionResult } from "@/lib/errors"
@@ -33,8 +33,7 @@ export async function reorderBlocks(input: ReorderContentBlocksInput): Promise<A
   }
 
   if (courseId) {
-    revalidatePath(`/admin/courses/${courseId}/content`)
-    revalidatePath(`/teach/courses/${courseId}/content`)
+    revalidateCourseContent(courseId)
   }
 
   return { ok: true, data: undefined }

@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { toActionError, type ActionResult } from "@/lib/errors"
@@ -36,8 +36,7 @@ export async function reorderModules(input: ReorderModulesInput): Promise<Action
     return { ok: false, ...toActionError(error) }
   }
 
-  revalidatePath(`/admin/courses/${parsed.data.courseId}/content`)
-  revalidatePath(`/teach/courses/${parsed.data.courseId}/content`)
+  revalidateCourseContent(parsed.data.courseId)
 
   return { ok: true, data: undefined }
 }

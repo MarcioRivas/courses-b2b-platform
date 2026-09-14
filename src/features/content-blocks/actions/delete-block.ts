@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireOrgRole } from "@/lib/auth/require-role"
@@ -73,8 +73,7 @@ export async function deleteBlock(input: DeleteContentBlockInput): Promise<Actio
     entityId: parsed.data.blockId,
   })
 
-  revalidatePath(`/admin/courses/${courseId}/content`)
-  revalidatePath(`/teach/courses/${courseId}/content`)
+  revalidateCourseContent(courseId)
 
   return { ok: true, data: undefined }
 }

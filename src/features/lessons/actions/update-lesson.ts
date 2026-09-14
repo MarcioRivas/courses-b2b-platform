@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { canEditCourse } from "@/lib/auth/course-access"
@@ -44,8 +44,7 @@ export async function updateLesson(input: UpdateLessonInput): Promise<ActionResu
     metadata: { title: parsed.data.title },
   })
 
-  revalidatePath(`/admin/courses/${courseId}/content`)
-  revalidatePath(`/teach/courses/${courseId}/content`)
+  revalidateCourseContent(courseId)
 
   return { ok: true, data: undefined }
 }

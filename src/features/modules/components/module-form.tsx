@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, type ReactElement } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -21,9 +22,12 @@ interface ModuleFormProps {
   courseId: string
   module?: { id: string; title: string; description: string | null }
   onSaved?: () => void
+  /** Create mode only: after saving, navigate to `${openAfterCreateBase}/${newId}` ("create, then fill"). */
+  openAfterCreateBase?: string
 }
 
-export function ModuleForm({ trigger, mode, courseId, module, onSaved }: ModuleFormProps) {
+export function ModuleForm({ trigger, mode, courseId, module, onSaved, openAfterCreateBase }: ModuleFormProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const form = useForm<CreateModuleInput>({
@@ -45,6 +49,10 @@ export function ModuleForm({ trigger, mode, courseId, module, onSaved }: ModuleF
       toast.success(contentMessages.modules.saved)
       setOpen(false)
       onSaved?.()
+      if (mode === "create" && openAfterCreateBase && result.data) {
+        router.push(`${openAfterCreateBase}/${result.data.id}`)
+        return
+      }
       form.reset(mode === "create" ? { courseId, title: "", description: "" } : values)
     })
   }

@@ -1,26 +1,21 @@
-import { notFound } from "next/navigation"
-import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
-import { getCourseTree } from "@/features/courses/queries/get-course-tree"
-import { ContentBuilder } from "@/features/modules/components/content-builder"
+import { resolveEditableCourse } from "@/lib/courses/resolve-editable-course"
+import { ModuleListPage } from "@/features/modules/components/module-list-page"
 
 interface AdminCourseContentPageProps {
   params: Promise<{ courseId: string }>
 }
 
-/** ADMIN guard + `canEditCourse` (requirement 1) — an admin can edit any course of their org. */
+/** ADMIN guard + `canEditCourse` — level 1 of the content drill-down (modules). */
 export default async function AdminCourseContentPage({ params }: AdminCourseContentPageProps) {
-  await requireOrgRole(["ADMIN"])
   const { courseId } = await params
+  const tree = await resolveEditableCourse(courseId, ["ADMIN"])
 
-  if (!(await canEditCourse(courseId))) {
-    return notFound()
-  }
-
-  const tree = await getCourseTree(courseId)
-  if (!tree) {
-    return notFound()
-  }
-
-  return <ContentBuilder tree={tree} canEdit backHref={`/admin/courses/${courseId}`} />
+  return (
+    <ModuleListPage
+      tree={tree}
+      canEdit
+      basePath={`/admin/courses/${courseId}/content`}
+      coursesHref="/admin/courses"
+    />
+  )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, type ReactElement } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { messages } from "@/lib/messages/es"
 import type { ActionResult } from "@/lib/errors"
@@ -32,6 +33,8 @@ interface ConfirmDialogProps<TInput> {
    */
   action: (input: TInput) => Promise<ActionResult<unknown>>
   input: TInput
+  /** When set, navigate here on success (e.g. deleting the entity from its own detail page). */
+  redirectTo?: string
 }
 
 /**
@@ -47,9 +50,11 @@ export function ConfirmDialog<TInput>({
   successMessage,
   action,
   input,
+  redirectTo,
 }: ConfirmDialogProps<TInput>) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function handleConfirm() {
     startTransition(async () => {
@@ -64,6 +69,10 @@ export function ConfirmDialog<TInput>({
         toast.success(successMessage)
       }
       setOpen(false)
+
+      if (redirectTo) {
+        router.replace(redirectTo)
+      }
     })
   }
 

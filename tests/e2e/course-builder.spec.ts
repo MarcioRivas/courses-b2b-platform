@@ -80,13 +80,19 @@ test("admin builds module, lesson and a content block, then publishes", async ()
   await page.getByLabel("Título").fill(moduleTitle)
   await page.getByRole("button", { name: "Guardar" }).click()
   await expect(page.getByText("Módulo guardado.")).toBeVisible()
-  await expect(page.getByText(moduleTitle).first()).toBeVisible()
+  // Drill-down: creating a module opens its page (…/content/[moduleId]); the
+  // breadcrumb names it, and "Nueva lección" lives there.
+  await page.waitForURL(/\/content\/[0-9a-f-]+$/)
+  const breadcrumb = page.getByRole("navigation", { name: "Ruta de navegación" })
+  await expect(breadcrumb).toContainText(moduleTitle)
 
   await page.getByRole("button", { name: "Nueva lección" }).click()
   await page.getByLabel("Título").fill(lessonTitle)
   await page.getByRole("button", { name: "Guardar" }).click()
   await expect(page.getByText("Lección guardada.")).toBeVisible()
-  await expect(page.getByText(lessonTitle).first()).toBeVisible()
+  // …and creating a lesson opens the lesson page (…/[moduleId]/[lessonId]).
+  await page.waitForURL(/\/content\/[0-9a-f-]+\/[0-9a-f-]+$/)
+  await expect(breadcrumb).toContainText(lessonTitle)
 
   await page.getByRole("button", { name: "Agregar contenido" }).click()
   await page.getByRole("button", { name: "Texto", exact: true }).click()
@@ -130,6 +136,41 @@ test("admin builds module, lesson and a content block, then publishes", async ()
       return data?.status
     })
     .toBe("PUBLISHED")
+})
+
+test("deleting a module or lesson from its own detail page redirects instead of 404ing", async () => {
+  const courseId = await courseIdByTitle(courseTitle)
+  const basePath = `/admin/courses/${courseId}/content`
+  const throwawayModuleTitle = "Módulo temporal"
+  const throwawayLessonTitle = "Lección temporal"
+
+  await page.goto(basePath)
+  await page.getByRole("button", { name: "Nuevo módulo" }).click()
+  await page.getByLabel("Título").fill(throwawayModuleTitle)
+  await page.getByRole("button", { name: "Guardar" }).click()
+  await page.waitForURL(/\/content\/[0-9a-f-]+$/)
+  const moduleId = page.url().match(/\/content\/([0-9a-f-]+)$/)![1]
+  const modulePathRegex = new RegExp(`/content/${moduleId}$`)
+
+  await page.getByRole("button", { name: "Nueva lección" }).click()
+  await page.getByLabel("Título").fill(throwawayLessonTitle)
+  await page.getByRole("button", { name: "Guardar" }).click()
+  await page.waitForURL(/\/content\/[0-9a-f-]+\/[0-9a-f-]+$/)
+
+  // Delete the lesson from its own page (header variant): must land back on the
+  // module page, not a 404 (H1 — ConfirmDialog's redirectTo).
+  await page.getByRole("button", { name: "Eliminar" }).click()
+  await page.getByRole("dialog", { name: "Eliminar lección" }).getByRole("button", { name: "Eliminar" }).click()
+  await expect(page.getByText("Lección eliminada.")).toBeVisible()
+  await page.waitForURL(modulePathRegex)
+  await expect(page.getByRole("navigation", { name: "Ruta de navegación" })).toContainText(throwawayModuleTitle)
+
+  // Delete the module from its own page: must land back on the course page.
+  await page.getByRole("button", { name: "Eliminar" }).click()
+  await page.getByRole("dialog", { name: "Eliminar módulo" }).getByRole("button", { name: "Eliminar" }).click()
+  await expect(page.getByText("Módulo eliminado.")).toBeVisible()
+  await page.waitForURL(new RegExp(`/content$`))
+  await expect(page.getByRole("navigation", { name: "Ruta de navegación" })).toContainText(courseTitle)
 })
 
 test("an offering for a group enrolls that group's students", async () => {

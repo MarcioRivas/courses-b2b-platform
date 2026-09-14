@@ -27,6 +27,7 @@ test.describe("accessibility (axe) — key screens", () => {
   let enrollmentId: string
   let registrationToken: string
   let quizAssessmentId: string
+  let moduleId: string
   let lessonId: string
 
   test.beforeAll(async () => {
@@ -41,6 +42,7 @@ test.describe("accessibility (axe) — key screens", () => {
       modules: [{ title: "Módulo 1", requiredBlocks: 1 }],
     })
     courseId = fixture.courseId
+    moduleId = fixture.modules[0]!.id
     lessonId = fixture.modules[0]!.lessonId
 
     await supabaseAdmin.from("course_professors").insert({ course_id: courseId, user_id: professorId })
@@ -155,6 +157,11 @@ test.describe("accessibility (axe) — key screens", () => {
       await loginViaOtp(page, admin.email, "/admin")
       await page.goto(`/admin/courses/${courseId}/content`)
       await assertNoSeriousViolations(page, "/admin/courses/[courseId]/content")
+
+      // Drill-down deep link: the lesson page renders the block list full-width.
+      await page.goto(`/admin/courses/${courseId}/content/${moduleId}/${lessonId}`)
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
+      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/content/[moduleId]/[lessonId]")
     } finally {
       await supabaseAdmin.auth.admin.deleteUser(admin.id)
     }

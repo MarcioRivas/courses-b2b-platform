@@ -1,11 +1,11 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { canEditCourse } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
 import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
+import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { createModuleSchema, type CreateModuleInput } from "../schemas/module-schemas"
@@ -57,8 +57,7 @@ export async function createModule(input: CreateModuleInput): Promise<ActionResu
     metadata: { title: parsed.data.title, courseId: parsed.data.courseId },
   })
 
-  revalidatePath(`/admin/courses/${parsed.data.courseId}/content`)
-  revalidatePath(`/teach/courses/${parsed.data.courseId}/content`)
+  revalidateCourseContent(parsed.data.courseId)
 
   return { ok: true, data: { id: data.id } }
 }

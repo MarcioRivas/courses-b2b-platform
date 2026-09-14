@@ -89,13 +89,13 @@ export function BlockList({ organizationId, courseId, lessonId, blocks, canEdit 
         <ul className="flex flex-col gap-3">
           {blocks.map((block, index) => (
             <li key={block.id} className="rounded-lg border p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <Badge variant="outline">{labels.typePicker[block.type]}</Badge>
                   {block.isRequired && <Badge variant="secondary">{labels.isRequiredLabel}</Badge>}
                 </div>
                 {canEdit && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     <Button variant="ghost" size="icon" disabled={index === 0 || isPending} onClick={() => move(index, -1)} title={labels.moveUp}>
                       <ArrowUpIcon className="size-4" />
                     </Button>

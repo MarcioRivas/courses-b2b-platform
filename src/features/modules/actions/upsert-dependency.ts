@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { canEditCourse } from "@/lib/auth/course-access"
@@ -104,8 +104,7 @@ async function upsertModuleCompletedDependency(
     metadata: { moduleId, dependsOnModuleId, condition: "MODULE_COMPLETED" },
   })
 
-  revalidatePath(`/admin/courses/${courseOfModule}/content`)
-  revalidatePath(`/teach/courses/${courseOfModule}/content`)
+  revalidateCourseContent(courseOfModule)
 
   return { ok: true, data: { id: inserted.id } }
 }
@@ -152,8 +151,7 @@ async function upsertQuizPassedDependency(
     metadata: { moduleId, assessmentId, minScore, condition: "QUIZ_PASSED" },
   })
 
-  revalidatePath(`/admin/courses/${courseOfModule}/content`)
-  revalidatePath(`/teach/courses/${courseOfModule}/content`)
+  revalidateCourseContent(courseOfModule)
 
   return { ok: true, data: { id: inserted.id } }
 }

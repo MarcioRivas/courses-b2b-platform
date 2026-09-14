@@ -1,12 +1,15 @@
+import type { ReactNode } from "react"
 import { InboxIcon, type LucideIcon } from "lucide-react"
 
 interface EmptyStateProps {
   title: string
   description?: string
   icon?: LucideIcon
+  /** Optional CTA (e.g. the "create" dialog trigger) rendered under the copy. */
+  action?: ReactNode
 }
 
-export function EmptyState({ title, description, icon: Icon = InboxIcon }: EmptyStateProps) {
+export function EmptyState({ title, description, icon: Icon = InboxIcon, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed bg-card/60 p-10 text-center">
       <span
@@ -19,6 +22,7 @@ export function EmptyState({ title, description, icon: Icon = InboxIcon }: Empty
         <p className="text-base font-medium">{title}</p>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
+      {action && <div className="mt-1">{action}</div>}
     </div>
   )
 }
