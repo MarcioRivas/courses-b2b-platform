@@ -3,8 +3,8 @@ import { messages } from "@/lib/messages/es"
 
 export default function LoginPage() {
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-base font-semibold">{messages.login.title}</h2>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold tracking-tight">{messages.login.title}</h1>
       <EmailForm mode="login" />
     </div>
   )

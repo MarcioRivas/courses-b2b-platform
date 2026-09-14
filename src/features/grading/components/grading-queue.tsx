@@ -40,7 +40,7 @@ export function GradingQueue({ items, total, page, statusGroup, timeZone, search
       key: "status",
       header: teachGradingMessages.queue.statusHeader,
       cell: (item) => (
-        <Badge variant={item.status === "GRADED" ? "default" : "secondary"}>
+        <Badge variant={item.status === "GRADED" ? "success" : "warning"}>
           {teachGradingMessages.status[item.status]}
         </Badge>
       ),

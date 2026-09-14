@@ -37,33 +37,35 @@ export function ProfileForm({ token }: ProfileFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <FormField
-          control={form.control}
-          name="firstName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{messages.register.firstNameLabel}</FormLabel>
-              <FormControl>
-                <Input autoComplete="given-name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="lastName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{messages.register.lastNameLabel}</FormLabel>
-              <FormControl>
-                <Input autoComplete="family-name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{messages.register.firstNameLabel}</FormLabel>
+                <FormControl>
+                  <Input className="h-11 rounded-xl" autoComplete="given-name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{messages.register.lastNameLabel}</FormLabel>
+                <FormControl>
+                  <Input className="h-11 rounded-xl" autoComplete="family-name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="phone"
@@ -71,7 +73,7 @@ export function ProfileForm({ token }: ProfileFormProps) {
             <FormItem>
               <FormLabel>{messages.register.phoneLabel}</FormLabel>
               <FormControl>
-                <Input type="tel" autoComplete="tel" {...field} />
+                <Input className="h-11 rounded-xl" type="tel" autoComplete="tel" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -84,13 +86,13 @@ export function ProfileForm({ token }: ProfileFormProps) {
             <FormItem>
               <FormLabel>{messages.register.dniLabel}</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input className="h-11 rounded-xl" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" size="lg" className="h-11 rounded-xl" disabled={isPending}>
           {isPending ? messages.common.loading : messages.register.submitProfile}
         </Button>
       </form>

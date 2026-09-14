@@ -1,3 +1,11 @@
+import {
+  BookOpenIcon,
+  Building2Icon,
+  ClipboardListIcon,
+  GraduationCapIcon,
+  UserCheckIcon,
+  UsersIcon,
+} from "lucide-react"
 import { requirePlatformAdmin } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { ErrorState } from "@/components/shared/error-state"
@@ -19,7 +27,7 @@ export default async function PlatformPage() {
   } catch {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title={messages.home.platformTitle} description={description} />
+        <PageHeader icon={Building2Icon} title={messages.home.platformTitle} description={description} />
         <ErrorState title={messages.errors.INTERNAL} />
       </div>
     )
@@ -28,18 +36,18 @@ export default async function PlatformPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={messages.home.platformTitle} description={description} />
+      <PageHeader icon={Building2Icon} title={messages.home.platformTitle} description={description} />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{m.totalsSectionTitle}</h2>
         <StatsGrid
           items={[
-            { key: "organizations", label: m.organizations, value: totals.organizations },
-            { key: "students", label: m.students, value: totals.students },
-            { key: "professors", label: m.professors, value: totals.professors },
-            { key: "courses", label: m.courses, value: totals.courses },
-            { key: "enrollments", label: m.enrollments, value: totals.enrollments },
-            { key: "attempts", label: m.attempts, value: totals.attempts },
+            { key: "organizations", label: m.organizations, value: totals.organizations, icon: Building2Icon },
+            { key: "students", label: m.students, value: totals.students, icon: GraduationCapIcon },
+            { key: "professors", label: m.professors, value: totals.professors, icon: UsersIcon },
+            { key: "courses", label: m.courses, value: totals.courses, icon: BookOpenIcon },
+            { key: "enrollments", label: m.enrollments, value: totals.enrollments, icon: UserCheckIcon },
+            { key: "attempts", label: m.attempts, value: totals.attempts, icon: ClipboardListIcon },
           ]}
         />
       </section>

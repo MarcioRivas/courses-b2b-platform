@@ -11,7 +11,7 @@ export const MODULE_STATES = [
 
 export type ModuleState = (typeof MODULE_STATES)[number]
 
-export type ChipTone = "default" | "secondary" | "outline" | "destructive"
+export type ChipTone = "default" | "secondary" | "outline" | "destructive" | "success" | "brand"
 
 export interface ModuleStateLabel {
   label: string
@@ -21,8 +21,8 @@ export interface ModuleStateLabel {
 }
 
 const LABELS: Record<ModuleState, ModuleStateLabel> = {
-  AVAILABLE: { label: learnMessages.states.AVAILABLE, tone: "default", openable: true },
-  COMPLETED: { label: learnMessages.states.COMPLETED, tone: "secondary", openable: true },
+  AVAILABLE: { label: learnMessages.states.AVAILABLE, tone: "brand", openable: true },
+  COMPLETED: { label: learnMessages.states.COMPLETED, tone: "success", openable: true },
   LOCKED_DEPENDENCY: { label: learnMessages.states.LOCKED_DEPENDENCY, tone: "outline", openable: false },
   UPCOMING: { label: learnMessages.states.UPCOMING, tone: "outline", openable: false },
   EXPIRED: { label: learnMessages.states.EXPIRED, tone: "destructive", openable: false },

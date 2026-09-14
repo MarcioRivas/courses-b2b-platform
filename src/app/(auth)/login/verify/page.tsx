@@ -28,8 +28,8 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-base font-semibold">{messages.login.otpSentTitle}</h2>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold tracking-tight">{messages.login.otpSentTitle}</h1>
       <OtpForm email={email} mode={mode} token={params.token} />
     </div>
   )

@@ -29,13 +29,15 @@ export function QuestionCard({ question, value, disabled, showCorrectness, onCha
   const promptId = `${question.attemptQuestionId}-prompt`
 
   return (
-    <Card id={`q-${question.position}`} className="scroll-mt-20">
+    <Card id={`q-${question.position}`} className="scroll-mt-20 rounded-2xl border shadow-card ring-0">
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
-          <CardTitle>{copy.questionLabel(question.position)}</CardTitle>
+          <CardTitle className="inline-flex w-fit items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300">
+            {copy.questionLabel(question.position)}
+          </CardTitle>
           <div className="flex items-center gap-2">
             {showCorrectness && question.isCorrect !== null && (
-              <Badge variant={question.isCorrect ? "default" : "destructive"}>
+              <Badge variant={question.isCorrect ? "success" : "destructive"}>
                 {question.isCorrect
                   ? learnAssessmentMessages.result.correctAnswer
                   : learnAssessmentMessages.result.incorrectAnswer}

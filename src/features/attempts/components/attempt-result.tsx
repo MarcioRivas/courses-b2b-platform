@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { learnAssessmentMessages } from "@/lib/messages/learn-assessments"
 import { getAttemptResult } from "../queries/get-attempt-result"
@@ -38,7 +39,14 @@ export async function AttemptResult({ snapshot }: AttemptResultProps) {
         <CardContent className="flex flex-col gap-2">
           {graded ? (
             <>
-              <p className="text-2xl font-semibold">{formatScorePercent(scorePercent)}</p>
+              <p
+                className={cn(
+                  "w-fit rounded-2xl px-5 py-3 font-heading text-3xl font-bold tabular-nums",
+                  passed ? "bg-linear-to-br from-primary to-sky-700 text-white" : "bg-muted text-foreground"
+                )}
+              >
+                {formatScorePercent(scorePercent)}
+              </p>
               {scoreLabel && (
                 <p className="text-sm text-muted-foreground">
                   {scoreLabel} — {passed ? copy.passed : copy.notPassed}

@@ -13,7 +13,7 @@ export function ProfessorOverviewList({ courses }: { courses: ProfessorOverviewR
 
   if (courses.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+      <div className="rounded-2xl border bg-card p-5 text-sm text-muted-foreground shadow-card">
         <p className="font-medium text-foreground">{m.emptyTitle}</p>
         <p>{m.emptyDescription}</p>
       </div>

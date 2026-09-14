@@ -14,4 +14,4 @@ next-env.d.ts
 .claude*
 plans*
 docs*
-tests/load/.sessions.json
+tests/load/.sessions.json.vitest/

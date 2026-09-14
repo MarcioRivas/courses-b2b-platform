@@ -12,7 +12,7 @@ interface CourseProgressHeaderProps {
 
 export function CourseProgressHeader({ enrollment, timeZone }: CourseProgressHeaderProps) {
   return (
-    <header className="mb-6 flex flex-col gap-3">
+    <header className="mb-6 flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-card">
       <Link
         href="/learn"
         className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -22,7 +22,7 @@ export function CourseProgressHeader({ enrollment, timeZone }: CourseProgressHea
       </Link>
 
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{enrollment.courseTitle}</h1>
+        <h1 className="font-heading text-xl font-semibold tracking-tight">{enrollment.courseTitle}</h1>
         <p className="text-sm text-muted-foreground">
           {enrollment.offeringName}
           {enrollment.endsAt

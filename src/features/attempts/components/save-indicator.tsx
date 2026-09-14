@@ -20,7 +20,7 @@ export function SaveIndicator({ state, lastSavedAt }: SaveIndicatorProps) {
 
   if (state === "error") {
     return (
-      <span className="flex items-center gap-1.5 text-sm font-medium text-destructive" role="status">
+      <span className="flex items-center gap-1.5 text-sm font-medium text-red-700 dark:text-red-400" role="status">
         <OctagonAlertIcon className="size-4" /> {copy.error}
       </span>
     )
@@ -36,7 +36,7 @@ export function SaveIndicator({ state, lastSavedAt }: SaveIndicatorProps) {
 
   if (state === "saved" && lastSavedAt) {
     return (
-      <span className={cn("flex items-center gap-1.5 text-sm text-muted-foreground")} role="status">
+      <span className={cn("flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-300")} role="status">
         <CheckIcon className="size-4" /> {copy.savedAtPrefix} {formatTime(lastSavedAt)}
       </span>
     )

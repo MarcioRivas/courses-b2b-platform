@@ -55,7 +55,7 @@ export function DataList<T>({
     <>
       <ul className="flex flex-col gap-3 md:hidden">
         {items.map((item) => (
-          <li key={getRowKey(item)} className="rounded-lg border bg-card p-4">
+          <li key={getRowKey(item)} className="rounded-2xl border bg-card p-4 shadow-card">
             <div className="mb-2 flex items-start justify-between gap-2">
               <div className="min-w-0 text-sm font-medium">{titleColumn.cell(item)}</div>
               {columns
@@ -80,9 +80,9 @@ export function DataList<T>({
         ))}
       </ul>
 
-      <div className="hidden rounded-lg border md:block">
+      <div className="hidden overflow-hidden rounded-2xl border bg-card shadow-card md:block">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted/50 text-xs tracking-wider uppercase">
             <TableRow>
               {[titleColumn, ...columns].map((column) => (
                 <TableHead
@@ -96,7 +96,7 @@ export function DataList<T>({
           </TableHeader>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={getRowKey(item)}>
+              <TableRow key={getRowKey(item)} className="hover:bg-muted/60">
                 {[titleColumn, ...columns].map((column) => (
                   <TableCell
                     key={column.key}

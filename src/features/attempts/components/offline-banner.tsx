@@ -12,7 +12,7 @@ export function OfflineBanner({ isOnline }: OfflineBannerProps) {
     <p
       role="status"
       aria-live="polite"
-      className="rounded-md bg-amber-100 p-3 text-sm font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+      className="rounded-xl border border-yellow-300 bg-warning-soft p-3 text-sm font-medium text-yellow-900 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300"
     >
       {messages.connection.offline} — {messages.connection.offlineDescription}
     </p>

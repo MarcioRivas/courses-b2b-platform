@@ -2,9 +2,9 @@ import { Badge } from "@/components/ui/badge"
 import { courseMessages } from "@/lib/messages/admin-courses"
 import type { CourseStatus } from "../types"
 
-const VARIANT: Record<CourseStatus, "secondary" | "default" | "outline"> = {
-  DRAFT: "secondary",
-  PUBLISHED: "default",
+const VARIANT: Record<CourseStatus, "warning" | "success" | "outline"> = {
+  DRAFT: "warning",
+  PUBLISHED: "success",
   ARCHIVED: "outline",
 }
 

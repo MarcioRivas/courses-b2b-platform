@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { GraduationCapIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
@@ -21,6 +22,7 @@ export default async function LearnPage() {
   return (
     <>
       <PageHeader
+        icon={GraduationCapIcon}
         title={learnMessages.dashboard.title}
         description={learnMessages.dashboard.description}
       >

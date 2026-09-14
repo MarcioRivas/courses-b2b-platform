@@ -13,7 +13,7 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
 
   const invalidLink = (
     <div className="flex flex-col gap-2 text-center">
-      <h2 className="text-base font-semibold">{messages.register.invalidLinkTitle}</h2>
+      <h1 className="text-2xl font-semibold tracking-tight">{messages.register.invalidLinkTitle}</h1>
       <p className="text-sm text-muted-foreground">{messages.register.invalidLinkDescription}</p>
     </div>
   )
@@ -31,9 +31,9 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-base font-semibold">{messages.register.title}</h2>
+        <h1 className="text-2xl font-semibold tracking-tight">{messages.register.title}</h1>
         <p className="text-sm text-muted-foreground">
           {messages.register.joiningOrgPrefix} {link.organization_name}.
         </p>

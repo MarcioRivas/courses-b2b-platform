@@ -1,5 +1,8 @@
 import { analyticsMessages } from "@/lib/messages/analytics"
 
+/** Bars cycle through the theme chart tokens unless a datum pins its own colour. */
+const BAR_CLASSES = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5"] as const
+
 export interface BarChartDatum {
   label: string
   value: number
@@ -28,9 +31,9 @@ export function SimpleBarChart({ title, data }: SimpleBarChartProps) {
         {data.map((datum, index) => (
           <div key={index} aria-hidden="true" className="flex items-center gap-2 text-sm">
             <span className="w-32 shrink-0 truncate text-muted-foreground">{datum.label}</span>
-            <div className="h-4 flex-1 overflow-hidden rounded bg-muted">
+            <div className="h-4 flex-1 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded bg-primary"
+                className={`h-full rounded-full ${BAR_CLASSES[index % BAR_CLASSES.length]}`}
                 style={{ width: `${(datum.value / max) * 100}%`, backgroundColor: datum.color }}
               />
             </div>

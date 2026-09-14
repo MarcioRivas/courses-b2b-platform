@@ -95,6 +95,12 @@ test.describe("accessibility (axe) — key screens", () => {
     await cleanupFixtures({ users: [studentId, professorId], courseIds: [courseId], bankIds })
   })
 
+  test("landing page (anonymous)", async ({ page }) => {
+    await page.goto("/")
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
+    await assertNoSeriousViolations(page, "/")
+  })
+
   test("login screen", async ({ page }) => {
     await page.goto("/login")
     await assertNoSeriousViolations(page, "/login")

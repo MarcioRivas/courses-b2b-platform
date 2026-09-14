@@ -20,10 +20,10 @@ export function EnrollmentCard({ enrollment, timeZone }: EnrollmentCardProps) {
   return (
     <Link
       href={`/learn/courses/${enrollment.id}`}
-      className="flex flex-col gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <div className="flex flex-col gap-0.5">
-        <h3 className="font-medium leading-tight">{enrollment.courseTitle}</h3>
+        <h3 className="font-heading font-semibold leading-tight">{enrollment.courseTitle}</h3>
         <p className="truncate text-xs text-muted-foreground">{enrollment.offeringName}</p>
       </div>
 

@@ -26,8 +26,8 @@ export function QuestionNav({ questions, values, answeredCount, totalCount }: Qu
           <a
             key={question.attemptQuestionId}
             href={`#q-${question.position}`}
-            className={`flex size-8 items-center justify-center rounded-md border text-xs font-medium ${
-              answered ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+            className={`flex size-8 items-center justify-center rounded-lg text-xs font-medium transition-colors ${
+              answered ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-brand-soft hover:text-sky-800 dark:hover:bg-sky-950/40 dark:hover:text-sky-300"
             }`}
           >
             {question.position}

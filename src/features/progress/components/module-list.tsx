@@ -1,4 +1,5 @@
 import { formatDateTimeInTimeZone } from "@/lib/dates/format-in-time-zone"
+import { cn } from "@/lib/utils"
 import { learnMessages } from "@/lib/messages/learn"
 import type { StudentModule } from "@/features/enrollments/queries/get-enrollment-course-tree"
 import type { ModuleUnlockState } from "../queries/get-unlock-state"
@@ -36,12 +37,12 @@ export function ModuleList({
         return (
           <li
             key={module.id}
-            className="rounded-lg border bg-card p-4"
+            className={cn("rounded-2xl border bg-card p-5 shadow-card", state === "COMPLETED" && "bg-success-soft/60")}
             aria-disabled={openable ? undefined : true}
           >
             <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="font-medium leading-tight">{module.title}</h3>
+                <h3 className="font-heading font-semibold leading-tight">{module.title}</h3>
                 {module.description && (
                   <p className="mt-0.5 text-sm text-muted-foreground">{module.description}</p>
                 )}

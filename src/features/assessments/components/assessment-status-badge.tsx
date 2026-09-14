@@ -4,7 +4,7 @@ import type { AssessmentStatus } from "../types"
 
 export function AssessmentStatusBadge({ status }: { status: AssessmentStatus }) {
   return (
-    <Badge variant={status === "PUBLISHED" ? "default" : "secondary"}>
+    <Badge variant={status === "PUBLISHED" ? "success" : "warning"}>
       {teachAssessmentMessages.assessments.statuses[status]}
     </Badge>
   )

@@ -8,10 +8,17 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, description, icon: Icon = InboxIcon }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center">
-      <Icon className="size-8 text-muted-foreground" />
-      <p className="text-sm font-medium">{title}</p>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed bg-card/60 p-10 text-center">
+      <span
+        aria-hidden="true"
+        className="grid size-12 place-items-center rounded-2xl bg-brand-soft text-primary"
+      >
+        <Icon className="size-6" />
+      </span>
+      <div className="flex flex-col gap-1">
+        <p className="text-base font-medium">{title}</p>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </div>
     </div>
   )
 }

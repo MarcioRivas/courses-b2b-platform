@@ -49,12 +49,12 @@ export function AttemptTimer({ remainingMs, warningLevel }: AttemptTimerProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium tabular-nums",
+        "flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium tabular-nums",
         warningLevel === "1min" || warningLevel === "expired"
-          ? "border-destructive/40 bg-destructive/5 text-destructive"
+          ? "border-destructive/40 bg-destructive/10 text-red-700 dark:text-red-400"
           : warningLevel === "5min"
             ? "border-amber-400/50 bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300"
-            : "border-border"
+            : "border-transparent bg-brand-soft text-sky-800 dark:bg-sky-950/40 dark:text-sky-300"
       )}
     >
       <span>{copy.label}:</span>

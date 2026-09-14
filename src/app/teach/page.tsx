@@ -1,3 +1,4 @@
+import { PresentationIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { ErrorState } from "@/components/shared/error-state"
@@ -18,7 +19,7 @@ export default async function TeachPage() {
   } catch {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title={ctx.organizationName} description={description} />
+        <PageHeader icon={PresentationIcon} title={ctx.organizationName} description={description} />
         <ErrorState title={messages.errors.INTERNAL} />
       </div>
     )
@@ -26,7 +27,7 @@ export default async function TeachPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={ctx.organizationName} description={description} />
+      <PageHeader icon={PresentationIcon} title={ctx.organizationName} description={description} />
       <ProfessorOverviewList courses={courses} />
     </div>
   )

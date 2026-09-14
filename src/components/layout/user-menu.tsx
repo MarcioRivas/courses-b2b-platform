@@ -33,7 +33,7 @@ export function UserMenu({ userName, userEmail }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={userName} />}>
-        <Avatar size="sm">
+        <Avatar size="sm" className="ring-2 ring-brand-soft">
           <AvatarFallback>{initials || <UserIcon className="size-4" />}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

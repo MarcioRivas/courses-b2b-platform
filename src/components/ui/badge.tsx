@@ -17,6 +17,13 @@ const badgeVariants = cva(
         // contrast-safe shade against the light/dark badge backgrounds.
         destructive:
           "bg-destructive/10 text-red-700 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:text-red-400 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+        // Soft semantic tones: 700-shade text on the 50-shade soft bg (light)
+        // and 300 on 950/40 (dark) keep every chip above 4.5:1.
+        success:
+          "bg-success-soft text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+        brand: "bg-brand-soft text-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
+        warning:
+          "bg-warning-soft text-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-300",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:

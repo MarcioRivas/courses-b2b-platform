@@ -12,10 +12,17 @@ interface ErrorStateProps {
 
 export function ErrorState({ title, description, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
-      <OctagonAlertIcon className="size-8 text-destructive" />
-      <p className="text-sm font-medium">{title}</p>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-destructive/30 bg-card/60 p-10 text-center">
+      <span
+        aria-hidden="true"
+        className="grid size-12 place-items-center rounded-2xl bg-destructive/10 text-destructive"
+      >
+        <OctagonAlertIcon className="size-6" />
+      </span>
+      <div className="flex flex-col gap-1">
+        <p className="text-base font-medium">{title}</p>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </div>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           {messages.common.retry}

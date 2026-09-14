@@ -25,9 +25,9 @@ export function ProgressBar({ percent, completedBlocks, totalBlocks, compact }: 
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuetext={learnMessages.progress.percentLabel(clamped)}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+        className="h-2 w-full overflow-hidden rounded-full bg-muted"
       >
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${clamped}%` }} />
+        <div className="h-full rounded-full bg-linear-to-r from-primary to-brand transition-all" style={{ width: `${clamped}%` }} />
       </div>
       <p className="text-xs text-muted-foreground">
         {learnMessages.progress.percentLabel(clamped)}

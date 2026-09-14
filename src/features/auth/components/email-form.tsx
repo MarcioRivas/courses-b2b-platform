@@ -46,7 +46,7 @@ export function EmailForm({ mode, token }: EmailFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <FormField
           control={form.control}
           name="email"
@@ -55,6 +55,7 @@ export function EmailForm({ mode, token }: EmailFormProps) {
               <FormLabel>{messages.login.emailLabel}</FormLabel>
               <FormControl>
                 <Input
+                  className="h-11 rounded-xl text-base"
                   type="email"
                   autoComplete="email"
                   placeholder={messages.login.emailPlaceholder}
@@ -65,7 +66,7 @@ export function EmailForm({ mode, token }: EmailFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" size="lg" className="h-11 rounded-xl" disabled={isPending}>
           {isPending ? messages.common.loading : messages.login.submit}
         </Button>
       </form>

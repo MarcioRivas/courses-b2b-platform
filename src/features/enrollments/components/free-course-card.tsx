@@ -28,9 +28,9 @@ export function FreeCourseCard({ course }: { course: FreeCourse }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
+    <div className="flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex flex-col gap-1">
-        <h3 className="font-medium leading-tight">{course.title}</h3>
+        <h3 className="font-heading font-semibold leading-tight">{course.title}</h3>
         {course.description && (
           <p className="line-clamp-3 text-sm text-muted-foreground">{course.description}</p>
         )}

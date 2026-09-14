@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { z } from "zod"
+import { MailCheckIcon } from "lucide-react"
 import { otpSchema } from "@/lib/validation/zod-helpers"
 import { messages } from "@/lib/messages/es"
 import { Button } from "@/components/ui/button"
@@ -53,9 +54,12 @@ export function OtpForm({ email, mode, token }: OtpFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <p className="text-sm text-muted-foreground">
-          {messages.login.otpSentDescriptionPrefix} {email}.
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+        <p className="flex items-start gap-2 rounded-xl bg-brand-soft px-3 py-2 text-sm text-brand-foreground">
+          <MailCheckIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          <span>
+            {messages.login.otpSentDescriptionPrefix} <span className="font-medium">{email}</span>.
+          </span>
         </p>
         <FormField
           control={form.control}
@@ -64,16 +68,23 @@ export function OtpForm({ email, mode, token }: OtpFormProps) {
             <FormItem>
               <FormLabel>{messages.login.otpLabel}</FormLabel>
               <FormControl>
-                <Input inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" {...field} />
+                <Input
+                  className="h-12 rounded-xl text-center font-mono text-2xl tracking-[0.5em]"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="000000"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" size="lg" className="h-11 rounded-xl" disabled={isPending}>
           {isPending ? messages.common.loading : messages.login.verify}
         </Button>
-        <Button type="button" variant="ghost" onClick={handleResend} disabled={isPending}>
+        <Button type="button" variant="link" onClick={handleResend} disabled={isPending}>
           {messages.login.resend}
         </Button>
       </form>

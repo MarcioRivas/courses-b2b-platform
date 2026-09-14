@@ -15,7 +15,7 @@ export default async function CompleteRegistrationPage({ params }: CompleteRegis
   if (!parsedToken.success) {
     return (
       <div className="flex flex-col gap-2 text-center">
-        <h2 className="text-base font-semibold">{messages.register.invalidLinkTitle}</h2>
+        <h1 className="text-2xl font-semibold tracking-tight">{messages.register.invalidLinkTitle}</h1>
         <p className="text-sm text-muted-foreground">{messages.register.invalidLinkDescription}</p>
       </div>
     )
@@ -31,8 +31,8 @@ export default async function CompleteRegistrationPage({ params }: CompleteRegis
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-base font-semibold">{messages.register.profileTitle}</h2>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold tracking-tight">{messages.register.profileTitle}</h1>
       <ProfileForm token={parsedToken.data} />
     </div>
   )
