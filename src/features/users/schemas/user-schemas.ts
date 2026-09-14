@@ -17,16 +17,16 @@ export type MemberFilters = z.infer<typeof memberFiltersSchema>
 
 /** Thin wrapper input over `set_membership_role` (P1 RPC, D24). */
 export const setMemberRoleSchema = z.object({
-  membershipId: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  membershipId: z.guid(),
+  organizationId: z.guid(),
   role: membershipRoleSchema,
 })
 export type SetMemberRoleInput = z.infer<typeof setMemberRoleSchema>
 
 /** Thin wrapper input over `set_membership_status` (P1 RPC, D24/D29). */
 export const setMemberStatusSchema = z.object({
-  membershipId: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  membershipId: z.guid(),
+  organizationId: z.guid(),
   status: membershipStatusSchema,
 })
 export type SetMemberStatusInput = z.infer<typeof setMemberStatusSchema>

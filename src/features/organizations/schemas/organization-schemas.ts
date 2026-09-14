@@ -21,13 +21,13 @@ export const createOrganizationSchema = z.object({
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>
 
 export const updateOrganizationSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.guid(),
   name: orgNameSchema,
 })
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>
 
 export const setOrganizationStatusSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.guid(),
   status: z.enum(["ACTIVE", "INACTIVE"]),
 })
 export type SetOrganizationStatusInput = z.infer<typeof setOrganizationStatusSchema>
@@ -44,7 +44,7 @@ export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>
 
 export const scoreRangeSchema = z
   .object({
-    id: z.string().uuid().optional(),
+    id: z.guid().optional(),
     label: z.string().trim().min(1, "Ingresá una etiqueta.").max(40, "Máximo 40 caracteres."),
     minScore: z.number().int().min(0, "Mínimo 0.").max(100, "Máximo 100."),
     maxScore: z.number().int().min(0, "Mínimo 0.").max(100, "Máximo 100."),
@@ -56,5 +56,5 @@ export const scoreRangeSchema = z
   })
 export type ScoreRangeInput = z.infer<typeof scoreRangeSchema>
 
-export const deleteScoreRangeSchema = z.object({ id: z.string().uuid() })
+export const deleteScoreRangeSchema = z.object({ id: z.guid() })
 export type DeleteScoreRangeInput = z.infer<typeof deleteScoreRangeSchema>

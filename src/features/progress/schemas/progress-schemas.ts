@@ -1,8 +1,8 @@
 import { z } from "zod"
 
 export const toggleBlockCompletionSchema = z.object({
-  enrollmentId: z.string().uuid(),
-  blockId: z.string().uuid(),
+  enrollmentId: z.guid(),
+  blockId: z.guid(),
   completed: z.boolean(),
 })
 

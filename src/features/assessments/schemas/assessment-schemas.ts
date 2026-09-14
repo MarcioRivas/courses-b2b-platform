@@ -11,7 +11,7 @@ const optionalDateTimeLocal = z
   .or(z.literal(""))
 
 export const createAssessmentSchema = z.object({
-  courseId: z.string().uuid(),
+  courseId: z.guid(),
   title: titleSchema,
   kind: kindSchema,
 })
@@ -55,7 +55,7 @@ const optionalPositiveIntString = z
   .or(z.literal(""))
 
 const baseUpdateFields = {
-  assessmentId: z.string().uuid(),
+  assessmentId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
   kind: kindSchema,
@@ -87,27 +87,27 @@ export const updateAssessmentSchema = z
   })
 export type UpdateAssessmentInput = z.infer<typeof updateAssessmentSchema>
 
-export const publishAssessmentSchema = z.object({ assessmentId: z.string().uuid() })
+export const publishAssessmentSchema = z.object({ assessmentId: z.guid() })
 export type PublishAssessmentInput = z.infer<typeof publishAssessmentSchema>
 
-export const deleteAssessmentSchema = z.object({ assessmentId: z.string().uuid() })
+export const deleteAssessmentSchema = z.object({ assessmentId: z.guid() })
 export type DeleteAssessmentInput = z.infer<typeof deleteAssessmentSchema>
 
 const fixedQuestionSchema = z.object({
-  questionId: z.string().uuid(),
+  questionId: z.guid(),
   points: z.coerce.number().positive("Los puntos deben ser mayores a 0.").max(1000),
 })
 
 export const setAssessmentQuestionsSchema = z.object({
-  assessmentId: z.string().uuid(),
+  assessmentId: z.guid(),
   fixedQuestions: z.array(fixedQuestionSchema).max(200),
-  randomBankId: z.string().uuid().optional(),
+  randomBankId: z.guid().optional(),
   randomCount: z.coerce.number().int().positive().optional(),
 })
 export type SetAssessmentQuestionsInput = z.infer<typeof setAssessmentQuestionsSchema>
 
 export const extendWindowSchema = z.object({
-  assessmentId: z.string().uuid(),
+  assessmentId: z.guid(),
   newUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Fecha inválida."),
 })
 export type ExtendWindowInput = z.infer<typeof extendWindowSchema>

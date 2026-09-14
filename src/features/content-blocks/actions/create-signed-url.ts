@@ -7,7 +7,7 @@ import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
 
 const createSignedUrlSchema = z.object({
-  blockId: z.string().uuid(),
+  blockId: z.guid(),
   path: z.string().min(1),
 })
 

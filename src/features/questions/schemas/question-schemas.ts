@@ -4,14 +4,14 @@ const nameSchema = z.string().trim().min(2, "Ingresá al menos 2 caracteres.").m
 const descriptionSchema = z.string().trim().max(500, "Máximo 500 caracteres.").optional().or(z.literal(""))
 
 export const createBankSchema = z.object({
-  courseId: z.string().uuid().optional(),
+  courseId: z.guid().optional(),
   name: nameSchema,
   description: descriptionSchema,
 })
 export type CreateBankInput = z.infer<typeof createBankSchema>
 
 export const updateBankSchema = z.object({
-  bankId: z.string().uuid(),
+  bankId: z.guid(),
   name: nameSchema,
   description: descriptionSchema,
 })
@@ -50,19 +50,19 @@ export const questionFormSchema = z.discriminatedUnion("type", [
 export type QuestionFormInput = z.infer<typeof questionFormSchema>
 
 export const createQuestionSchema = z.object({
-  questionBankId: z.string().uuid(),
+  questionBankId: z.guid(),
   question: questionFormSchema,
 })
 export type CreateQuestionInput = z.infer<typeof createQuestionSchema>
 
 export const updateQuestionSchema = z.object({
-  questionId: z.string().uuid(),
+  questionId: z.guid(),
   question: questionFormSchema,
 })
 export type UpdateQuestionInput = z.infer<typeof updateQuestionSchema>
 
 export const setQuestionActiveSchema = z.object({
-  questionId: z.string().uuid(),
+  questionId: z.guid(),
   isActive: z.boolean(),
 })
 export type SetQuestionActiveInput = z.infer<typeof setQuestionActiveSchema>

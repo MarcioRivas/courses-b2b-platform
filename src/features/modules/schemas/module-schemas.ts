@@ -9,25 +9,25 @@ const descriptionSchema = z
   .or(z.literal(""))
 
 export const createModuleSchema = z.object({
-  courseId: z.string().uuid(),
+  courseId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
 })
 export type CreateModuleInput = z.infer<typeof createModuleSchema>
 
 export const updateModuleSchema = z.object({
-  moduleId: z.string().uuid(),
+  moduleId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
 })
 export type UpdateModuleInput = z.infer<typeof updateModuleSchema>
 
-export const deleteModuleSchema = z.object({ moduleId: z.string().uuid() })
+export const deleteModuleSchema = z.object({ moduleId: z.guid() })
 export type DeleteModuleInput = z.infer<typeof deleteModuleSchema>
 
 export const reorderModulesSchema = z.object({
-  courseId: z.string().uuid(),
-  orderedIds: z.array(z.string().uuid()).min(1),
+  courseId: z.guid(),
+  orderedIds: z.array(z.guid()).min(1),
 })
 export type ReorderModulesInput = z.infer<typeof reorderModulesSchema>
 
@@ -39,17 +39,17 @@ export type ReorderModulesInput = z.infer<typeof reorderModulesSchema>
 export const upsertDependencySchema = z.discriminatedUnion("condition", [
   z.object({
     condition: z.literal("MODULE_COMPLETED"),
-    moduleId: z.string().uuid(),
-    dependsOnModuleId: z.string().uuid(),
+    moduleId: z.guid(),
+    dependsOnModuleId: z.guid(),
   }),
   z.object({
     condition: z.literal("QUIZ_PASSED"),
-    moduleId: z.string().uuid(),
-    assessmentId: z.string().uuid(),
+    moduleId: z.guid(),
+    assessmentId: z.guid(),
     minScore: z.coerce.number().int().min(0).max(100),
   }),
 ])
 export type UpsertDependencyInput = z.infer<typeof upsertDependencySchema>
 
-export const deleteDependencySchema = z.object({ dependencyId: z.string().uuid() })
+export const deleteDependencySchema = z.object({ dependencyId: z.guid() })
 export type DeleteDependencyInput = z.infer<typeof deleteDependencySchema>

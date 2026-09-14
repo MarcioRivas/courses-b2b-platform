@@ -11,8 +11,8 @@ import { attemptRpcErrorResult } from "../lib/errors"
 import type { SubmitAttemptResult } from "../types"
 
 const inputSchema = z.object({
-  attemptId: z.string().uuid(),
-  sessionId: z.string().uuid(),
+  attemptId: z.guid(),
+  sessionId: z.guid(),
   answers: z.array(answerSchema).max(100).optional(),
 })
 

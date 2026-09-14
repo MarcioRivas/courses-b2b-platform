@@ -29,7 +29,7 @@ interface AdminAnalyticsPageProps {
 export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
   const ctx = await requireOrgRole(["ADMIN"])
   const sp = await searchParams
-  const selectedAssessmentId = z.string().uuid().safeParse(firstParam(sp.assessment)).data ?? null
+  const selectedAssessmentId = z.guid().safeParse(firstParam(sp.assessment)).data ?? null
 
   let overview, courses, professors, assessments, distribution, settings
   try {

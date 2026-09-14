@@ -23,19 +23,19 @@ export const createCourseSchema = z.object({
 export type CreateCourseInput = z.infer<typeof createCourseSchema>
 
 export const updateCourseSchema = z.object({
-  courseId: z.string().uuid(),
+  courseId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
   accessType: accessTypeSchema,
 })
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>
 
-export const courseIdSchema = z.object({ courseId: z.string().uuid() })
+export const courseIdSchema = z.object({ courseId: z.guid() })
 export type CourseIdInput = z.infer<typeof courseIdSchema>
 
 export const assignProfessorSchema = z.object({
-  courseId: z.string().uuid(),
-  userId: z.string().uuid(),
+  courseId: z.guid(),
+  userId: z.guid(),
 })
 export type AssignProfessorInput = z.infer<typeof assignProfessorSchema>
 

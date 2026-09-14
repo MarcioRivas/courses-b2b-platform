@@ -30,7 +30,7 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
   const { assessmentId } = await params
   const { enrollment: enrollmentIdParam } = await searchParams
 
-  const parsedEnrollmentId = z.string().uuid().safeParse(enrollmentIdParam)
+  const parsedEnrollmentId = z.guid().safeParse(enrollmentIdParam)
   if (!parsedEnrollmentId.success) {
     notFound()
   }

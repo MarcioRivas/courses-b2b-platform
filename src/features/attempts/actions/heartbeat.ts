@@ -9,7 +9,7 @@ import { heartbeatSchema } from "../schemas/attempt-schemas"
 import { attemptRpcErrorResult } from "../lib/errors"
 import type { HeartbeatResult } from "../types"
 
-const inputSchema = heartbeatSchema.extend({ attemptId: z.string().uuid() })
+const inputSchema = heartbeatSchema.extend({ attemptId: z.guid() })
 
 export type HeartbeatInput = z.infer<typeof inputSchema>
 

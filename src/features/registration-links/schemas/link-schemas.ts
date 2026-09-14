@@ -5,7 +5,7 @@ export const linkRoleSchema = z.enum(["STUDENT", "PROFESSOR", "ADMIN"])
 export type LinkRole = z.infer<typeof linkRoleSchema>
 
 export const createLinkSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.guid(),
   label: z.string().trim().min(1, "Ingresá una etiqueta.").max(120, "Máximo 120 caracteres."),
   role: linkRoleSchema,
   /** `YYYY-MM-DD` from a date input; the action converts it to end-of-day ISO. */
@@ -14,14 +14,14 @@ export const createLinkSchema = z.object({
 export type CreateLinkInput = z.infer<typeof createLinkSchema>
 
 export const toggleLinkSchema = z.object({
-  linkId: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  linkId: z.guid(),
+  organizationId: z.guid(),
   isActive: z.boolean(),
 })
 export type ToggleLinkInput = z.infer<typeof toggleLinkSchema>
 
 export const revokeLinkSchema = z.object({
-  linkId: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  linkId: z.guid(),
+  organizationId: z.guid(),
 })
 export type RevokeLinkInput = z.infer<typeof revokeLinkSchema>

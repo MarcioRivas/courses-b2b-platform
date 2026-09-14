@@ -30,8 +30,8 @@ export default async function TeachGradingPage({ searchParams }: TeachGradingPag
   // Low fix (review 260913, cycle 2): PostgREST already fails closed on a
   // malformed uuid filter, but validating here avoids a wasted round trip and
   // silently ignores a garbage value instead of surfacing a raw PG error.
-  const courseId = z.string().uuid().safeParse(firstParam(sp.courseId)).data
-  const assessmentId = z.string().uuid().safeParse(firstParam(sp.assessmentId)).data
+  const courseId = z.guid().safeParse(firstParam(sp.courseId)).data
+  const assessmentId = z.guid().safeParse(firstParam(sp.assessmentId)).data
 
   const [courses, settings, { items, total }] = await Promise.all([
     listProfessorCourses(ctx.user.id),

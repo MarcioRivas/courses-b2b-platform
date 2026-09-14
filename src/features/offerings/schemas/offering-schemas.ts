@@ -10,36 +10,36 @@ const optionalDateTimeLocal = z
 const nameSchema = z.string().trim().min(2, "Ingresá al menos 2 caracteres.").max(120, "Máximo 120 caracteres.")
 
 export const createOfferingSchema = z.object({
-  courseId: z.string().uuid(),
+  courseId: z.guid(),
   name: nameSchema,
-  groupId: z.string().uuid().optional(),
+  groupId: z.guid().optional(),
   startsAt: optionalDateTimeLocal,
   endsAt: optionalDateTimeLocal,
 })
 export type CreateOfferingInput = z.infer<typeof createOfferingSchema>
 
 export const updateOfferingSchema = z.object({
-  offeringId: z.string().uuid(),
+  offeringId: z.guid(),
   name: nameSchema,
-  groupId: z.string().uuid().optional(),
+  groupId: z.guid().optional(),
   startsAt: optionalDateTimeLocal,
   endsAt: optionalDateTimeLocal,
 })
 export type UpdateOfferingInput = z.infer<typeof updateOfferingSchema>
 
 export const setOfferingStatusSchema = z.object({
-  offeringId: z.string().uuid(),
+  offeringId: z.guid(),
   status: z.enum(["ACTIVE", "CANCELLED"]),
 })
 export type SetOfferingStatusInput = z.infer<typeof setOfferingStatusSchema>
 
 export const upsertModuleScheduleSchema = z.object({
-  offeringId: z.string().uuid(),
-  moduleId: z.string().uuid(),
+  offeringId: z.guid(),
+  moduleId: z.guid(),
   availableFrom: optionalDateTimeLocal,
   availableUntil: optionalDateTimeLocal,
 })
 export type UpsertModuleScheduleInput = z.infer<typeof upsertModuleScheduleSchema>
 
-export const syncEnrollmentsSchema = z.object({ offeringId: z.string().uuid() })
+export const syncEnrollmentsSchema = z.object({ offeringId: z.guid() })
 export type SyncEnrollmentsInput = z.infer<typeof syncEnrollmentsSchema>

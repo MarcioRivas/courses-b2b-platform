@@ -9,24 +9,24 @@ const descriptionSchema = z
   .or(z.literal(""))
 
 export const createLessonSchema = z.object({
-  moduleId: z.string().uuid(),
+  moduleId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
 })
 export type CreateLessonInput = z.infer<typeof createLessonSchema>
 
 export const updateLessonSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
 })
 export type UpdateLessonInput = z.infer<typeof updateLessonSchema>
 
-export const deleteLessonSchema = z.object({ lessonId: z.string().uuid() })
+export const deleteLessonSchema = z.object({ lessonId: z.guid() })
 export type DeleteLessonInput = z.infer<typeof deleteLessonSchema>
 
 export const reorderLessonsSchema = z.object({
-  moduleId: z.string().uuid(),
-  orderedIds: z.array(z.string().uuid()).min(1),
+  moduleId: z.guid(),
+  orderedIds: z.array(z.guid()).min(1),
 })
 export type ReorderLessonsInput = z.infer<typeof reorderLessonsSchema>

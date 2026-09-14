@@ -45,7 +45,7 @@ export const externalLinkBlockDataSchema = z.object({
 })
 
 export const assessmentBlockDataSchema = z.object({
-  assessmentId: z.string().uuid("Elegí una evaluación."),
+  assessmentId: z.guid("Elegí una evaluación."),
 })
 
 export const contentBlockDataSchema = z.discriminatedUnion("type", [
@@ -61,25 +61,25 @@ export type ContentBlockData = z.infer<typeof contentBlockDataSchema>
 export type OfferableBlockType = ContentBlockData["type"]
 
 export const createContentBlockSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.guid(),
   isRequired: z.boolean(),
   block: contentBlockDataSchema,
 })
 export type CreateContentBlockInput = z.infer<typeof createContentBlockSchema>
 
 export const updateContentBlockSchema = z.object({
-  blockId: z.string().uuid(),
+  blockId: z.guid(),
   isRequired: z.boolean(),
   block: contentBlockDataSchema,
 })
 export type UpdateContentBlockInput = z.infer<typeof updateContentBlockSchema>
 
-export const deleteContentBlockSchema = z.object({ blockId: z.string().uuid() })
+export const deleteContentBlockSchema = z.object({ blockId: z.guid() })
 export type DeleteContentBlockInput = z.infer<typeof deleteContentBlockSchema>
 
 export const reorderContentBlocksSchema = z.object({
-  lessonId: z.string().uuid(),
-  orderedIds: z.array(z.string().uuid()).min(1),
+  lessonId: z.guid(),
+  orderedIds: z.array(z.guid()).min(1),
 })
 export type ReorderContentBlocksInput = z.infer<typeof reorderContentBlocksSchema>
 

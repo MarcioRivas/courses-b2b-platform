@@ -6,7 +6,7 @@ import { z } from "zod"
  * the edge instead of letting Postgres 22007 reach the page (L2).
  */
 export const auditLogFiltersSchema = z.object({
-  organizationId: z.string().uuid().optional(),
+  organizationId: z.guid().optional(),
   actor: z.string().trim().min(1).max(120).optional(),
   action: z.string().trim().min(1).max(100).optional(),
   entityType: z.string().trim().min(1).max(100).optional(),

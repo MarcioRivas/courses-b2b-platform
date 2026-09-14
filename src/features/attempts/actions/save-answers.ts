@@ -9,7 +9,7 @@ import { saveAnswersSchema } from "../schemas/attempt-schemas"
 import { attemptRpcErrorResult } from "../lib/errors"
 import type { AcceptedAnswer, SaveAnswersResult } from "../types"
 
-const inputSchema = saveAnswersSchema.extend({ attemptId: z.string().uuid() })
+const inputSchema = saveAnswersSchema.extend({ attemptId: z.guid() })
 
 export type SaveAnswersInput = z.infer<typeof inputSchema>
 

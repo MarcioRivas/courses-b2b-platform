@@ -9,8 +9,8 @@ import { messages } from "@/lib/messages/es"
 import { attemptRpcErrorResult } from "../lib/errors"
 
 const startAttemptSchema = z.object({
-  enrollmentId: z.string().uuid(),
-  assessmentId: z.string().uuid(),
+  enrollmentId: z.guid(),
+  assessmentId: z.guid(),
 })
 
 export type StartAttemptInput = z.infer<typeof startAttemptSchema>

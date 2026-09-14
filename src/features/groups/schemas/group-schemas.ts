@@ -20,23 +20,23 @@ export const createGroupSchema = z.object({
 export type CreateGroupInput = z.infer<typeof createGroupSchema>
 
 export const updateGroupSchema = z.object({
-  groupId: z.string().uuid(),
+  groupId: z.guid(),
   name: groupNameSchema,
   description: groupDescriptionSchema,
 })
 export type UpdateGroupInput = z.infer<typeof updateGroupSchema>
 
-export const deleteGroupSchema = z.object({ groupId: z.string().uuid() })
+export const deleteGroupSchema = z.object({ groupId: z.guid() })
 export type DeleteGroupInput = z.infer<typeof deleteGroupSchema>
 
 export const addGroupMembersSchema = z.object({
-  groupId: z.string().uuid(),
-  userIds: z.array(z.string().uuid()).min(1, "Seleccioná al menos un estudiante."),
+  groupId: z.guid(),
+  userIds: z.array(z.guid()).min(1, "Seleccioná al menos un estudiante."),
 })
 export type AddGroupMembersInput = z.infer<typeof addGroupMembersSchema>
 
 export const removeGroupMemberSchema = z.object({
-  groupId: z.string().uuid(),
-  userId: z.string().uuid(),
+  groupId: z.guid(),
+  userId: z.guid(),
 })
 export type RemoveGroupMemberInput = z.infer<typeof removeGroupMemberSchema>
