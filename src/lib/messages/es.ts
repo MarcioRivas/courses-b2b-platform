@@ -104,6 +104,10 @@ export const messages = {
     title: "Página no encontrada",
     description: "La página que buscás no existe.",
   },
+  connection: {
+    offline: "Conexión no disponible",
+    offlineDescription: "Tus respuestas quedan guardadas en este dispositivo y se sincronizan al volver la conexión.",
+  },
   errors: {
     UNAUTHENTICATED: "Necesitás iniciar sesión.",
     FORBIDDEN: "No tenés permiso para esta acción.",

@@ -36,6 +36,7 @@ test("every org-admin screen renders without hitting the error boundary", async 
   await expectRouteRenders(page, "/admin/settings", "Configuración")
   await expectRouteRenders(page, "/admin/settings/score-scale", "Escala de puntajes")
   await expectRouteRenders(page, "/admin/analytics", "Estadísticas")
+  await expectRouteRenders(page, "/admin/audit", "Registro de auditoría")
 })
 
 test("the dashboard counts the organization's seeded members and groups", async () => {
@@ -95,6 +96,17 @@ test("org admin creates a group, adds a student, and the list shows the new coun
   const listRow = page.getByRole("row").filter({ hasText: groupName })
   await expect(listRow).toBeVisible()
   await expect(listRow).toContainText("1 miembro")
+})
+
+test("audit log shows filters and the group creation event just performed", async () => {
+  await page.goto("/admin/audit")
+
+  await expect(page.getByRole("heading", { name: "Registro de auditoría" })).toBeVisible()
+  await expect(page.getByPlaceholder("Buscar por usuario…")).toBeVisible()
+
+  // The group created two tests ago went through `logAudit` (D28) — it must
+  // show up here, scoped to org B, with an expandable metadata detail.
+  await expect(page.getByText("Grupo creado").first()).toBeVisible()
 })
 
 test("analytics page displays all four sections for org admin (Phase 6)", async () => {

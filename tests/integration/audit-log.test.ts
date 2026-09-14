@@ -23,7 +23,11 @@ describe("audit_logs write path (D28)", () => {
       entity_type: "organization_membership",
     })
     expect(error?.code).toBe("42501")
-    expect(error?.message).toContain("row-level security policy")
+    // Phase 7 (20260913160000_audit_indexes.sql) revokes the INSERT grant
+    // outright (D28 belt-and-suspenders), so Postgres now denies at the
+    // privilege check before RLS is even consulted — "permission denied",
+    // not "row-level security policy".
+    expect(error?.message).toContain("permission denied")
   })
 
   it("log_audit from a non-member of that org fails", async () => {

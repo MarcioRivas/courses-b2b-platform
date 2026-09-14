@@ -8,9 +8,11 @@ import { submitAttempt } from "../actions/submit-attempt"
 import { useAttemptSession } from "../hooks/use-attempt-session"
 import { useAttemptTimer } from "../hooks/use-attempt-timer"
 import { useAutosave } from "../hooks/use-autosave"
+import { useOnlineStatus } from "../hooks/use-online-status"
 import { countAnswered } from "../lib/count-answered"
 import type { AttemptSnapshot, AttemptStatus } from "../types"
 import { AttemptTimer } from "./attempt-timer"
+import { OfflineBanner } from "./offline-banner"
 import { QuestionCard } from "./question-card"
 import { QuestionNav } from "./question-nav"
 import { SaveIndicator } from "./save-indicator"
@@ -31,6 +33,7 @@ interface AttemptPlayerProps {
  */
 export function AttemptPlayer({ attemptId, initialSnapshot }: AttemptPlayerProps) {
   const router = useRouter()
+  const isOnline = useOnlineStatus()
   const [finalizing, setFinalizing] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -141,6 +144,8 @@ export function AttemptPlayer({ attemptId, initialSnapshot }: AttemptPlayerProps
           <AttemptTimer remainingMs={timer.remainingMs} warningLevel={timer.warningLevel} />
         </div>
       </div>
+
+      <OfflineBanner isOnline={isOnline} />
 
       {expireError && (
         <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">

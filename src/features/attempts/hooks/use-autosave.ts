@@ -86,23 +86,31 @@ export function useAutosave({ attemptId, sessionId, initialQuestions, readOnly, 
     const sent = Array.from(dirtyRef.current.values())
     const payload = toAnswerPayload(dirtyRef.current)
 
-    const result = await runSaveWithRetry(() => saveAnswers({ attemptId, sessionId, answers: payload }))
+    try {
+      const result = await runSaveWithRetry(() => saveAnswers({ attemptId, sessionId, answers: payload }))
 
-    if (result.ok) {
-      dirtyRef.current = reconcileAccepted(dirtyRef.current, sent, result.data.accepted)
-      seqCounters.current = raiseSeqCounters(seqCounters.current, result.data.accepted)
-      saveStoredAnswers(attemptId, Array.from(dirtyRef.current.values()))
-      onSyncRef.current({
-        serverNow: result.data.serverNow,
-        effectiveEndAt: result.data.effectiveEndAt,
-        status: result.data.status,
-      })
-      setSaveState("saved")
-      setLastSavedAt(new Date())
-    } else {
-      if (result.code === "LOCKED") {
-        onLockedRef.current?.()
+      if (result.ok) {
+        dirtyRef.current = reconcileAccepted(dirtyRef.current, sent, result.data.accepted)
+        seqCounters.current = raiseSeqCounters(seqCounters.current, result.data.accepted)
+        saveStoredAnswers(attemptId, Array.from(dirtyRef.current.values()))
+        onSyncRef.current({
+          serverNow: result.data.serverNow,
+          effectiveEndAt: result.data.effectiveEndAt,
+          status: result.data.status,
+        })
+        setSaveState("saved")
+        setLastSavedAt(new Date())
+      } else {
+        if (result.code === "LOCKED") {
+          onLockedRef.current?.()
+        }
+        setSaveState("error")
       }
+    } catch {
+      // The Server Action call itself rejected (offline / DNS / connection
+      // reset) rather than resolving an `ActionResult` — §53 offline
+      // handling. `dirtyRef` is untouched, so the next flush (debounce,
+      // force-interval, or reconnect) retries with the answers still queued.
       setSaveState("error")
     }
     flushingRef.current = false

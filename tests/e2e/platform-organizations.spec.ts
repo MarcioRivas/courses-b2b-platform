@@ -28,6 +28,7 @@ test("every platform screen renders without hitting the error boundary", async (
   await expectRouteRenders(page, "/platform", "Plataforma")
   await expectRouteRenders(page, "/platform/organizations", "Organizaciones")
   await expectRouteRenders(page, "/platform/organizations/new", "Nueva organización")
+  await expectRouteRenders(page, "/platform/audit", "Registro de auditoría")
 })
 
 test("platform admin creates an organization and gets the one-time ADMIN link (D23)", async () => {

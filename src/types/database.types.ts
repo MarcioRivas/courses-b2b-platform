@@ -1992,6 +1992,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      shares_active_org: { Args: { p_user: string }; Returns: boolean }
       start_attempt: {
         Args: { p_assessment: string; p_enrollment: string }
         Returns: string

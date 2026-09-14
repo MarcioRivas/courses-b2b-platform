@@ -8,7 +8,13 @@ import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
 import { reorderModulesSchema, type ReorderModulesInput } from "../schemas/module-schemas"
 
-/** Wraps `reorder_modules`: one call, the full ordered id list (partial lists are rejected server-side). */
+/**
+ * Wraps `reorder_modules`: one call, the full ordered id list (partial lists
+ * are rejected server-side). The RPC itself writes the audit row (L10) — it
+ * has the course's organization in hand, so a dual-role platform admin
+ * reordering another org's course still attributes the row to that org, not
+ * the caller's own (M1). Do not re-add `logAudit` here.
+ */
 export async function reorderModules(input: ReorderModulesInput): Promise<ActionResult<void>> {
   const parsed = reorderModulesSchema.safeParse(input)
   if (!parsed.success) {

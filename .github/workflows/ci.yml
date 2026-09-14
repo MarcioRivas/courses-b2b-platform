@@ -1,9 +1,5 @@
 name: CI
 
-# E2E (Playwright) is intentionally excluded from CI for now — it needs a running
-# `next dev`/`next start` server wired to OTP helpers; tracked for a later phase.
-# This workflow only runs Vitest (unit + integration) against local Supabase.
-
 on:
   push:
     branches: [main]
@@ -66,3 +62,63 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Write .env.local from supabase status
+        run: |
+          supabase status -o env > /tmp/supabase-status.env
+          set -a
+          source /tmp/supabase-status.env
+          set +a
+          cat <<EOF > .env.local
+          NEXT_PUBLIC_SUPABASE_URL=$API_URL
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
+          SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY
+          NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
+          RESEND_API_KEY=not-used-in-ci
+          EOF
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Reset database + seed
+        run: pnpm db:reset
+
+      - name: Build (production)
+        run: pnpm build
+
+      - name: Start app
+        run: pnpm start &
+
+      - name: Wait for the app to be reachable
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000 -o /dev/null && exit 0
+            sleep 2
+          done
+          echo "app did not come up on :3000" >&2
+          exit 1
+
+      - name: Run E2E + accessibility tests
+        run: pnpm test:e2e

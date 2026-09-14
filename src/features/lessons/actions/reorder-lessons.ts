@@ -8,6 +8,7 @@ import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
 import { reorderLessonsSchema, type ReorderLessonsInput } from "../schemas/lesson-schemas"
 
+/** The RPC writes the audit row itself (L10/M1) — do not re-add `logAudit` here. */
 export async function reorderLessons(input: ReorderLessonsInput): Promise<ActionResult<void>> {
   const parsed = reorderLessonsSchema.safeParse(input)
   if (!parsed.success) {

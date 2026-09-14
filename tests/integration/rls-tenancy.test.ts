@@ -54,24 +54,25 @@ describe("organization_memberships has no client write policy (D24)", () => {
       .insert({ organization_id: ORG_A, user_id: studentB.id, role: "STUDENT" })
     expect(insert.error).not.toBeNull()
 
-    // No UPDATE/DELETE policy exists at all, so Postgres RLS makes the target
-    // rows invisible to the command (0 rows affected, no explicit error) rather
-    // than raising — assert nothing changed instead of expecting an error.
+    // Phase 7 hardening (20260913170000_security_hardening.sql) revoked the
+    // stray table-level UPDATE/DELETE grants to `authenticated` on this table
+    // (belt-and-suspenders for D24: no policy already denied these, but a
+    // bare GRANT with no matching policy used to fail silently — 0 rows, no
+    // error — which is easy to mistake for "it worked". Without the grant,
+    // Postgres now raises immediately instead.
     const update = await adminA.client
       .from("organization_memberships")
       .update({ role: "PROFESSOR" })
       .eq("user_id", studentA.id)
       .select("id")
-    expect(update.error).toBeNull()
-    expect(update.data).toHaveLength(0)
+    expect(update.error?.code).toBe("42501")
 
     const del = await adminA.client
       .from("organization_memberships")
       .delete()
       .eq("user_id", studentA.id)
       .select("id")
-    expect(del.error).toBeNull()
-    expect(del.data).toHaveLength(0)
+    expect(del.error?.code).toBe("42501")
 
     const { data: unchanged } = await supabaseAdmin
       .from("organization_memberships")

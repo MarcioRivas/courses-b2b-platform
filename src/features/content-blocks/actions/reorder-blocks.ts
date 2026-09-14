@@ -8,6 +8,7 @@ import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
 import { reorderContentBlocksSchema, type ReorderContentBlocksInput } from "../schemas/content-block-schemas"
 
+/** The RPC writes the audit row itself (L10/M1) — do not re-add `logAudit` here. */
 export async function reorderBlocks(input: ReorderContentBlocksInput): Promise<ActionResult<void>> {
   const parsed = reorderContentBlocksSchema.safeParse(input)
   if (!parsed.success) {

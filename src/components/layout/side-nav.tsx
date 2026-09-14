@@ -6,6 +6,7 @@ import { courseMessages } from "@/lib/messages/admin-courses"
 import { learnMessages } from "@/lib/messages/learn"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { analyticsMessages } from "@/lib/messages/analytics"
+import { auditMessages } from "@/lib/messages/audit"
 import type { Database } from "@/types/database.types"
 
 /** No org switcher (B7): a "platform admin" is not org-scoped, everyone else has one role. */
@@ -20,6 +21,7 @@ export const NAV_ITEMS: Record<AppRole, NavItem[]> = {
   PLATFORM_ADMIN: [
     { label: messages.nav.platformHome, href: "/platform" },
     { label: messages.nav.platformAdmin, href: "/platform/organizations" },
+    { label: auditMessages.nav.title, href: "/platform/audit" },
   ],
   ADMIN: [
     { label: messages.nav.admin, href: "/admin" },
@@ -27,6 +29,7 @@ export const NAV_ITEMS: Record<AppRole, NavItem[]> = {
     { label: messages.nav.groups, href: "/admin/groups" },
     { label: courseMessages.nav.courses, href: "/admin/courses" },
     { label: analyticsMessages.nav.title, href: "/admin/analytics" },
+    { label: auditMessages.nav.title, href: "/admin/audit" },
     { label: messages.nav.links, href: "/admin/links" },
     { label: messages.nav.settings, href: "/admin/settings" },
   ],

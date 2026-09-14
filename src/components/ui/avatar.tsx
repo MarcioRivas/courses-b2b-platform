@@ -45,7 +45,9 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+        // `text-muted-foreground` on `bg-muted` measures 4.34:1 at this size —
+        // just under the 4.5:1 WCAG AA threshold for normal text (a11y review).
+        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-foreground group-data-[size=sm]/avatar:text-xs",
         className
       )}
       {...props}

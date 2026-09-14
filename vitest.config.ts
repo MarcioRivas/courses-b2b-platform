@@ -45,6 +45,19 @@ export default defineConfig({
           setupFiles: ["tests/setup-dom.ts"],
         },
       },
+      {
+        test: {
+          name: "security",
+          environment: "node",
+          include: ["tests/security/**/*.test.ts"],
+          setupFiles: ["tests/setup-env.ts"],
+          // The RLS matrix alone drives ~500 role × table × op round trips
+          // through a real local Supabase/Postgres — same rationale as the
+          // integration project's 60s budget.
+          testTimeout: 60000,
+          fileParallelism: false,
+        },
+      },
     ],
   },
 })
