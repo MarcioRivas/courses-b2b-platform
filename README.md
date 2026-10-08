@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ENECourses
 
-## Getting Started
+Multi-tenant LMS for sports organizations (clubs, federations). Next.js 16 (App Router) + Supabase (Postgres, Auth, Storage, RLS).
 
-First, run the development server:
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local      # fill with values from `supabase status`
+supabase start                  # local Supabase (Docker)
+pnpm db:reset                   # migrations + supabase/seed.sql + seed users
+pnpm seed:demo                  # optional: demo courses, edition and enrollments
+pnpm dev                        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> `pnpm db:reset` wipes the database. Re-run `pnpm seed:demo` after every reset if you want the demo courses back.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Other scripts: `pnpm typecheck`, `pnpm lint`, `pnpm test` (vitest), `pnpm test:e2e` (Playwright), `pnpm gen:types`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Logging in
 
-## Learn More
+There are no passwords. Login is a **6-digit email code (OTP)**:
 
-To learn more about Next.js, take a look at the following resources:
+1. Go to `/login` and enter one of the emails below.
+2. Open the local mail inbox at **http://localhost:54324** (Inbucket/Mailpit), find the email for that address and copy the code.
+3. Enter the code on `/login/verify`. You are sent to your role's home page.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+If http://localhost:54324 refuses the connection, local Supabase isn't running. Start Docker, run `supabase start` and wait for the containers to report healthy (`supabase status`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Login never creates accounts — an unknown email gets "user not found". New accounts are only created through a registration link (see [Registration](#registration-new-students)).
 
-## Deploy on Vercel
+## Test users
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+All users are created by `scripts/seed-users.ts` (run as part of `pnpm db:reset`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Email | Name | Role | Organization | Home |
+|---|---|---|---|---|
+| `super@enecourses.test` | Super Admin | Platform admin | — (all orgs) | `/platform` |
+| `admin@club-a.test` | Ana Admin | Admin | Club Atlético Demo | `/admin` |
+| `prof@club-a.test` | Pablo Profesor | Professor | Club Atlético Demo | `/teach` |
+| `alum1@club-a.test` | Alumno Uno | Student (Grupo Principal) | Club Atlético Demo | `/learn` |
+| `alum2@club-a.test` | Alumno Dos | Student (Grupo Principal) | Club Atlético Demo | `/learn` |
+| `alum3@club-a.test` | Alumno Tres | Student (Grupo Principal) | Club Atlético Demo | `/learn` |
+| `admin@fed-b.test` | Beatriz Admin | Admin | Federación Demo | `/admin` |
+| `prof@fed-b.test` | Bruno Profesor | Professor | Federación Demo | `/teach` |
+| `alum1@fed-b.test` | Alumna Uno | Student (Grupo Principal) | Federación Demo | `/learn` |
+| `alum2@fed-b.test` | Alumna Dos | Student (Grupo Principal) | Federación Demo | `/learn` |
+| `alum3@fed-b.test` | Alumna Tres | Student (Grupo Principal) | Federación Demo | `/learn` |
+
+Use the two organizations to check tenant isolation: nothing from Club Atlético Demo should ever be visible to a Federación Demo user, and vice versa.
+
+### Seed data
+
+From `supabase/seed.sql` (always present after `pnpm db:reset`):
+
+- Organizations **Club Atlético Demo** and **Federación Demo**, timezone `America/Montevideo`, default passing score 60.
+- Score scale per org: Excelente (90–100), Muy bueno (80–89), Bueno (70–79), No aprobado (0–69).
+- One group per org, **Grupo Principal**.
+- One active registration link per org (role Student, expires 30 days after reset): `demo-link-org-a`, `demo-link-org-b`.
+
+From `pnpm seed:demo` (optional):
+
+| Course | Org | Status | Notes |
+|---|---|---|---|
+| Preparación Física Base | Club Atlético Demo | Published | 3 modules, 4 lessons. Includes published Tarea "Plan semanal de entrenamiento" (up to 2 files, deadline 14 days from seed, late submissions allowed). `prof@club-a.test` assigned. Edition **Cohorte 2026** for Grupo Principal (90 days), so the three `alum*@club-a.test` are enrolled. |
+| Nutrición Deportiva | Club Atlético Demo | Draft, empty | Use it to check that publishing a course without content is refused. |
+| Reglamento y Arbitraje | Federación Demo | Published | Use it to check tenant isolation. No professor or edition. |
+
+## Flows by role
+
+Users are sent to one home page based on their role. Opening another role's area redirects to `/forbidden`. A user with no active membership goes to `/register-required`.
+
+### Platform admin — `super@enecourses.test`
+
+| Area | Route | What you can do |
+|---|---|---|
+| Dashboard | `/platform` | Platform-wide stats across organizations |
+| Organizations | `/platform/organizations` | List orgs; create one (`/platform/organizations/new`) |
+| Organization detail | `/platform/organizations/[orgId]` | Edit the org, activate/suspend it, see its stats |
+| Audit | `/platform/audit` | Audit log across all orgs, filterable by org, action, user and date |
+
+### Admin — `admin@club-a.test`, `admin@fed-b.test`
+
+| Area | Route | What you can do |
+|---|---|---|
+| Dashboard | `/admin` | Org stats |
+| Members | `/admin/members`, `/admin/members/[userId]` | View members; change role (Admin/Professor/Student); activate/deactivate |
+| Groups | `/admin/groups`, `/admin/groups/[groupId]` | Create, edit and delete groups; add/remove members |
+| Courses | `/admin/courses`, `/admin/courses/new` | Create, edit, publish, archive and delete courses |
+| Course content | `/admin/courses/[id]/content` → module → lesson | Drill-down builder: modules (with prerequisite dependencies), lessons, content blocks (text, YouTube video, external link, file); reorder everything |
+| Professors | `/admin/courses/[id]/professors` | Assign/unassign professors to a course |
+| Editions (Ediciones) | `/admin/courses/[id]/offerings`, `.../offerings/[offeringId]` | Create course editions (for a group or open), set dates and per-module schedule, change status, sync enrollments with the group roster |
+| Analytics | `/admin/analytics` | Org, course, professor and assessment stats; score distribution |
+| Audit | `/admin/audit` | Org audit log with filters |
+| Registration links | `/admin/links` | Create links (role, label, expiry), enable/disable, revoke |
+| Settings | `/admin/settings`, `/admin/settings/score-scale` | Timezone and default passing score; edit score scale ranges |
+
+### Professor — `prof@club-a.test`, `prof@fed-b.test`
+
+Only courses the professor is assigned to are visible. After `pnpm seed:demo`, `prof@club-a.test` has **Preparación Física Base**. `prof@fed-b.test` has no course until an admin assigns one.
+
+| Area | Route | What you can do |
+|---|---|---|
+| Dashboard | `/teach` | Stats for the professor's courses |
+| Courses | `/teach/courses` | Assigned courses |
+| Course content | `/teach/courses/[id]/content` → module → lesson | Same content builder as the admin, limited to assigned courses |
+| Assessments (Quiz/Exam) | `/teach/courses/[id]/assessments`, `.../new`, `.../[assessmentId]` | Create and edit question-based assessments, pick questions, publish, extend the time window for students, delete |
+| Tareas (File Submissions) | `/teach/courses/[id]/assessments/new` (kind=TASK) | Create a Tarea: write instructions, set max files (1–10), set deadline, allow late submissions; publish |
+| Question banks | `/teach/banks`, `/teach/banks/[bankId]` | Create and edit banks; create and edit questions; activate/deactivate questions |
+| Grading | `/teach/grading`, `/teach/grading/[attemptId]` | Queue of submitted attempts (Tareas hidden until deadline passes); grade open answers + Tarea submissions (0–100 + feedback); leave feedback |
+
+### Student — `alum*@club-a.test`, `alum*@fed-b.test`
+
+After `pnpm seed:demo`, the `alum*@club-a.test` students are enrolled in **Preparación Física Base**. The `alum*@fed-b.test` students have no enrollments.
+
+| Area | Route | What you can do |
+|---|---|---|
+| My courses | `/learn` | Enrolled courses with progress |
+| Catalog | `/learn/catalog` | Browse open courses and self-enroll |
+| Course | `/learn/courses/[enrollmentId]` | Modules and lessons; prerequisite and schedule locks |
+| Lesson | `/learn/courses/[enrollmentId]/lessons/[lessonId]` | View content blocks; mark blocks complete (drives progress) |
+| Quiz / Exam attempt | `/learn/assessments/[assessmentId]/start` | Assessment rules, then start an attempt |
+| Quiz / Exam player | `/learn/attempts/[attemptId]` | Answer questions (autosave, timer, offline banner), submit; see the score with its scale label, retry if allowed, return to the course |
+| Tarea | `/learn/assessments/[assessmentId]/start?enrollment=…` (from the lesson's "Ver tarea" button) | Read the consigna, upload PDF/image/Office files (≤20 MB each), replace until the deadline; status "Entregada"; marked "Fuera de plazo" if submitted late |
+| Tarea result | same page, once graded | See score, label and the professor's feedback |
+
+Answer options are shuffled per attempt, so their order changes between attempts. A Tarea can only be graded after its deadline; to try grading the demo one, move its deadline into the past.
+
+### Registration (new students)
+
+1. Log out and open `http://localhost:3000/register/demo-link-org-a` (or `demo-link-org-b`).
+2. Enter an email that doesn't exist yet and get the code from http://localhost:54324.
+3. Fill in the profile on `/register/[token]/complete`. The new user joins that organization with the link's role (Student) and lands on `/learn`.
+
+An admin can create more links, including for other roles, from `/admin/links`. Expired, disabled or revoked links are refused.
+
+## End-to-end test idea
+
+1. **Professor** (`prof@club-a.test`): in Preparación Física Base, create a question bank with questions, then create and publish an assessment.
+2. **Student** (`alum1@club-a.test`): open the course, complete the lessons, take the assessment and submit it.
+3. **Professor**: grade any open answers in `/teach/grading`.
+4. **Student**: check the result.
+5. **Admin** (`admin@club-a.test`): check `/admin/analytics` and `/admin/audit`.
+6. **Isolation**: log in as `admin@fed-b.test` and confirm none of the above is visible.
+
+## Docs
+
+More detail in [`docs/`](docs/): [architecture](docs/architecture.md), [authorization](docs/authorization.md), [domain model](docs/domain-model.md), [database schema](docs/database-schema.md), [assessment design](docs/assessment-design.md), [code standards](docs/code-standards.md), [roadmap](docs/roadmap.md).
