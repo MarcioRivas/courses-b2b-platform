@@ -360,20 +360,31 @@ async function main(): Promise<void> {
   console.log("seeded 2 in-video checkpoints (0:20, 0:45) on the edition's first video")
   console.log("seeded PUBLISHED task 'Plan semanal de entrenamiento' (hasta 2 archivos, fecha límite en 14 días)")
 
+  // Second edition "Cohorte 2026 B": own group, content copied from "Cohorte 2026" (same path create_offering uses).
+  const { data: groupB2, error: groupB2Error } = await admin
+    .from("groups")
+    // Upsert so `pnpm seed:demo` can be re-run without a reset (groups are unique per org + name).
+    .upsert({ organization_id: ORG_A, name: "Grupo Cohorte 2026 B" }, { onConflict: "organization_id,name" })
+    .select("id")
+    .single()
+  if (groupB2Error || !groupB2) throw groupB2Error ?? new Error("group not created")
   const { data: offering, error: offeringError } = await admin
     .from("course_offerings")
     .insert({
       course_id: physicalId,
       organization_id: ORG_A,
       kind: "GROUP",
-      group_id: GROUP_A,
-      name: "Cohorte 2026",
+      group_id: groupB2.id,
+      name: "Cohorte 2026 B",
       starts_at: new Date().toISOString(),
       ends_at: new Date(Date.now() + 90 * 86_400_000).toISOString(),
     })
     .select("id")
     .single()
   if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+  const { error: copyError } = await admin.rpc("copy_edition_content", { p_source: editionId, p_target: offering.id })
+  if (copyError) throw copyError
+  console.log("seeded edition 'Cohorte 2026 B' (own group, content copied from 'Cohorte 2026', evaluations as DRAFT)")
 
   const professorId = await findUserIdByEmail("prof@club-a.test")
   const { error: professorError } = await admin

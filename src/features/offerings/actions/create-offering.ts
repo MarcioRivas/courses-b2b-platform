@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { logAudit } from "@/lib/audit/log"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
@@ -13,11 +12,10 @@ import { localDateTimeToUtcIso } from "../lib/local-datetime"
 import { createOfferingSchema, type CreateOfferingInput } from "../schemas/offering-schemas"
 
 /**
- * `kind` is derived from `courses.access_type`, never client-chosen (D25):
- * PRIVATE courses get a GROUP offering (group required), FREE courses an
- * OPEN one. `publish_course` already auto-creates the single OPEN offering
- * for a FREE course (D13) — the partial unique index rejects a second one
- * with 23505, which `toActionError` maps to a plain CONFLICT.
+ * Creates a GROUP edition through the `create_offering` RPC (admin-only,
+ * one transaction: insert + optional `copy_edition_content` from
+ * `fromOfferingId`, audit written server-side). FREE courses keep their
+ * single OPEN edition managed by `publish_course`; the RPC refuses them.
  */
 export async function createOffering(input: CreateOfferingInput): Promise<ActionResult<{ id: string }>> {
   const parsed = createOfferingSchema.safeParse(input)
@@ -43,9 +41,11 @@ export async function createOffering(input: CreateOfferingInput): Promise<Action
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
 
-  const kind = course.access_type === "PRIVATE" ? "GROUP" : "OPEN"
+  if (course.access_type !== "PRIVATE") {
+    return { ok: false, code: "CONFLICT", message: messages.errors.OFFERING_KIND_MISMATCH }
+  }
 
-  if (kind === "GROUP" && !parsed.data.groupId) {
+  if (!parsed.data.groupId) {
     return { ok: false, code: "VALIDATION", message: offeringMessages.errors.groupRequired }
   }
 
@@ -58,39 +58,20 @@ export async function createOffering(input: CreateOfferingInput): Promise<Action
     return { ok: false, code: "VALIDATION", message: offeringMessages.errors.dateRangeInvalid }
   }
 
-  const { data, error } = await supabase
-    .from("course_offerings")
-    .insert({
-      course_id: course.id,
-      organization_id: course.organization_id,
-      kind,
-      group_id: kind === "GROUP" ? (parsed.data.groupId ?? null) : null,
-      name: parsed.data.name,
-      starts_at: startsAt,
-      ends_at: endsAt,
-    })
-    .select("id")
-    .single()
-
-  if (error || !data) {
-    return { ok: false, ...toActionError(error) }
-  }
-
-  await logAudit({
-    organizationId: ctx.organizationId,
-    action: "offering.created",
-    entityType: "course_offering",
-    entityId: data.id,
-    metadata: { courseId: course.id, kind },
+  const { data: offeringId, error } = await supabase.rpc("create_offering", {
+    p_course: course.id,
+    p_name: parsed.data.name,
+    p_group: parsed.data.groupId,
+    p_starts: startsAt ?? undefined,
+    p_ends: endsAt ?? undefined,
+    p_from_offering: parsed.data.fromOfferingId,
   })
 
-  // Materialise the roster immediately for GROUP offerings rather than
-  // waiting for the next group membership change.
-  if (kind === "GROUP") {
-    await supabase.rpc("sync_offering_enrollments", { p_offering: data.id })
+  if (error || !offeringId) {
+    return { ok: false, ...toActionError(error) }
   }
 
   revalidatePath(`/admin/courses/${course.id}/offerings`)
 
-  return { ok: true, data: { id: data.id } }
+  return { ok: true, data: { id: offeringId } }
 }

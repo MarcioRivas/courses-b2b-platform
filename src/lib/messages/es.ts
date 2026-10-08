@@ -130,5 +130,11 @@ export const messages = {
     CROSS_EDITION_LINK: "No se puede vincular contenido de ediciones distintas.",
     ACCESS_TYPE_LOCKED: "El tipo de acceso no se puede cambiar una vez que el curso tiene ediciones.",
     OFFERING_KIND_MISMATCH: "El tipo de edición no corresponde al tipo de acceso del curso.",
+    COPY_DIFFERENT_COURSE: "Solo se puede copiar de una edición del mismo curso.",
+    TARGET_NOT_EMPTY: "La edición de destino ya tiene contenido.",
+    TARGET_CANCELLED: "No se puede copiar contenido a una edición cancelada.",
+    GROUP_REQUIRED: "Elegí un grupo de la organización.",
+    NAME_INVALID: "El nombre debe tener entre 2 y 120 caracteres.",
+    DATE_RANGE_INVALID: "La fecha de inicio debe ser anterior a la de fin.",
   },
 } as const

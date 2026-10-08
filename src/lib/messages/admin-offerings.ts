@@ -59,7 +59,18 @@ export const offeringMessages = {
     startsAtLabel: "Fecha de inicio",
     endsAtLabel: "Fecha de fin",
     saved: "Edición guardada.",
+    created: "Edición creada.",
+    content: {
+      label: "Contenido",
+      empty: "Edición vacía",
+      copy: "Copiar de otra edición",
+      sourceLabel: "Edición de origen",
+      sourcePlaceholder: "Seleccioná una edición…",
+      hint: "Se copian módulos, lecciones, bloques y evaluaciones (en borrador). No se copian profesores, estudiantes ni calendario.",
+      sourceRequired: "Seleccioná la edición de origen.",
+    },
   },
+  copiedHint: "Las evaluaciones copiadas quedaron en borrador: revisá fechas y publicalas.",
   statusForm: {
     label: "Estado",
     saved: "Estado actualizado.",

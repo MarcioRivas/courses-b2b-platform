@@ -56,6 +56,12 @@ const DB_RULE_MARKERS = [
   "CROSS_EDITION_LINK",
   "ACCESS_TYPE_LOCKED",
   "OFFERING_KIND_MISMATCH",
+  "COPY_DIFFERENT_COURSE",
+  "TARGET_NOT_EMPTY",
+  "TARGET_CANCELLED",
+  "GROUP_REQUIRED",
+  "NAME_INVALID",
+  "DATE_RANGE_INVALID",
 ] as const
 
 /** Maps unknown errors (RPC/PostgREST/auth) to a safe `ActionResult` error shape. */

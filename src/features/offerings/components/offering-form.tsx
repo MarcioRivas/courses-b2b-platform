@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, type ReactElement } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -22,7 +23,8 @@ import { createOffering } from "../actions/create-offering"
 import { updateOffering } from "../actions/update-offering"
 import { createOfferingSchema, type CreateOfferingInput } from "../schemas/offering-schemas"
 import { utcIsoToLocalDateTimeInput } from "../lib/local-datetime"
-import type { OfferingDetail, OrgGroupOption } from "../types"
+import type { OfferingDetail, OfferingSourceOption, OrgGroupOption } from "../types"
+import { OfferingContentSourceField } from "./offering-content-source-field"
 
 interface OfferingFormProps {
   trigger: ReactElement
@@ -31,6 +33,7 @@ interface OfferingFormProps {
   /** PRIVATE courses require a group (kind = GROUP); FREE courses get the auto-managed OPEN offering. */
   courseAccessType: "FREE" | "PRIVATE"
   groups: OrgGroupOption[]
+  sources?: OfferingSourceOption[]
   timeZone: string
   offering?: Pick<OfferingDetail, "id" | "name" | "groupId" | "startsAt" | "endsAt">
 }
@@ -41,11 +44,14 @@ export function OfferingForm({
   courseId,
   courseAccessType,
   groups,
+  sources = [],
   timeZone,
   offering,
 }: OfferingFormProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+  const [copyMode, setCopyMode] = useState(false)
   const isGroupKind = courseAccessType === "PRIVATE"
 
   const form = useForm<CreateOfferingInput>({
@@ -60,20 +66,33 @@ export function OfferingForm({
   })
 
   function onSubmit(values: CreateOfferingInput) {
+    const fromOfferingId = mode === "create" && copyMode ? values.fromOfferingId : undefined
+    if (mode === "create" && copyMode && !fromOfferingId) {
+      form.setError("fromOfferingId", { message: offeringMessages.form.content.sourceRequired })
+      return
+    }
     startTransition(async () => {
-      const result =
-        mode === "create"
-          ? await createOffering(values)
-          : await updateOffering({
-              offeringId: offering!.id,
-              name: values.name,
-              groupId: values.groupId,
-              startsAt: values.startsAt,
-              endsAt: values.endsAt,
-            })
+      if (mode === "create") {
+        const created = await createOffering({ ...values, fromOfferingId })
+        if (!created.ok) {
+          toast.error(created.message)
+          return
+        }
+        setOpen(false)
+        toast.success(offeringMessages.form.created)
+        router.push(`/admin/courses/${courseId}/offerings/${created.data.id}${fromOfferingId ? "?copied=1" : ""}`)
+        return
+      }
 
-      if (!result.ok) {
-        toast.error(result.message)
+      const updated = await updateOffering({
+        offeringId: offering!.id,
+        name: values.name,
+        groupId: values.groupId,
+        startsAt: values.startsAt,
+        endsAt: values.endsAt,
+      })
+      if (!updated.ok) {
+        toast.error(updated.message)
         return
       }
       toast.success(offeringMessages.form.saved)
@@ -157,6 +176,14 @@ export function OfferingForm({
                 </FormItem>
               )}
             />
+            {mode === "create" && (
+              <OfferingContentSourceField
+                control={form.control}
+                sources={sources}
+                copyMode={copyMode}
+                onCopyModeChange={setCopyMode}
+              />
+            )}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
                 {messages.common.cancel}

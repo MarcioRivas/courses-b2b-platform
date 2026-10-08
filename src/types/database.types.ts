@@ -2035,6 +2035,17 @@ export type Database = {
         }
         Returns: string
       }
+      create_offering: {
+        Args: {
+          p_course: string
+          p_ends?: string
+          p_from_offering?: string
+          p_group: string
+          p_name: string
+          p_starts?: string
+        }
+        Returns: string
+      }
       create_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: {

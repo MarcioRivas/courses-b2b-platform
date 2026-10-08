@@ -15,6 +15,8 @@ export const createOfferingSchema = z.object({
   groupId: z.guid().optional(),
   startsAt: optionalDateTimeLocal,
   endsAt: optionalDateTimeLocal,
+  /** Edition to copy content from; omitted = empty edition. */
+  fromOfferingId: z.guid().optional(),
 })
 export type CreateOfferingInput = z.infer<typeof createOfferingSchema>
 

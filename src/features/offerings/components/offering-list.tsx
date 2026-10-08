@@ -82,16 +82,19 @@ export async function OfferingList({ courseId, courseAccessType, organizationId,
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
-        <OfferingForm
-          mode="create"
-          courseId={courseId}
-          courseAccessType={courseAccessType}
-          groups={groups}
-          timeZone={timeZone}
-          trigger={<Button>{offeringMessages.list.createAction}</Button>}
-        />
-      </div>
+      {courseAccessType === "PRIVATE" && (
+        <div className="flex justify-end">
+          <OfferingForm
+            mode="create"
+            courseId={courseId}
+            courseAccessType={courseAccessType}
+            groups={groups}
+            sources={items.map((offering) => ({ id: offering.id, name: offering.name }))}
+            timeZone={timeZone}
+            trigger={<Button>{offeringMessages.list.createAction}</Button>}
+          />
+        </div>
+      )}
       <DataList
         items={items}
         titleColumn={titleColumn}

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { messages } from "@/lib/messages/es"
 import { courseMessages } from "@/lib/messages/admin-courses"
@@ -20,11 +21,13 @@ import { OfferingStatusControl } from "./_components/offering-status-control"
 
 interface OfferingDetailPageProps {
   params: Promise<{ courseId: string; offeringId: string }>
+  searchParams: Promise<{ copied?: string }>
 }
 
-export default async function OfferingDetailPage({ params }: OfferingDetailPageProps) {
+export default async function OfferingDetailPage({ params, searchParams }: OfferingDetailPageProps) {
   const ctx = await requireOrgRole(["ADMIN"])
   const { courseId, offeringId } = await params
+  const { copied } = await searchParams
 
   const offering = await getOffering(offeringId)
   if (!offering || offering.organizationId !== ctx.organizationId || offering.courseId !== courseId) {
@@ -72,6 +75,12 @@ export default async function OfferingDetailPage({ params }: OfferingDetailPageP
       </PageHeader>
 
       <OfferingTabs courseId={courseId} offeringId={offeringId} active="detalle" />
+
+      {copied === "1" && (
+        <Alert>
+          <AlertDescription>{offeringMessages.copiedHint}</AlertDescription>
+        </Alert>
+      )}
 
       <section className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
         <h2 className="font-medium">{offeringMessages.detail.groupLabel}</h2>

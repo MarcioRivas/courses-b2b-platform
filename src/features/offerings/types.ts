@@ -35,6 +35,11 @@ export interface OrgGroupOption {
   name: string
 }
 
+export interface OfferingSourceOption {
+  id: string
+  name: string
+}
+
 export interface ModuleScheduleRow {
   moduleId: string
   moduleTitle: string

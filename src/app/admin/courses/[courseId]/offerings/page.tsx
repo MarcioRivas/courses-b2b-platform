@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
@@ -6,6 +6,7 @@ import { courseMessages } from "@/lib/messages/admin-courses"
 import { getCourse } from "@/features/courses/queries/get-course"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
 import { CourseTabs } from "@/features/courses/components/course-tabs"
+import { listOfferings } from "@/features/offerings/queries/list-offerings"
 import { OfferingList } from "@/features/offerings/components/offering-list"
 
 interface CourseOfferingsPageProps {
@@ -19,6 +20,12 @@ export default async function CourseOfferingsPage({ params }: CourseOfferingsPag
   const course = await getCourse(courseId)
   if (!course || course.organizationId !== ctx.organizationId) {
     return notFound()
+  }
+
+  // FREE courses have a single OPEN edition: go straight to it.
+  if (course.accessType === "FREE") {
+    const [open] = await listOfferings(courseId)
+    if (open) redirect(`/admin/courses/${courseId}/offerings/${open.id}`)
   }
 
   const settings = await getOrgSettings(ctx.organizationId)
