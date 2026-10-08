@@ -178,7 +178,7 @@ test("an offering for a group enrolls that group's students", async () => {
 
   // The offering form is admin-only and derives kind from the course access
   // type; PRIVATE is the default, so this is a GROUP offering.
-  // The offerings page is headed by the course title; "Ofertas" is the section.
+  // The offerings page is headed by the course title; "Ediciones" is the section.
   await page.goto(`/admin/courses/${courseId}/offerings`)
   await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible()
 

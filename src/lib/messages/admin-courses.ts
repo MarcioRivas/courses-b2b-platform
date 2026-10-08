@@ -35,7 +35,7 @@ export const courseMessages = {
   detail: {
     detailTab: "Detalle",
     professorsTab: "Profesores",
-    offeringsTab: "Ofertas",
+    offeringsTab: "Ediciones",
     contentTab: "Contenido",
     publishAction: "Publicar",
     archiveAction: "Archivar",

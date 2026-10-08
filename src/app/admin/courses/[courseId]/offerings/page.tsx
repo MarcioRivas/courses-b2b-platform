@@ -16,7 +16,7 @@ interface CourseOfferingsPageProps {
 const TABS = [
   { key: "detalle", label: courseMessages.detail.detailTab, segment: "" },
   { key: "profesores", label: courseMessages.detail.professorsTab, segment: "professors" },
-  { key: "ofertas", label: courseMessages.detail.offeringsTab, segment: "offerings" },
+  { key: "ediciones", label: courseMessages.detail.offeringsTab, segment: "offerings" },
   { key: "contenido", label: courseMessages.detail.contentTab, segment: "content" },
 ] as const
 
@@ -41,10 +41,10 @@ export default async function CourseOfferingsPage({ params }: CourseOfferingsPag
           <Link
             key={tab.key}
             href={tab.segment ? `${basePath}/${tab.segment}` : basePath}
-            aria-current={tab.key === "ofertas" ? "page" : undefined}
+            aria-current={tab.key === "ediciones" ? "page" : undefined}
             className={cn(
               "-mb-px border-b-2 px-3 py-2 text-sm font-medium",
-              tab.key === "ofertas"
+              tab.key === "ediciones"
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             )}

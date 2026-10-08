@@ -95,7 +95,7 @@ export const landingMessages = {
         icon: "admin",
         title: "Administrador",
         description: "Gestioná la organización de punta a punta.",
-        bullets: ["Miembros, grupos y links de registro", "Cursos, ofertas e inscripciones", "Analíticas y registro de auditoría"],
+        bullets: ["Miembros, grupos y links de registro", "Cursos, ediciones e inscripciones", "Analíticas y registro de auditoría"],
       },
       {
         icon: "teacher",

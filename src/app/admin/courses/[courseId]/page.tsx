@@ -20,7 +20,7 @@ interface CourseDetailPageProps {
 const TABS = [
   { key: "detalle", label: courseMessages.detail.detailTab, segment: "" },
   { key: "profesores", label: courseMessages.detail.professorsTab, segment: "professors" },
-  { key: "ofertas", label: courseMessages.detail.offeringsTab, segment: "offerings" },
+  { key: "ediciones", label: courseMessages.detail.offeringsTab, segment: "offerings" },
   { key: "contenido", label: courseMessages.detail.contentTab, segment: "content" },
 ] as const
 

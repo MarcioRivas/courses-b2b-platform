@@ -39,7 +39,7 @@ export const groupMessages = {
     noResults: "No se encontraron estudiantes con ese nombre.",
   },
   errors: {
-    deleteConflict: "No se puede eliminar el grupo porque tiene ofertas de curso asociadas.",
+    deleteConflict: "No se puede eliminar el grupo porque tiene ediciones de curso asociadas.",
     invalidMember: "Solo podés agregar estudiantes activos de tu organización.",
     memberNotInGroup: "Ese estudiante ya no forma parte del grupo.",
     duplicateName: "Ya existe un grupo con ese nombre.",
