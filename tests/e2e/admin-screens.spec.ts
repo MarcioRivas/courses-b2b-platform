@@ -77,10 +77,11 @@ test("org admin creates a group, adds a student, and the list shows the new coun
   await page.getByLabel("Descripción").fill("Creado por la prueba E2E")
   await page.getByRole("button", { name: "Guardar" }).click()
 
-  const groupLink = page.getByRole("link", { name: groupName })
-  await expect(groupLink).toBeVisible()
+  // The row's only action is "Ver" (base-ui link-buttons render role=button).
+  const newRow = page.getByRole("row").filter({ hasText: groupName })
+  await expect(newRow).toBeVisible()
 
-  await groupLink.click()
+  await newRow.getByRole("button", { name: "Ver" }).click()
   await page.waitForURL(/\/admin\/groups\/[0-9a-f-]{36}$/)
   await expect(page.getByRole("heading", { name: groupName })).toBeVisible()
   await expect(page.getByText("Este grupo todavía no tiene miembros.")).toBeVisible()
@@ -96,6 +97,13 @@ test("org admin creates a group, adds a student, and the list shows the new coun
   const listRow = page.getByRole("row").filter({ hasText: groupName })
   await expect(listRow).toBeVisible()
   await expect(listRow).toContainText("1 miembro")
+
+  // Deleting lives on the group page, next to "Editar", and returns to the list.
+  await listRow.getByRole("button", { name: "Ver" }).click()
+  await page.getByRole("button", { name: "Eliminar", exact: true }).first().click()
+  await page.getByRole("dialog").getByRole("button", { name: "Eliminar" }).click()
+  await page.waitForURL(/\/admin\/groups$/)
+  await expect(page.getByRole("row").filter({ hasText: groupName })).toHaveCount(0)
 })
 
 test("audit log shows filters and the group creation event just performed", async () => {

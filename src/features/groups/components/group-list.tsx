@@ -2,13 +2,11 @@ import Link from "next/link"
 import { DataList, type DataListColumn } from "@/components/shared/data-list"
 import { Pagination } from "@/components/shared/pagination"
 import { SearchInput } from "@/components/shared/search-input"
-import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { messages } from "@/lib/messages/es"
 import { groupMessages } from "@/lib/messages/admin-groups"
 import { buildListHref } from "@/lib/search-params"
 import { listGroups, GROUPS_PAGE_SIZE } from "../queries/list-groups"
-import { deleteGroup } from "../actions/delete-group"
 import type { GroupListItem } from "../types"
 import { GroupForm } from "./group-form"
 
@@ -29,11 +27,7 @@ export async function GroupList({ organizationId, basePath, searchParams }: Grou
   const titleColumn: DataListColumn<GroupListItem> = {
     key: "name",
     header: groupMessages.list.nameHeader,
-    cell: (group) => (
-      <Link href={`/admin/groups/${group.id}`} className="hover:underline">
-        {group.name}
-      </Link>
-    ),
+    cell: (group) => group.name,
   }
 
   const columns: DataListColumn<GroupListItem>[] = [
@@ -44,28 +38,13 @@ export async function GroupList({ organizationId, basePath, searchParams }: Grou
     },
     {
       key: "actions",
-      header: messages.common.edit,
+      header: messages.common.actions,
       isActions: true,
+      // Only "Ver": editing and deleting happen on the group page.
       cell: (group) => (
-        <div className="flex gap-1">
-          <Button variant="outline" size="sm" render={<Link href={`/admin/groups/${group.id}`} />}>
-            {groupMessages.list.viewAction}
-          </Button>
-          <ConfirmDialog
-            trigger={
-              <Button variant="ghost" size="sm">
-                {messages.common.delete}
-              </Button>
-            }
-            title={groupMessages.delete.title}
-            description={groupMessages.delete.description}
-            confirmLabel={messages.common.delete}
-            destructive
-            successMessage={groupMessages.delete.success}
-            action={deleteGroup}
-            input={{ groupId: group.id }}
-          />
-        </div>
+        <Button variant="outline" size="sm" render={<Link href={`/admin/groups/${group.id}`} />}>
+          {groupMessages.list.viewAction}
+        </Button>
       ),
     },
   ]

@@ -9,6 +9,7 @@ import { groupMessages } from "@/lib/messages/admin-groups"
 import { getGroupWithMembers } from "@/features/groups/queries/get-group-with-members"
 import { listAssignableStudents } from "@/features/groups/queries/list-assignable-students"
 import { removeGroupMember } from "@/features/groups/actions/remove-group-member"
+import { deleteGroup } from "@/features/groups/actions/delete-group"
 import { GroupForm } from "@/features/groups/components/group-form"
 import { GroupMemberPicker } from "@/features/groups/components/group-member-picker"
 
@@ -34,7 +35,20 @@ export default async function GroupDetailPage({ params }: GroupDetailPageProps) 
         description={group.description ?? undefined}
         breadcrumb={[{ label: groupMessages.list.title, href: "/admin/groups" }, { label: group.name }]}
       >
-        <GroupForm mode="edit" group={group} trigger={<Button variant="outline">{messages.common.edit}</Button>} />
+        <div className="flex items-center gap-2">
+          <GroupForm mode="edit" group={group} trigger={<Button variant="outline">{messages.common.edit}</Button>} />
+          <ConfirmDialog
+            trigger={<Button variant="destructive">{messages.common.delete}</Button>}
+            title={groupMessages.delete.title}
+            description={groupMessages.delete.description}
+            confirmLabel={messages.common.delete}
+            destructive
+            successMessage={groupMessages.delete.success}
+            action={deleteGroup}
+            input={{ groupId }}
+            redirectTo="/admin/groups"
+          />
+        </div>
       </PageHeader>
 
       <section className="flex flex-col gap-3">

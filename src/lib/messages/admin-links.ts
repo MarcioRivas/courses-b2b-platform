@@ -18,6 +18,7 @@ export const adminLinksMessages = {
     role: "Rol",
     state: "Estado",
     uses: "Usos",
+    maxUses: "Máximo de usos",
     expires: "Vence",
     actions: "Acciones",
   },
@@ -29,6 +30,7 @@ export const adminLinksMessages = {
     EXHAUSTED: "Agotado",
   },
   noExpiry: "Sin vencimiento",
+  noMaxUses: "Sin límite",
   empty: {
     title: "No hay links de registro",
     description: "Creá un link para que puedan registrarse nuevos miembros.",

@@ -16,6 +16,8 @@ export const adminMembersMessages = {
     status: "Estado",
     actions: "Acciones",
   },
+  /** Row link to the detail page, where the profile, role and status are edited. */
+  viewAction: "Ver",
   empty: {
     title: "No hay miembros",
     description: "Todavía no hay miembros que coincidan con estos filtros.",

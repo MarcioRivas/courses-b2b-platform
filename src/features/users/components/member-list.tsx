@@ -3,6 +3,7 @@ import { getSessionContext } from "@/lib/auth/session"
 import { DataList, type DataListColumn } from "@/components/shared/data-list"
 import { Pagination } from "@/components/shared/pagination"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { messages } from "@/lib/messages/es"
 import { adminMembersMessages } from "@/lib/messages/admin-members"
 import { buildListHref, firstParam, type SearchParams } from "@/lib/search-params"
@@ -40,14 +41,7 @@ export async function MemberList({ organizationId, basePath, searchParams }: Mem
   const titleColumn: DataListColumn<MemberListItem> = {
     key: "name",
     header: adminMembersMessages.columns.name,
-    cell: (member) =>
-      canLinkToDetail ? (
-        <Link href={`${basePath}/${member.userId}`} className="hover:underline">
-          {member.fullName}
-        </Link>
-      ) : (
-        member.fullName
-      ),
+    cell: (member) => member.fullName,
   }
 
   const columns: DataListColumn<MemberListItem>[] = [
@@ -67,8 +61,14 @@ export async function MemberList({ organizationId, basePath, searchParams }: Mem
       key: "actions",
       header: adminMembersMessages.columns.actions,
       isActions: true,
+      // /admin: only "Ver"; role, status and profile are edited on the detail page.
+      // The platform org tab has no detail page, so it keeps the inline controls.
       cell: (member) =>
-        member.userId === currentUserId ? null : (
+        canLinkToDetail ? (
+          <Button variant="outline" size="sm" render={<Link href={`${basePath}/${member.userId}`} />}>
+            {adminMembersMessages.viewAction}
+          </Button>
+        ) : member.userId === currentUserId ? null : (
           <div className="flex items-center gap-2">
             <MemberRoleDialog
               membershipId={member.membershipId}

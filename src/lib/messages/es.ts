@@ -15,6 +15,7 @@ export const messages = {
     save: "Guardar",
     create: "Crear",
     edit: "Editar",
+    actions: "Acciones",
     delete: "Eliminar",
     copy: "Copiar",
     copied: "Copiado al portapapeles.",

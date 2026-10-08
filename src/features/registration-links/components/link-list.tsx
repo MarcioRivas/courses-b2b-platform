@@ -44,7 +44,12 @@ export async function LinkList({ organizationId, basePath, searchParams }: LinkL
     {
       key: "uses",
       header: adminLinksMessages.columns.uses,
-      cell: (link) => (link.maxUses == null ? link.useCount : `${link.useCount} / ${link.maxUses}`),
+      cell: (link) => link.useCount,
+    },
+    {
+      key: "maxUses",
+      header: adminLinksMessages.columns.maxUses,
+      cell: (link) => link.maxUses ?? adminLinksMessages.noMaxUses,
     },
     { key: "expires", header: adminLinksMessages.columns.expires, cell: (link) => formatExpiry(link.expiresAt) },
     {
