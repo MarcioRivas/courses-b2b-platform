@@ -62,7 +62,7 @@ From `pnpm seed:demo` (optional):
 
 | Course | Org | Status | Notes |
 |---|---|---|---|
-| Preparación Física Base | Club Atlético Demo | Published | 3 modules, 4 lessons. Includes: published Tarea "Plan semanal de entrenamiento" (up to 2 files, deadline 14 days from seed, late submissions allowed); the video in lesson "Qué es la preparación física" has 2 in-video questions (at 0:20 and 0:45). `prof@club-a.test` assigned. Edition **Cohorte 2026** for Grupo Principal (90 days), so the three `alum*@club-a.test` are enrolled. |
+| Preparación Física Base | Club Atlético Demo | Published | 3 modules, 4 lessons. Includes: published Tarea "Plan semanal de entrenamiento" (up to 2 files, deadline 14 days from seed, late submissions allowed); the video in lesson "Qué es la preparación física" has 2 in-video questions (at 0:20 and 0:45). Edition **Cohorte 2026** for Grupo Principal (90 days), so the three `alum*@club-a.test` are enrolled; `prof@club-a.test` is assigned to that edition. |
 | Nutrición Deportiva | Club Atlético Demo | Draft, empty | Use it to check that publishing a course without content is refused. |
 | Reglamento y Arbitraje | Federación Demo | Published | Use it to check tenant isolation. No professor or edition. |
 
@@ -88,8 +88,8 @@ Users are sent to one home page based on their role. Opening another role's area
 | Groups | `/admin/groups`, `/admin/groups/[groupId]` | Create, edit and delete groups; add/remove members |
 | Courses | `/admin/courses`, `/admin/courses/new` | Create, edit, publish, archive and delete courses |
 | Course content | `/admin/courses/[id]/content` → module → lesson | Drill-down builder: modules (with prerequisite dependencies), lessons, content blocks (text, YouTube video, external link, file); reorder everything |
-| Professors | `/admin/courses/[id]/professors` | Assign/unassign professors to a course |
-| Editions (Ediciones) | `/admin/courses/[id]/offerings`, `.../offerings/[offeringId]` | Create course editions (for a group or open), set dates and per-module schedule, change status, sync enrollments with the group roster |
+| Editions (Ediciones) | `/admin/courses/[id]/offerings`, `.../offerings/[offeringId]` | Create course editions (for a group or open), set dates and per-module schedule, change status, sync enrollments with the group roster. The list shows group, dates, status, students and professors |
+| Edition professors | `.../offerings/[offeringId]/professors` | Professors belong to an **edition**: see the assigned ones ("Quitar"), or search by name or email (max 3 results) and "Asignar" |
 | Analytics | `/admin/analytics` | Org, course, professor and assessment stats; score distribution |
 | Audit | `/admin/audit` | Org audit log with filters |
 | Registration links | `/admin/links` | Create links (role, label, expiry), enable/disable, revoke |
@@ -97,18 +97,18 @@ Users are sent to one home page based on their role. Opening another role's area
 
 ### Professor — `prof@club-a.test`, `prof@fed-b.test`
 
-Only courses the professor is assigned to are visible. After `pnpm seed:demo`, `prof@club-a.test` has **Preparación Física Base**. `prof@fed-b.test` has no course until an admin assigns one.
+Only the **editions** the professor is assigned to are visible (students, attempts, grades), and the courses those editions belong to. After `pnpm seed:demo`, `prof@club-a.test` teaches the edition **Cohorte 2026** of **Preparación Física Base**. `prof@fed-b.test` has no edition until an admin assigns one. Content and assessments are still per course in this version, so a professor of any edition of a course edits that course's content.
 
 | Area | Route | What you can do |
 |---|---|---|
 | Dashboard | `/teach` | Stats for the professor's courses |
-| Courses | `/teach/courses` | Assigned courses |
+| Courses | `/teach/courses` | Courses where you teach an edition, with the edition names |
 | Course content | `/teach/courses/[id]/content` → module → lesson | Same content builder as the admin, limited to assigned courses |
 | Assessments (Quiz/Exam) | `/teach/courses/[id]/assessments`, `.../new`, `.../[assessmentId]` | Create and edit question-based assessments, pick questions, publish, extend the time window for students, delete |
 | Preguntas en el video | `/teach/courses/[id]/content/[moduleId]/[lessonId]` → edit a YouTube block | Pause the preview and "Agregar pregunta en este momento" (up to 20 per video, 1–5 multiple-choice questions each, minimum correct answers); "Estadísticas" tab: how many students reached each point, pass and first-try rates, wrong answers per question and option |
 | Tareas (File Submissions) | `/teach/courses/[id]/assessments/new` (kind=TASK) | Create a Tarea: write instructions, set max files (1–10), set deadline, allow late submissions; publish |
 | Question banks | `/teach/banks`, `/teach/banks/[bankId]` | Create and edit banks; create and edit questions; activate/deactivate questions |
-| Grading | `/teach/grading`, `/teach/grading/[attemptId]` | Queue of submitted attempts (Tareas hidden until deadline passes); grade open answers + Tarea submissions (0–100 + feedback); leave feedback |
+| Grading | `/teach/grading`, `/teach/grading/[attemptId]` | Queue of submitted attempts from your editions only, with course, edition and assessment filters (Tareas hidden until deadline passes); grade open answers + Tarea submissions (0–100 + feedback); leave feedback |
 
 ### Student — `alum*@club-a.test`, `alum*@fed-b.test`
 

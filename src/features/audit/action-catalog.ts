@@ -72,6 +72,8 @@ export const ACTION_ENTITY_TYPES: Record<string, string> = {
   "offering.status_changed": "course_offering",
   "offering.schedule_updated": "course_offering",
   "offering.enrollments_synced": "course_offering",
+  "offering.professor_assigned": "course_offering",
+  "offering.professor_unassigned": "course_offering",
 
   "enrollment.self_enrolled": "course_enrollment",
 

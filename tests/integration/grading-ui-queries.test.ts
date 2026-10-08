@@ -7,6 +7,7 @@ import {
   makeAssessmentFixture,
   makeCourseFixture,
   cleanupFixtures,
+  assignOfferingProfessor,
 } from "../helpers/course-fixtures"
 import { buildPendingAttemptsQuery } from "@/features/grading/queries/pending-attempts-query"
 
@@ -36,7 +37,7 @@ async function makeGradableCourse(title: string, professorId: string) {
     modules: [{ title: "Módulo único", requiredBlocks: 1 }],
   })
   courseIds.push(course.courseId)
-  await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professorId })
+  await assignOfferingProfessor(course.offeringId, professorId)
 
   const fixture = await makeAssessmentFixture({
     courseId: course.courseId,

@@ -323,10 +323,6 @@ async function main(): Promise<void> {
   console.log("seeded 2 in-video checkpoints (0:20, 0:45) on the course's first video")
   console.log("seeded PUBLISHED task 'Plan semanal de entrenamiento' (hasta 2 archivos, fecha límite en 14 días)")
 
-  const professorId = await findUserIdByEmail("prof@club-a.test")
-  await admin.from("course_professors").insert({ course_id: physicalId, user_id: professorId })
-  console.log("assigned prof@club-a.test as professor of that course")
-
   const { data: offering, error: offeringError } = await admin
     .from("course_offerings")
     .insert({
@@ -341,6 +337,13 @@ async function main(): Promise<void> {
     .select("id")
     .single()
   if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+
+  const professorId = await findUserIdByEmail("prof@club-a.test")
+  const { error: professorError } = await admin
+    .from("offering_professors")
+    .insert({ offering_id: offering.id, user_id: professorId })
+  if (professorError) throw professorError
+  console.log("assigned prof@club-a.test as professor of 'Cohorte 2026'")
 
   const enrolled = await enrollGroup(physicalId, offering.id, ORG_A, GROUP_A)
   console.log(`created offering 'Cohorte 2026' for Grupo Principal — ${enrolled} estudiantes inscriptos`)

@@ -3,7 +3,7 @@ import { loginViaOtp } from "../helpers/e2e-login"
 import { generateOtp } from "../helpers/otp"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 import { makeUser, deleteUser, deleteUserByEmail } from "../helpers/make-user"
-import { makeAssessmentFixture, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeAssessmentFixture, cleanupFixtures} from "../helpers/course-fixtures"
 import {
   buildJourneyCourse,
   gateModuleOnQuiz,
@@ -25,7 +25,6 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
   const admin = await makeUser("journey-admin", { organizationId: JOURNEY_ORG, role: "ADMIN" })
   const professor = await makeUser("journey-prof", { organizationId: JOURNEY_ORG, role: "PROFESSOR" })
   const course = await buildJourneyCourse(courseTitle)
-  await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
 
   const quiz = await makeAssessmentFixture({
     organizationId: JOURNEY_ORG,
@@ -97,7 +96,7 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
     await studentPage.waitForURL("/learn")
 
     studentId = userIdByEmail(studentEmail)
-    const enrollmentId = await enrollViaGroupOffering(course.courseId, studentId, admin.client)
+    const enrollmentId = await enrollViaGroupOffering(course.courseId, studentId, admin.client, professor.id)
 
     // ===== Module 1: complete the required block =====
     await studentPage.goto(`/learn/courses/${enrollmentId}`)

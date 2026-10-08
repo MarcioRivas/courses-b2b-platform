@@ -14,7 +14,7 @@ import {
 /**
  * Shared guard for the content builder routes (`/admin` + `/teach`,
  * `…/content`, `…/content/[moduleId]`, `…/content/[moduleId]/[lessonId]`):
- * role gate → `can_edit_course` → tree, `notFound()` when either fails.
+ * role gate → `can_edit_course_content` → tree, `notFound()` when either fails.
  */
 export async function resolveEditableCourse(courseId: string, roles: MembershipRole[]): Promise<CourseTree> {
   await requireOrgRole(roles)

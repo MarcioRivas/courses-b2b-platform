@@ -2,6 +2,7 @@ import Link from "next/link"
 import { DataList, type DataListColumn } from "@/components/shared/data-list"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { formatDateInTimeZone } from "@/lib/dates/format-in-time-zone"
 import { offeringMessages } from "@/lib/messages/admin-offerings"
 import { listOfferings } from "../queries/list-offerings"
 import { listOrgGroups } from "../queries/list-org-groups"
@@ -14,6 +15,13 @@ interface OfferingListProps {
   organizationId: string
   timeZone: string
   basePath: string
+}
+
+function formatRange(startsAt: string | null, endsAt: string | null, timeZone: string): string {
+  if (!startsAt && !endsAt) return "—"
+  const from = startsAt ? formatDateInTimeZone(startsAt, timeZone) : "…"
+  const to = endsAt ? formatDateInTimeZone(endsAt, timeZone) : "…"
+  return `${from} – ${to}`
 }
 
 /** Self-contained async Server Component: own query for a single course's offerings (no pagination — MVP org sizes). */
@@ -32,14 +40,14 @@ export async function OfferingList({ courseId, courseAccessType, organizationId,
 
   const columns: DataListColumn<OfferingListItem>[] = [
     {
-      key: "kind",
-      header: offeringMessages.list.kindHeader,
-      cell: (offering) => offeringMessages.kind[offering.kind],
-    },
-    {
       key: "group",
       header: offeringMessages.list.groupHeader,
       cell: (offering) => offering.groupName ?? "—",
+    },
+    {
+      key: "dates",
+      header: offeringMessages.list.datesHeader,
+      cell: (offering) => formatRange(offering.startsAt, offering.endsAt, timeZone),
     },
     {
       key: "status",
@@ -49,6 +57,16 @@ export async function OfferingList({ courseId, courseAccessType, organizationId,
           {offeringMessages.status[offering.status]}
         </Badge>
       ),
+    },
+    {
+      key: "students",
+      header: offeringMessages.list.studentsHeader,
+      cell: (offering) => offering.studentCount,
+    },
+    {
+      key: "professors",
+      header: offeringMessages.list.professorsHeader,
+      cell: (offering) => offering.professorCount,
     },
     {
       key: "actions",

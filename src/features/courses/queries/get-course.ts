@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import type { CourseCompleteness, CourseDetail, CourseProfessor } from "../types"
+import type { CourseCompleteness, CourseDetail } from "../types"
 
 /** RLS-scoped read: courses SELECT policy covers admin/professor/student visibility. */
 export async function getCourse(courseId: string): Promise<CourseDetail | null> {
@@ -56,26 +56,4 @@ export async function getCourseCompleteness(courseId: string): Promise<CourseCom
     .in("lesson_id", lessonIds)
 
   return { hasModule: true, hasLesson: true, hasBlock: (count ?? 0) > 0 }
-}
-
-/** Assigned professors of a course, name-sorted (small list, sort in memory like list-assignable-students). */
-export async function getCourseProfessors(courseId: string): Promise<CourseProfessor[]> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from("course_professors")
-    .select("user_id, profiles!course_professors_user_id_fkey(first_name, last_name)")
-    .eq("course_id", courseId)
-
-  if (error) {
-    return []
-  }
-
-  return (data ?? [])
-    .map((row) => ({
-      userId: row.user_id,
-      firstName: row.profiles?.first_name ?? "",
-      lastName: row.profiles?.last_name ?? "",
-    }))
-    .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`, "es"))
 }

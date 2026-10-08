@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest"
 import { deleteUser } from "../helpers/make-user"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
+import { assignOfferingProfessor, ensureOffering } from "../helpers/course-fixtures"
 
 /**
  * Guards that no other Phase 3 suite covers: the D24 no-client-write rule on
@@ -215,7 +216,7 @@ describe("publish_course validation", () => {
   it("a professor of the course cannot publish it", async () => {
     const professor = await member("cg-publish-prof", ORG_A, "PROFESSOR")
     const { courseId } = await makeCourseTree("DRAFT")
-    await supabaseAdmin.from("course_professors").insert({ course_id: courseId, user_id: professor.id })
+    await assignOfferingProfessor(await ensureOffering(courseId, ORG_A), professor.id)
 
     const { error } = await professor.client.rpc("publish_course", { p_course: courseId })
     expect(error?.code).toBe("42501")

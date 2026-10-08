@@ -11,6 +11,7 @@ export interface PendingAttemptsFilters {
   statusGroup: GradingStatusGroup
   courseId?: string
   assessmentId?: string
+  offeringId?: string
   page: number
 }
 
@@ -20,7 +21,7 @@ export interface PendingAttemptsFilters {
  * cookie client in production, a test user's client in integration tests
  * (tests/integration/grading-ui-queries.test.ts).
  *
- * RLS (`assessment_attempts_select`: `is_org_admin` OR `is_course_professor`)
+ * RLS (`assessment_attempts_select`: `is_org_admin` OR `is_offering_professor` of the enrollment)
  * is what actually scopes rows to the caller's courses; this only shapes the
  * select/filter/order/range. SUBMITTED and AUTO_SUBMITTED both still need
  * manual grading whenever the assessment has an OPEN_ENDED question —
@@ -42,7 +43,8 @@ export function buildPendingAttemptsQuery(
     .select(
       `id, status, submitted_at, attempt_number, submitted_late,
        profiles(first_name, last_name),
-       assessments!inner(id, title, kind, course_id, available_until, courses(id, title))`,
+       assessments!inner(id, title, kind, course_id, available_until, courses(id, title)),
+       course_enrollments!inner(offering_id)`,
       { count: "exact" }
     )
     .in("status", statuses)
@@ -59,6 +61,9 @@ export function buildPendingAttemptsQuery(
   }
   if (filters.courseId) {
     query = query.eq("assessments.course_id", filters.courseId)
+  }
+  if (filters.offeringId) {
+    query = query.eq("course_enrollments.offering_id", filters.offeringId)
   }
   if (filters.assessmentId) {
     query = query.eq("assessment_id", filters.assessmentId)

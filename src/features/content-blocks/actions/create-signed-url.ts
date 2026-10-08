@@ -13,7 +13,7 @@ const createSignedUrlSchema = z.object({
 
 /**
  * Thin wrapper over `createSignedUrlForBlock`: no role gate here on purpose —
- * `can_view_block` already covers editors (`can_edit_course`) and enrolled
+ * `can_view_block` already covers editors (`can_edit_course_content`) and enrolled
  * students, so this stays reusable by the Phase 4 student player too.
  */
 export async function createSignedUrl(

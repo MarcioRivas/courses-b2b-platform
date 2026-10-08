@@ -1,8 +1,10 @@
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { messages } from "@/lib/messages/es"
+import { courseMessages } from "@/lib/messages/admin-courses"
 import { offeringMessages } from "@/lib/messages/admin-offerings"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
@@ -10,6 +12,7 @@ import { getCourse } from "@/features/courses/queries/get-course"
 import { getOffering } from "@/features/offerings/queries/get-offering"
 import { getOfferingSchedule } from "@/features/offerings/queries/get-offering-schedule"
 import { listOrgGroups } from "@/features/offerings/queries/list-org-groups"
+import { OfferingTabs } from "@/features/offerings/components/offering-tabs"
 import { OfferingForm } from "@/features/offerings/components/offering-form"
 import { ModuleScheduleEditor } from "@/features/offerings/components/module-schedule-editor"
 import { EnrollmentSummary } from "@/features/offerings/components/enrollment-summary"
@@ -42,7 +45,16 @@ export default async function OfferingDetailPage({ params }: OfferingDetailPageP
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={offering.name} description={course.title}>
+      <PageHeader
+        title={offering.name}
+        description={course.title}
+        breadcrumb={[
+          { label: courseMessages.list.title, href: "/admin/courses" },
+          { label: course.title, href: `/admin/courses/${courseId}` },
+          { label: offeringMessages.list.title, href: `/admin/courses/${courseId}/offerings` },
+          { label: offering.name },
+        ]}
+      >
         <div className="flex items-center gap-2">
           <OfferingStatusControl offeringId={offering.id} status={offering.status} />
           {offering.kind === "GROUP" && (
@@ -58,6 +70,19 @@ export default async function OfferingDetailPage({ params }: OfferingDetailPageP
           )}
         </div>
       </PageHeader>
+
+      <OfferingTabs courseId={courseId} offeringId={offeringId} active="detalle" />
+
+      <section className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
+        <h2 className="font-medium">{offeringMessages.detail.groupLabel}</h2>
+        {offering.groupId ? (
+          <Link href={`/admin/groups/${offering.groupId}`} className="w-fit font-medium text-primary hover:underline">
+            {offering.groupName}
+          </Link>
+        ) : (
+          <p className="text-muted-foreground">{offeringMessages.detail.noGroup}</p>
+        )}
+      </section>
 
       <EnrollmentSummary
         offeringId={offering.id}

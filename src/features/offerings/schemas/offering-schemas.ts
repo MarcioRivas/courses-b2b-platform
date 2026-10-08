@@ -43,3 +43,15 @@ export type UpsertModuleScheduleInput = z.infer<typeof upsertModuleScheduleSchem
 
 export const syncEnrollmentsSchema = z.object({ offeringId: z.guid() })
 export type SyncEnrollmentsInput = z.infer<typeof syncEnrollmentsSchema>
+
+export const offeringProfessorSchema = z.object({
+  offeringId: z.guid(),
+  userId: z.guid(),
+})
+export type OfferingProfessorInput = z.infer<typeof offeringProfessorSchema>
+
+export const searchAssignableProfessorsSchema = z.object({
+  offeringId: z.guid(),
+  q: z.string().trim().min(2).max(100),
+})
+export type SearchAssignableProfessorsInput = z.infer<typeof searchAssignableProfessorsSchema>

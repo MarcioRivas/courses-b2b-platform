@@ -3,7 +3,7 @@ import type { GradableAssessmentOption } from "../types"
 
 /**
  * Assessment options for the queue's filter dropdown, scoped to the given
- * course ids (the caller's own `can_edit_course` courses — RLS `assessments_select`
+ * course ids (the caller's own `can_edit_course_content` courses — RLS `assessments_select`
  * grants read access to the same set independently, this is belt and braces).
  */
 export async function listGradableAssessments(courseIds: string[]): Promise<GradableAssessmentOption[]> {

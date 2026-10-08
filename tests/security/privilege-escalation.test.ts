@@ -147,7 +147,7 @@ describe("profile_private: a peer (non-admin, same org) cannot read another memb
   })
 })
 
-describe("group_members / course_professors: trigger blocks foreign-org and wrong-role inserts", () => {
+describe("group_members / offering_professors: trigger blocks foreign-org and wrong-role inserts", () => {
   it("admin cannot add a foreign-org (studentB) user to an org-A group", async () => {
     const { error } = await fx.users.adminA.client
       .from("group_members")
@@ -156,10 +156,10 @@ describe("group_members / course_professors: trigger blocks foreign-org and wron
     expect(error?.message).toContain("does not have an ACTIVE")
   })
 
-  it("admin cannot assign a STUDENT as course_professor (wrong role)", async () => {
+  it("admin cannot assign a STUDENT as offering professor (wrong role)", async () => {
     const { error } = await fx.users.adminA.client
-      .from("course_professors")
-      .insert({ course_id: fx.spareCourseA, user_id: fx.users.studentA.id })
+      .from("offering_professors")
+      .insert({ offering_id: fx.spareOfferingA, user_id: fx.users.studentA.id })
     expect(error).not.toBeNull()
     expect(error?.message).toContain("does not have an ACTIVE")
   })

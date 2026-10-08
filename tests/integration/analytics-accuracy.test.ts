@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { randomUUID } from "node:crypto"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
-import { enrollStudent, makeAssessmentFixture, makeCourseFixture, cleanupFixtures } from "../helpers/course-fixtures"
+import { enrollStudent, makeAssessmentFixture, makeCourseFixture, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 import type { TestUser } from "../helpers/make-user"
 
 /**
@@ -124,7 +124,7 @@ beforeAll(async () => {
   })
   courseIds.push(course.courseId)
   courseId = course.courseId
-  await supabaseAdmin.from("course_professors").insert({ course_id: courseId, user_id: professor.id })
+  await assignOfferingProfessor(course.offeringId, professor.id)
 
   const enrollment1 = await enrollStudent(course, ORG_A, student1.id)
   const enrollment2 = await enrollStudent(course, ORG_A, student2.id)

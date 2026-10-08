@@ -34,7 +34,6 @@ export const courseMessages = {
   },
   detail: {
     detailTab: "Detalle",
-    professorsTab: "Profesores",
     offeringsTab: "Ediciones",
     contentTab: "Contenido",
     publishAction: "Publicar",
@@ -62,19 +61,6 @@ export const courseMessages = {
     description: "Esta acción no se puede deshacer.",
     success: "Curso eliminado.",
   },
-  professors: {
-    assignedTitle: "Profesores asignados",
-    emptyAssigned: "Este curso todavía no tiene profesores asignados.",
-    addTitle: "Asignar profesores",
-    searchPlaceholder: "Buscar profesor…",
-    submit: (n: number) => (n === 0 ? "Asignar" : `Asignar (${n})`),
-    success: (n: number) =>
-      n === 0 ? "No había profesores nuevos para asignar." : `${n} ${n === 1 ? "profesor asignado" : "profesores asignados"}.`,
-    empty: "No hay profesores activos disponibles para asignar.",
-    noResults: "No se encontraron profesores con ese nombre.",
-    unassignTitle: "Quitar profesor",
-    unassignDescription: "El profesor deja de tener acceso al contenido de este curso.",
-  },
   teach: {
     title: "Mis cursos",
     emptyTitle: "Todavía no tenés cursos asignados.",
@@ -83,7 +69,6 @@ export const courseMessages = {
     duplicateName: "Ya existe un curso con ese título.",
     deleteNotDraft: "Solo se pueden eliminar cursos en borrador. Archivá el curso en su lugar.",
     deleteHasEnrollments: "No se puede eliminar un curso con inscripciones.",
-    invalidProfessor: "Solo podés asignar profesores activos de tu organización.",
     accessTypeLocked: "No se puede cambiar el tipo de acceso de un curso publicado o archivado.",
   },
 } as const

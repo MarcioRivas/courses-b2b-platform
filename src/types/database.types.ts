@@ -772,49 +772,6 @@ export type Database = {
           },
         ]
       }
-      course_professors: {
-        Row: {
-          assigned_at: string
-          assigned_by: string | null
-          course_id: string
-          user_id: string
-        }
-        Insert: {
-          assigned_at?: string
-          assigned_by?: string | null
-          course_id: string
-          user_id: string
-        }
-        Update: {
-          assigned_at?: string
-          assigned_by?: string | null
-          course_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_professors_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "course_professors_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "course_professors_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       courses: {
         Row: {
           access_type: Database["public"]["Enums"]["course_access"]
@@ -1183,6 +1140,49 @@ export type Database = {
             columns: ["offering_id"]
             isOneToOne: false
             referencedRelation: "course_offerings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offering_professors: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          offering_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          offering_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          offering_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offering_professors_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_professors_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "course_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offering_professors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1992,7 +1992,7 @@ export type Database = {
           status: Database["public"]["Enums"]["attempt_status"]
         }[]
       }
-      can_edit_course: { Args: { p_course: string }; Returns: boolean }
+      can_edit_course_content: { Args: { p_course: string }; Returns: boolean }
       can_edit_question_bank: { Args: { p_bank: string }; Returns: boolean }
       can_grade_attempt: { Args: { p_attempt: string }; Returns: boolean }
       can_view_attempt: { Args: { p_attempt: string }; Returns: boolean }
@@ -2116,11 +2116,15 @@ export type Database = {
           status: Database["public"]["Enums"]["attempt_status"]
         }[]
       }
-      is_course_professor: { Args: { p_course: string }; Returns: boolean }
       is_enrolled_in_course: { Args: { p_course: string }; Returns: boolean }
+      is_offering_professor: { Args: { p_offering: string }; Returns: boolean }
       is_org_admin: { Args: { p_org: string }; Returns: boolean }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
+      is_professor_of_any_edition: {
+        Args: { p_course: string }
+        Returns: boolean
+      }
       list_my_attempts: {
         Args: { p_enrollment: string }
         Returns: {
@@ -2350,6 +2354,14 @@ export type Database = {
       save_video_checkpoints: {
         Args: { p_block: string; p_checkpoints: Json }
         Returns: undefined
+      }
+      search_assignable_professors: {
+        Args: { p_offering: string; p_q: string }
+        Returns: {
+          email: string
+          full_name: string
+          user_id: string
+        }[]
       }
       self_enroll_free_course: { Args: { p_course: string }; Returns: string }
       set_assessment_questions: {

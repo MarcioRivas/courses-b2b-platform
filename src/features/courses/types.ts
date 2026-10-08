@@ -27,21 +27,11 @@ export interface CourseCompleteness {
   hasBlock: boolean
 }
 
-export interface CourseProfessor {
-  userId: string
-  firstName: string
-  lastName: string
-}
-
-export interface AssignableProfessor {
-  userId: string
-  firstName: string
-  lastName: string
-}
-
 export interface ProfessorCourseListItem {
   id: string
   title: string
   status: CourseStatus
   accessType: CourseAccessType
+  /** Names of the editions this professor teaches. */
+  editions: string[]
 }

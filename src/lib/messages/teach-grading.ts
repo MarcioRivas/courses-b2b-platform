@@ -18,6 +18,7 @@ export const teachGradingMessages = {
   filters: {
     courseLabel: "Curso",
     assessmentLabel: "Evaluación",
+    editionLabel: "Edición",
   },
   status: {
     IN_PROGRESS: "En curso",

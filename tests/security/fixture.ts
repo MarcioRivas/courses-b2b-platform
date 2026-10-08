@@ -7,6 +7,7 @@ import {
   makeCourseFixture,
   type AssessmentFixture,
   type CourseFixture,
+  assignOfferingProfessor,
 } from "../helpers/course-fixtures"
 
 /**
@@ -55,6 +56,7 @@ export interface SecurityFixture {
   groupMemberA: string
   groupMemberB: string
   spareCourseA: string
+  spareOfferingA: string
   spareGroupA: string
   moduleDependencyA: string
   scheduleA: string
@@ -165,7 +167,7 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
       ],
     })
     courseIds.push(course.courseId)
-    await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+    await assignOfferingProfessor(course.offeringId, professor.id)
 
     const enrollmentId = await enrollStudent(course, org, student.id)
 
@@ -315,7 +317,7 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     .limit(1)
     .single()
 
-  // Untouched course/group in org A — insert targets for course_professors /
+  // Untouched course/group in org A — insert targets for offering_professors /
   // group_members "allowed" cases, kept empty so unique-constraint / trigger
   // preconditions (no prior assignment) always hold.
   const { data: spareCourse, error: spareCourseError } = await supabaseAdmin
@@ -325,6 +327,13 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     .single()
   if (spareCourseError || !spareCourse) throw spareCourseError ?? new Error("spare course not created")
   courseIds.push(spareCourse.id)
+
+  const { data: spareOffering, error: spareOfferingError } = await supabaseAdmin
+    .from("course_offerings")
+    .insert({ organization_id: orgA, course_id: spareCourse.id, kind: "OPEN", name: "Sec Edición repuesto" })
+    .select("id")
+    .single()
+  if (spareOfferingError || !spareOffering) throw spareOfferingError ?? new Error("spare offering not created")
 
   const { data: spareGroup, error: spareGroupError } = await supabaseAdmin
     .from("groups")
@@ -364,6 +373,7 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     groupMemberA: sideA.groupMemberId,
     groupMemberB: sideB.groupMemberId,
     spareCourseA: spareCourse.id,
+    spareOfferingA: spareOffering.id,
     spareGroupA: spareGroup.id,
     moduleDependencyA: dependency.id,
     scheduleA: schedule.id,

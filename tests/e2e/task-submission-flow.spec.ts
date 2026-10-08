@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test"
 import { loginViaOtp } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 import { makeUser } from "../helpers/make-user"
-import { makeCourseFixture, enrollStudent, makeAssessmentFixture, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeCourseFixture, enrollStudent, makeAssessmentFixture, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 
 const ORG_A = "11111111-1111-1111-1111-111111111111"
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n")
@@ -20,7 +20,7 @@ test("task submission: student uploads a PDF → professor grades after the dead
     title: `Curso tarea E2E ${stamp}`,
     modules: [{ title: "Módulo 1", requiredBlocks: 1 }],
   })
-  await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+  await assignOfferingProfessor(course.offeringId, professor.id)
 
   const task = await makeAssessmentFixture({
     organizationId: ORG_A,

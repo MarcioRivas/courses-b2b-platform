@@ -104,6 +104,8 @@ export const auditActionLabels: Record<string, string> = {
   "offering.status_changed": "Estado de edición cambiado",
   "offering.schedule_updated": "Cronograma de edición actualizado",
   "offering.enrollments_synced": "Inscripciones sincronizadas",
+  "offering.professor_assigned": "Profesor asignado a la edición",
+  "offering.professor_unassigned": "Profesor quitado de la edición",
 
   "enrollment.self_enrolled": "Auto-inscripción a curso",
 

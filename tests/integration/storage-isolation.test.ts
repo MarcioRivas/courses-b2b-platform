@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { deleteUser } from "../helpers/make-user"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
+import { assignOfferingProfessor, ensureOffering } from "../helpers/course-fixtures"
 import { buildCourseFilePath, COURSE_FILES_BUCKET } from "@/lib/storage/file-path"
 
 /**
@@ -45,10 +46,7 @@ beforeAll(async () => {
   courseYId = courses.find((c) => c.title.startsWith("Curso Y"))!.id
   courseIds.push(courseXId, courseYId)
 
-  await supabaseAdmin.from("course_professors").insert([
-    { course_id: courseXId, user_id: professorX.id },
-    { course_id: courseYId, user_id: professorY.id },
-  ])
+  await assignOfferingProfessor(await ensureOffering(courseYId, ORG_A), professorY.id)
 
   // Enroll studentA in course X through a real OPEN offering + enrollment row
   // (service-role fixture, D19) so the "enrolled student" case is genuine.
@@ -58,6 +56,7 @@ beforeAll(async () => {
     .select("id")
     .single()
   if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+  await assignOfferingProfessor(offering.id, professorX.id)
 
   const { error: enrollError } = await supabaseAdmin.from("course_enrollments").insert({
     organization_id: ORG_A,

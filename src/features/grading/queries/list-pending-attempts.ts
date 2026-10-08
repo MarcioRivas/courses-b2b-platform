@@ -8,6 +8,7 @@ export interface ListPendingAttemptsParams {
   statusGroup: GradingStatusGroup
   courseId?: string
   assessmentId?: string
+  offeringId?: string
   page: number
 }
 

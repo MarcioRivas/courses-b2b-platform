@@ -1,3 +1,4 @@
+import { assignOfferingProfessor } from "./course-fixtures"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database.types"
 import { psql } from "./sql"
@@ -104,7 +105,8 @@ export async function createRegistrationLink(): Promise<string> {
 export async function enrollViaGroupOffering(
   courseId: string,
   studentId: string,
-  adminClient: SupabaseClient<Database>
+  adminClient: SupabaseClient<Database>,
+  professorId?: string
 ): Promise<string> {
   const { data: group, error: groupError } = await supabaseAdmin
     .from("groups")
@@ -119,6 +121,7 @@ export async function enrollViaGroupOffering(
     .select("id")
     .single()
   if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+  if (professorId) await assignOfferingProfessor(offering.id, professorId)
 
   const { error: memberError } = await supabaseAdmin.from("group_members").insert({ group_id: group.id, user_id: studentId })
   if (memberError) throw memberError

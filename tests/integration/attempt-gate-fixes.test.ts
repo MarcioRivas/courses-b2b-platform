@@ -7,6 +7,7 @@ import {
   enrollStudent,
   makeAssessmentFixture,
   makeCourseFixture,
+  assignOfferingProfessor,
 } from "../helpers/course-fixtures"
 import type { TestUser } from "../helpers/make-user"
 
@@ -442,9 +443,7 @@ describe("B5: the sweep and grading share the writers' lock order", () => {
     const professor = await member("gate-b5-prof", ORG_A, "PROFESSOR")
     const student = await member("gate-b5-student", ORG_A, "STUDENT")
     const { attemptId, course } = await openAttempt(student, "Curso B5 corrección")
-    await supabaseAdmin
-      .from("course_professors")
-      .insert({ course_id: course.courseId, user_id: professor.id })
+    await assignOfferingProfessor(course.offeringId, professor.id)
 
     const session = randomUUID()
     await student.client.rpc("heartbeat", { p_attempt: attemptId, p_session: session })

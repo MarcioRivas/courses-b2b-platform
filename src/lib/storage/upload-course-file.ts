@@ -18,7 +18,7 @@ export interface UploadCourseFileResult {
  * Browser → Storage upload with the session client. The bucket enforces the
  * 50MB limit and MIME allowlist server-side; these checks give the author
  * instant feedback without a round trip. The write policy re-checks
- * `can_edit_course(folder[2])` regardless (D10) — this helper cannot bypass it.
+ * `can_edit_course_content(folder[2])` regardless (D10) — this helper cannot bypass it.
  *
  * `organizationId` must come from the course row, resolved server-side by the
  * page that renders the uploader — never from anything the browser can set.

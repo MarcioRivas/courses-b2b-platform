@@ -7,6 +7,7 @@ import {
   enrollStudent,
   makeAssessmentFixture,
   cleanupFixtures,
+  assignOfferingProfessor,
 } from "../helpers/course-fixtures"
 
 const ORG_A = "11111111-1111-1111-1111-111111111111"
@@ -27,7 +28,7 @@ test("assessment full flow: student quiz → score; exam → save → reload →
   })
 
   // Add professor to course so they can grade
-  await supabaseAdmin.from("course_professors").insert({ course_id: fixture.courseId, user_id: professor.id })
+  await assignOfferingProfessor(fixture.offeringId, professor.id)
 
   // Create quiz: 2 MC, pass if 50%
   const quiz = await makeAssessmentFixture({

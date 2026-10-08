@@ -4,7 +4,7 @@ import { test, expect, type Page } from "@playwright/test"
 import { loginViaOtp } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 import { makeUser, type TestUser } from "../helpers/make-user"
-import { makeCourseFixture, enrollStudent, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeCourseFixture, enrollStudent, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 
 /**
  * In-video checkpoints end to end, with a FAKE YouTube IFrame API (the real
@@ -147,7 +147,7 @@ test("professor: adds a checkpoint from the preview, saves it, and sees statisti
   const lesson = await videoLesson("editor", [])
   const professor = await makeUser(`e2e-vc-prof-${Date.now()}`, { organizationId: ORG_A, role: "PROFESSOR" })
   users.push(professor.id)
-  await supabaseAdmin.from("course_professors").insert({ course_id: lesson.course.courseId, user_id: professor.id })
+  await assignOfferingProfessor(lesson.course.offeringId, professor.id)
 
   await useFakeYoutube(page)
   await loginViaOtp(page, professor.email, "/teach")

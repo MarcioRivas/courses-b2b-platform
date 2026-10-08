@@ -2,11 +2,12 @@ import { afterAll, describe, expect, it } from "vitest"
 import { deleteUser } from "../helpers/make-user"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
+import { assignOfferingProfessor, ensureOffering } from "../helpers/course-fixtures"
 
 /**
  * Phase 3 course/content RLS: course visibility (courses_select), the
- * `can_edit_course` authority behind modules/lessons writes, the
- * `assert_active_member_of_org` trigger on `course_professors`, and the D24
+ * `can_edit_course_content` authority behind modules/lessons writes, the
+ * `assert_active_member_of_org` trigger on `offering_professors`, and the D24
  * no-client-write guarantee on `course_enrollments`.
  */
 
@@ -81,10 +82,7 @@ describe("can_edit_course: professor scope", () => {
     const courseB = await makeCourse(ORG_A, { title: "Curso B" })
     const professor = await member("rls-prof-scope", ORG_A, "PROFESSOR")
 
-    const { error: assignError } = await supabaseAdmin
-      .from("course_professors")
-      .insert({ course_id: courseA, user_id: professor.id })
-    expect(assignError).toBeNull()
+    await assignOfferingProfessor(await ensureOffering(courseA, ORG_A), professor.id)
 
     const { data, error } = await professor.client
       .from("modules")
@@ -99,7 +97,7 @@ describe("can_edit_course: professor scope", () => {
   it("the same professor can create a module on their own assigned course", async () => {
     const courseA = await makeCourse(ORG_A, { title: "Curso asignado" })
     const professor = await member("rls-prof-ok", ORG_A, "PROFESSOR")
-    await supabaseAdmin.from("course_professors").insert({ course_id: courseA, user_id: professor.id })
+    await assignOfferingProfessor(await ensureOffering(courseA, ORG_A), professor.id)
 
     const { data, error } = await professor.client
       .from("modules")
@@ -112,14 +110,14 @@ describe("can_edit_course: professor scope", () => {
   })
 })
 
-describe("course_professors insert trigger (assert_active_member_of_org)", () => {
+describe("offering_professors insert trigger (assert_active_member_of_org)", () => {
   it("rejects assigning a STUDENT as professor", async () => {
     const courseId = await makeCourse(ORG_A)
     const student = await member("rls-cp-student", ORG_A, "STUDENT")
 
     const { error } = await supabaseAdmin
-      .from("course_professors")
-      .insert({ course_id: courseId, user_id: student.id })
+      .from("offering_professors")
+      .insert({ offering_id: await ensureOffering(courseId, ORG_A), user_id: student.id })
 
     expect(error?.code).toBe("P0001")
     expect(error?.message).toContain("does not have an ACTIVE")
@@ -130,8 +128,8 @@ describe("course_professors insert trigger (assert_active_member_of_org)", () =>
     const professorB = await member("rls-cp-foreign", ORG_B, "PROFESSOR")
 
     const { error } = await supabaseAdmin
-      .from("course_professors")
-      .insert({ course_id: courseId, user_id: professorB.id })
+      .from("offering_professors")
+      .insert({ offering_id: await ensureOffering(courseId, ORG_A), user_id: professorB.id })
 
     expect(error?.code).toBe("P0001")
     expect(error?.message).toContain("does not have an ACTIVE")

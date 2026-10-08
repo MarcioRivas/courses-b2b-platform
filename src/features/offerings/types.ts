@@ -11,6 +11,8 @@ export interface OfferingListItem {
   groupName: string | null
   startsAt: string | null
   endsAt: string | null
+  studentCount: number
+  professorCount: number
 }
 
 export interface OfferingDetail {
@@ -39,4 +41,16 @@ export interface ModuleScheduleRow {
   modulePosition: number
   availableFrom: string | null
   availableUntil: string | null
+}
+
+export interface OfferingProfessor {
+  userId: string
+  firstName: string
+  lastName: string
+}
+
+export interface AssignableProfessor {
+  userId: string
+  fullName: string
+  email: string
 }

@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
-import { makeAssessmentFixture, makeCourseFixture, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeAssessmentFixture, makeCourseFixture, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 import { psqlBool } from "../helpers/sql"
 import type { TestUser } from "../helpers/make-user"
 
@@ -29,7 +29,7 @@ async function makeProfessorCourse(title: string, professor: TestUser) {
     modules: [{ title: "Módulo único", requiredBlocks: 1 }],
   })
   courseIds.push(course.courseId)
-  await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+  await assignOfferingProfessor(course.offeringId, professor.id)
   return course
 }
 

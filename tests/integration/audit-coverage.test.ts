@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from "vitest"
 import { randomUUID } from "node:crypto"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
-import { cleanupFixtures, makeAssessmentFixture, makeCourseFixture } from "../helpers/course-fixtures"
+import { cleanupFixtures, makeAssessmentFixture, makeCourseFixture, assignOfferingProfessor } from "../helpers/course-fixtures"
 
 /**
  * Phase 7 audit coverage sweep (D28): drives a real seeded happy path
@@ -54,7 +54,7 @@ describe("seeded happy path produces the expected audit trail", () => {
       modules: [{ title: "Módulo único", requiredBlocks: 1 }],
     })
     courseIds.push(course.courseId)
-    await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+    await assignOfferingProfessor(course.offeringId, professor.id)
 
     const fixture = await makeAssessmentFixture({
       courseId: course.courseId,

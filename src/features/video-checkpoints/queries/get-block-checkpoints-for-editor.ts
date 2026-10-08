@@ -5,7 +5,7 @@ import type { EditorCheckpoint } from "../types"
 
 /**
  * A block's checkpoints with the answer key, for the editor. RLS
- * (`can_edit_course`) limits these tables to the course's editors; anyone else
+ * (`can_edit_course_content`) limits these tables to the course's editors; anyone else
  * gets an empty list.
  */
 export async function getBlockCheckpointsForEditor(blockId: string): Promise<EditorCheckpoint[]> {

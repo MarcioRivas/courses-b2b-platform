@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
 import { listProfessorCourses } from "@/features/courses/queries/list-professor-courses"
+import { listProfessorEditions } from "@/features/grading/queries/list-professor-editions"
 import { listPendingAttempts } from "@/features/grading/queries/list-pending-attempts"
 import { listGradableAssessments } from "@/features/grading/queries/list-gradable-assessments"
 import { GradingFilters } from "@/features/grading/components/grading-filters"
@@ -31,20 +32,22 @@ export default async function TeachGradingPage({ searchParams }: TeachGradingPag
   // malformed uuid filter, but validating here avoids a wasted round trip and
   // silently ignores a garbage value instead of surfacing a raw PG error.
   const courseId = z.guid().safeParse(firstParam(sp.courseId)).data
+  const offeringId = z.guid().safeParse(firstParam(sp.offeringId)).data
   const assessmentId = z.guid().safeParse(firstParam(sp.assessmentId)).data
 
   const [courses, settings, { items, total }] = await Promise.all([
     listProfessorCourses(ctx.user.id),
     getOrgSettings(ctx.organizationId),
-    listPendingAttempts({ statusGroup, courseId, assessmentId, page }),
+    listPendingAttempts({ statusGroup, courseId, assessmentId, offeringId, page }),
   ])
   const assessments = await listGradableAssessments(courses.map((course) => course.id))
+  const editions = await listProfessorEditions(ctx.user.id)
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title={teachGradingMessages.queue.title} description={teachGradingMessages.queue.description} />
-      <GradingFilters courses={courses} assessments={assessments} />
+      <GradingFilters courses={courses} assessments={assessments} editions={editions} />
       <GradingQueue
         items={items}
         total={total}

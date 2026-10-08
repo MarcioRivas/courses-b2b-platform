@@ -2,16 +2,16 @@ import { createClient } from "@/lib/supabase/server"
 import type { ProfessorCourseListItem } from "../types"
 
 /**
- * `/teach/courses`: RLS (`is_course_professor`) already scopes `courses` to
- * this professor's assigned courses, so no extra filtering is needed here —
- * a plain `course_professors` join just orders the result.
+ * `/teach/courses`: courses where this professor teaches at least one edition,
+ * with the edition names. RLS (`offering_professors_select`) already limits the
+ * rows to the caller's own assignments.
  */
 export async function listProfessorCourses(userId: string): Promise<ProfessorCourseListItem[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from("course_professors")
-    .select("assigned_at, courses(id, title, status, access_type)")
+    .from("offering_professors")
+    .select("assigned_at, course_offerings!inner(name, courses!inner(id, title, status, access_type))")
     .eq("user_id", userId)
     .order("assigned_at", { ascending: false })
 
@@ -19,12 +19,23 @@ export async function listProfessorCourses(userId: string): Promise<ProfessorCou
     return []
   }
 
-  return (data ?? [])
-    .filter((row) => row.courses !== null)
-    .map((row) => ({
-      id: row.courses!.id,
-      title: row.courses!.title,
-      status: row.courses!.status,
-      accessType: row.courses!.access_type,
-    }))
+  const byCourse = new Map<string, ProfessorCourseListItem>()
+  for (const row of data ?? []) {
+    const offering = row.course_offerings
+    const course = offering?.courses
+    if (!offering || !course) continue
+    const existing = byCourse.get(course.id)
+    if (existing) {
+      existing.editions.push(offering.name)
+    } else {
+      byCourse.set(course.id, {
+        id: course.id,
+        title: course.title,
+        status: course.status,
+        accessType: course.access_type,
+        editions: [offering.name],
+      })
+    }
+  }
+  return Array.from(byCourse.values())
 }

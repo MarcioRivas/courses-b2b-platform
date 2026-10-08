@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import type { MatrixCase } from "./matrix-runner"
 
 /**
- * groups, group_members, courses, course_professors, course_offerings,
+ * groups, group_members, courses, offering_professors, course_offerings,
  * offering_module_schedules.
  *
  * `groups`/`group_members`/`score_scale_ranges`/`organization_settings`
@@ -84,28 +84,27 @@ export function coursesSpec(): MatrixCase[] {
     },
 
     {
-      // course_professors_select is `user_id = auth.uid() OR can_edit_course(course_id)`
-      // — no enrolled-student clause (unlike docs/authorization.md's summary
-      // row), so a student does not see this table at all. See security-review.md.
-      table: "course_professors",
+      // offering_professors_select is `is_offering_professor(offering) OR org admin` —
+      // no enrolled-student clause, so a student does not see this table at all.
+      table: "offering_professors",
       op: "select",
-      keyColumns: ["course_id", "user_id"],
+      keyColumns: ["offering_id", "user_id"],
       allow: ["superAdmin", "adminA", "profA"],
-      target: (fx) => ({ course_id: fx.courseA.courseId, user_id: fx.users.profA.id }),
+      target: (fx) => ({ offering_id: fx.courseA.offeringId, user_id: fx.users.profA.id }),
     },
     {
-      table: "course_professors",
+      table: "offering_professors",
       op: "insert",
-      keyColumns: ["course_id", "user_id"],
+      keyColumns: ["offering_id", "user_id"],
       allow: ["superAdmin", "adminA"],
-      payload: (fx) => ({ course_id: fx.spareCourseA, user_id: fx.users.profA.id }),
+      payload: (fx) => ({ offering_id: fx.spareOfferingA, user_id: fx.users.profA.id }),
     },
     {
-      table: "course_professors",
+      table: "offering_professors",
       op: "delete",
-      keyColumns: ["course_id", "user_id"],
+      keyColumns: ["offering_id", "user_id"],
       allow: ["superAdmin", "adminA"],
-      seed: (fx) => Promise.resolve({ course_id: fx.spareCourseA, user_id: fx.users.profA.id }),
+      seed: (fx) => Promise.resolve({ offering_id: fx.spareOfferingA, user_id: fx.users.profA.id }),
     },
 
     {

@@ -143,6 +143,34 @@ export async function enrollStudent(
   return data.id
 }
 
+/** Returns the course's first edition, creating an OPEN one when it has none (for courses built by hand). */
+export async function ensureOffering(courseId: string, organizationId: string): Promise<string> {
+  const { data: existing } = await supabaseAdmin
+    .from("course_offerings")
+    .select("id")
+    .eq("course_id", courseId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  if (existing) return existing.id
+
+  const { data, error } = await supabaseAdmin
+    .from("course_offerings")
+    .insert({ course_id: courseId, organization_id: organizationId, kind: "OPEN", name: "Edición de prueba" })
+    .select("id")
+    .single()
+  if (error || !data) throw error ?? new Error("offering not created")
+  return data.id
+}
+
+/** Assigns a professor to one edition (replaces the old course-level assignment). */
+export async function assignOfferingProfessor(offeringId: string, userId: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("offering_professors")
+    .insert({ offering_id: offeringId, user_id: userId })
+  if (error) throw error
+}
+
 export async function deleteCourses(courseIds: string[]): Promise<void> {
   if (courseIds.length > 0) {
     await supabaseAdmin.from("courses").delete().in("id", courseIds)

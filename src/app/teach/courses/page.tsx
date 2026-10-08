@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataList, type DataListColumn } from "@/components/shared/data-list"
 import { Button } from "@/components/ui/button"
 import { courseMessages } from "@/lib/messages/admin-courses"
+import { offeringMessages } from "@/lib/messages/admin-offerings"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { listProfessorCourses } from "@/features/courses/queries/list-professor-courses"
 import { CourseStatusBadge } from "@/features/courses/components/course-status-badge"
@@ -20,6 +21,11 @@ export default async function TeachCoursesPage() {
   }
 
   const columns: DataListColumn<ProfessorCourseListItem>[] = [
+    {
+      key: "editions",
+      header: offeringMessages.list.editionsHeader,
+      cell: (course) => course.editions.join(", "),
+    },
     {
       key: "status",
       header: courseMessages.list.statusHeader,

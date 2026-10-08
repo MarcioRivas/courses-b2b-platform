@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { deleteUser } from "../helpers/make-user"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
+import { assignOfferingProfessor, ensureOffering } from "../helpers/course-fixtures"
 
 /**
  * RLS/RPC coverage for the content builder (Part B): a professor may only
@@ -42,8 +43,7 @@ async function createCourse(status: "DRAFT" | "PUBLISHED"): Promise<string> {
 }
 
 async function assignProfessor(courseId: string, userId: string): Promise<void> {
-  const { error } = await supabaseAdmin.from("course_professors").insert({ course_id: courseId, user_id: userId })
-  if (error) throw error
+  await assignOfferingProfessor(await ensureOffering(courseId, ORG_A), userId)
 }
 
 beforeAll(async () => {

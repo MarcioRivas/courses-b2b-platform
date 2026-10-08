@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { loginViaOtp } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 import { makeUser } from "../helpers/make-user"
-import { makeCourseFixture, makeAssessmentFixture, enrollStudent, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeCourseFixture, makeAssessmentFixture, enrollStudent, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 
 const ORG_A = "11111111-1111-1111-1111-111111111111"
 
@@ -45,7 +45,7 @@ test.describe("accessibility (axe) — key screens", () => {
     moduleId = fixture.modules[0]!.id
     lessonId = fixture.modules[0]!.lessonId
 
-    await supabaseAdmin.from("course_professors").insert({ course_id: courseId, user_id: professorId })
+    await assignOfferingProfessor(fixture.offeringId, professorId)
 
     const quiz = await makeAssessmentFixture({
       organizationId: ORG_A,

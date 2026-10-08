@@ -3,7 +3,7 @@ import "server-only"
 import { createClient } from "@/lib/supabase/server"
 
 /**
- * Thin wrapper over the `can_edit_course` SQL function — the single authority
+ * Thin wrapper over the `can_edit_course_content` SQL function — the single authority
  * for who may author course content (D22/D34).
  *
  * Deliberately not a TypeScript re-implementation of the rule: the same
@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server"
 export async function canEditCourse(courseId: string): Promise<boolean> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.rpc("can_edit_course", { p_course: courseId })
+  const { data, error } = await supabase.rpc("can_edit_course_content", { p_course: courseId })
 
   if (error) {
     return false

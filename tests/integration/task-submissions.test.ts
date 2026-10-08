@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
-import { cleanupFixtures, enrollStudent, makeAssessmentFixture, makeCourseFixture } from "../helpers/course-fixtures"
+import { cleanupFixtures, enrollStudent, makeAssessmentFixture, makeCourseFixture, assignOfferingProfessor } from "../helpers/course-fixtures"
 import type { TestUser } from "../helpers/make-user"
 import { buildPendingAttemptsQuery } from "@/features/grading/queries/pending-attempts-query"
 
@@ -46,7 +46,7 @@ async function setupTask(label: string, options: { maxFiles?: number; allowLate?
     modules: [{ title: "Módulo", requiredBlocks: 1 }],
   })
   courseIds.push(course.courseId)
-  await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+  await assignOfferingProfessor(course.offeringId, professor.id)
 
   const fixture = await makeAssessmentFixture({
     courseId: course.courseId,

@@ -32,12 +32,3 @@ export type UpdateCourseInput = z.infer<typeof updateCourseSchema>
 
 export const courseIdSchema = z.object({ courseId: z.guid() })
 export type CourseIdInput = z.infer<typeof courseIdSchema>
-
-export const assignProfessorSchema = z.object({
-  courseId: z.guid(),
-  userId: z.guid(),
-})
-export type AssignProfessorInput = z.infer<typeof assignProfessorSchema>
-
-export const unassignProfessorSchema = assignProfessorSchema
-export type UnassignProfessorInput = z.infer<typeof unassignProfessorSchema>

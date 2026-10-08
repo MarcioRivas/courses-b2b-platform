@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest"
 import { createMemberFactory } from "../helpers/membership"
 import { supabaseAdmin } from "../helpers/supabase-admin"
-import { makeAssessmentFixture, makeCourseFixture, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeAssessmentFixture, makeCourseFixture, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 
 /**
  * N1 fix (code review 260913, cycle 2): `authoring-rpcs.test.ts` only covered
@@ -31,7 +31,7 @@ describe("set_assessment_questions", () => {
       modules: [{ title: "Módulo único", requiredBlocks: 1 }],
     })
     courseIds.push(course.courseId)
-    await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+    await assignOfferingProfessor(course.offeringId, professor.id)
 
     const fixture = await makeAssessmentFixture({
       courseId: course.courseId,
@@ -81,7 +81,7 @@ describe("set_assessment_questions", () => {
       modules: [{ title: "Módulo único", requiredBlocks: 1 }],
     })
     courseIds.push(course.courseId)
-    await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professor.id })
+    await assignOfferingProfessor(course.offeringId, professor.id)
 
     const fixture = await makeAssessmentFixture({
       courseId: course.courseId,

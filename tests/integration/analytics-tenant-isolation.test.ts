@@ -1,8 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest"
 import { createMemberFactory } from "../helpers/membership"
-import { supabaseAdmin } from "../helpers/supabase-admin"
 import { psqlBool } from "../helpers/sql"
-import { makeAssessmentFixture, makeCourseFixture, cleanupFixtures } from "../helpers/course-fixtures"
+import { makeAssessmentFixture, makeCourseFixture, cleanupFixtures, assignOfferingProfessor } from "../helpers/course-fixtures"
 
 /**
  * Phase 6 (D25): every `p_org` analytics function must resolve/assert the
@@ -156,7 +155,7 @@ describe("professor_overview_stats never returns org-wide numbers (B12)", () => 
       modules: [{ title: "Módulo único", requiredBlocks: 1 }],
     })
     courseIds.push(course.courseId)
-    await supabaseAdmin.from("course_professors").insert({ course_id: course.courseId, user_id: professorB.id })
+    await assignOfferingProfessor(course.offeringId, professorB.id)
 
     const { data } = await professorB.client.rpc("professor_overview_stats")
     expect(data).toHaveLength(1)

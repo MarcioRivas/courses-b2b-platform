@@ -11,15 +11,17 @@ const ALL = "ALL"
 interface GradingFiltersProps {
   courses: { id: string; title: string }[]
   assessments: GradableAssessmentOption[]
+  editions: { id: string; name: string }[]
 }
 
-/** Course + assessment selects, URL-driven like `MemberFilters` (§44). */
-export function GradingFilters({ courses, assessments }: GradingFiltersProps) {
+/** Course + edition + assessment selects, URL-driven like `MemberFilters` (§44). */
+export function GradingFilters({ courses, assessments, editions }: GradingFiltersProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const courseId = searchParams.get("courseId") ?? ALL
   const assessmentId = searchParams.get("assessmentId") ?? ALL
+  const offeringId = searchParams.get("offeringId") ?? ALL
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -50,6 +52,19 @@ export function GradingFilters({ courses, assessments }: GradingFiltersProps) {
           {courses.map((course) => (
             <SelectItem key={course.id} value={course.id}>
               {course.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={offeringId} onValueChange={(value) => setParam("offeringId", value ?? ALL)}>
+        <SelectTrigger aria-label={teachGradingMessages.filters.editionLabel} className="w-full sm:w-48">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>{messages.common.all}</SelectItem>
+          {editions.map((edition) => (
+            <SelectItem key={edition.id} value={edition.id}>
+              {edition.name}
             </SelectItem>
           ))}
         </SelectContent>
