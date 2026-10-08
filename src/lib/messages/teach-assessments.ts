@@ -22,7 +22,6 @@ export const teachAssessmentMessages = {
     courseOrgWidePlaceholder: "Compartido en toda la organización",
     courseOrgWideBadge: "Toda la organización",
     saved: "Banco guardado.",
-    backToBanks: "Volver a bancos",
     questionsCountLabel: "Preguntas",
   },
   questions: {

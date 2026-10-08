@@ -87,7 +87,7 @@ export function DataList<T>({
               {[titleColumn, ...columns].map((column) => (
                 <TableHead
                   key={column.key}
-                  className={cn(column.isActions && "text-right", column.className)}
+                  className={cn("h-11 px-4 first:pl-6 last:pr-6", column.isActions && "text-right", column.className)}
                 >
                   {column.isActions ? <span className="sr-only">{column.header}</span> : column.header}
                 </TableHead>
@@ -100,7 +100,7 @@ export function DataList<T>({
                 {[titleColumn, ...columns].map((column) => (
                   <TableCell
                     key={column.key}
-                    className={cn(column.isActions && "text-right", column.className)}
+                    className={cn("px-4 py-3 first:pl-6 last:pr-6", column.isActions && "text-right", column.className)}
                   >
                     {column.cell(item)}
                   </TableCell>

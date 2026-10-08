@@ -6,6 +6,7 @@ import { getSessionContext } from "@/lib/auth/session"
 import { roleHome } from "@/lib/auth/role-home"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
+import { mapRegistrationRpcError } from "../registration-rpc-error"
 import { completeRegistrationSchema, type CompleteRegistrationInput } from "../schemas/auth-schemas"
 
 /**
@@ -31,6 +32,15 @@ export async function completeRegistration(
   })
 
   if (error) {
+    // OTP-first flow: the auth user already exists, so an exhausted link is
+    // surfaced on /register-required instead of the generic invalid-link text.
+    const known = mapRegistrationRpcError(error.message)
+    if (known?.kind === "redirect") {
+      return redirect(known.to)
+    }
+    if (known) {
+      return { ok: false, code: known.code, message: known.message }
+    }
     const actionError = toActionError(error)
     if (actionError.code === "CONFLICT") {
       return { ok: false, ...actionError, message: messages.register.alreadyRegistered }

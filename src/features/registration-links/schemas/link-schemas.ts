@@ -8,6 +8,8 @@ export const createLinkSchema = z.object({
   organizationId: z.guid(),
   label: z.string().trim().min(1, "Ingresá una etiqueta.").max(120, "Máximo 120 caracteres."),
   role: linkRoleSchema,
+  /** Optional cap on registrations; empty/undefined = unlimited. */
+  maxUses: z.number().int("Debe ser un número entero.").min(1, "Debe ser al menos 1.").max(100000).optional(),
   /** `YYYY-MM-DD` from a date input; the action converts it to end-of-day ISO. */
   expiresAt: z.string().refine((value) => !Number.isNaN(Date.parse(value)), "Fecha inválida."),
 })

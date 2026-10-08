@@ -1,10 +1,10 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { getMember } from "@/features/users/queries/get-member"
 import { RoleBadge } from "@/features/users/components/role-badge"
 import { MemberRoleDialog } from "@/features/users/components/member-role-dialog"
+import { MemberProfileDialog } from "@/features/users/components/member-profile-dialog"
 import { MemberStatusToggle } from "@/features/users/components/member-status-toggle"
 import { Badge } from "@/components/ui/badge"
 import { messages } from "@/lib/messages/es"
@@ -25,39 +25,54 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
 
   const fullName = `${member.firstName} ${member.lastName}`.trim()
   const isSelf = member.userId === ctx.user.id
+  // The RPC refuses org admins editing ADMIN members (profiles are global); only platform admins may.
+  const canEditProfile = member.role !== "ADMIN" || ctx.isPlatformAdmin
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link href="/admin/members" className="text-sm text-muted-foreground hover:underline">
-          ← {adminMembersMessages.detail.back}
-        </Link>
-        <PageHeader title={fullName}>
-          <div className="flex items-center gap-2">
-            <RoleBadge role={member.role} />
-            <Badge variant={member.status === "ACTIVE" ? "secondary" : "outline"}>
-              {messages.memberStatus[member.status]}
-            </Badge>
-          </div>
-        </PageHeader>
-      </div>
-
-      {!isSelf && (
+      <PageHeader
+        title={fullName}
+        breadcrumb={[{ label: adminMembersMessages.title, href: "/admin/members" }, { label: fullName }]}
+      >
         <div className="flex items-center gap-2">
-          <MemberRoleDialog
-            membershipId={member.membershipId}
-            memberName={fullName}
-            currentRole={member.role}
-            organizationId={ctx.organizationId}
-          />
-          <MemberStatusToggle
-            membershipId={member.membershipId}
-            memberName={fullName}
-            status={member.status}
-            organizationId={ctx.organizationId}
-          />
+          <RoleBadge role={member.role} />
+          <Badge variant={member.status === "ACTIVE" ? "secondary" : "outline"}>
+            {messages.memberStatus[member.status]}
+          </Badge>
         </div>
-      )}
+      </PageHeader>
+
+      <div className="flex items-center gap-2">
+        {canEditProfile && (
+          <MemberProfileDialog
+            userId={member.userId}
+            organizationId={ctx.organizationId}
+            memberName={fullName}
+            initial={{
+              firstName: member.firstName,
+              lastName: member.lastName,
+              phone: member.phone ?? "",
+              dni: member.dni ?? "",
+            }}
+          />
+        )}
+        {!isSelf && (
+          <>
+            <MemberRoleDialog
+              membershipId={member.membershipId}
+              memberName={fullName}
+              currentRole={member.role}
+              organizationId={ctx.organizationId}
+            />
+            <MemberStatusToggle
+              membershipId={member.membershipId}
+              memberName={fullName}
+              status={member.status}
+              organizationId={ctx.organizationId}
+            />
+          </>
+        )}
+      </div>
 
       <section className="rounded-lg border p-4">
         <h2 className="mb-3 text-sm font-semibold">{adminMembersMessages.detail.contactTitle}</h2>

@@ -29,7 +29,11 @@ export default async function GroupDetailPage({ params }: GroupDetailPageProps) 
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={group.name} description={group.description ?? undefined}>
+      <PageHeader
+        title={group.name}
+        description={group.description ?? undefined}
+        breadcrumb={[{ label: groupMessages.list.title, href: "/admin/groups" }, { label: group.name }]}
+      >
         <GroupForm mode="edit" group={group} trigger={<Button variant="outline">{messages.common.edit}</Button>} />
       </PageHeader>
 

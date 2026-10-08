@@ -7,6 +7,7 @@ const VARIANT: Record<LinkState, "default" | "secondary" | "outline" | "destruct
   INACTIVE: "secondary",
   EXPIRED: "outline",
   REVOKED: "destructive",
+  EXHAUSTED: "outline",
 }
 
 export function LinkStateBadge({ link }: { link: LinkStateInput }) {

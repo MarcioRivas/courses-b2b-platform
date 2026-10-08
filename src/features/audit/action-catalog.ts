@@ -27,6 +27,7 @@ export const ACTION_ENTITY_TYPES: Record<string, string> = {
 
   "member.role_changed": "organization_membership",
   "member.status_changed": "organization_membership",
+  "member.profile_updated": "organization_membership",
   "user.registered": "organization_membership",
 
   "registration_link.created": "organization_registration_link",

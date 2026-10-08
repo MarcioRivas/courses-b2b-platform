@@ -1,4 +1,6 @@
 import { z } from "zod"
+import { phoneSchema } from "@/lib/validation/zod-helpers"
+import { profileFieldsSchema } from "@/features/auth/schemas/auth-schemas"
 
 export const membershipRoleSchema = z.enum(["ADMIN", "PROFESSOR", "STUDENT"])
 export type MembershipRole = z.infer<typeof membershipRoleSchema>
@@ -30,3 +32,12 @@ export const setMemberStatusSchema = z.object({
   status: membershipStatusSchema,
 })
 export type SetMemberStatusInput = z.infer<typeof setMemberStatusSchema>
+
+/** Thin wrapper input over `admin_update_member_profile` (email is not editable). */
+export const updateMemberProfileSchema = profileFieldsSchema.extend({
+  /** Optional here (unlike registration): an admin may clear it. Empty becomes null in the RPC. */
+  phone: phoneSchema.or(z.string().trim().length(0)),
+  userId: z.guid(),
+  organizationId: z.guid(),
+})
+export type UpdateMemberProfileInput = z.infer<typeof updateMemberProfileSchema>

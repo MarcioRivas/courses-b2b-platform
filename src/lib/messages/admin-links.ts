@@ -8,6 +8,8 @@ export const adminLinksMessages = {
     labelPlaceholder: "Ej: Ingreso temporada 2026",
     roleField: "Rol por defecto",
     expiresField: "Vence",
+    maxUsesField: "Máximo de usos",
+    maxUsesHint: "Dejalo vacío para no limitar",
     submit: "Crear link",
     success: "Link creado.",
   },
@@ -24,6 +26,7 @@ export const adminLinksMessages = {
     INACTIVE: "Inactivo",
     EXPIRED: "Expirado",
     REVOKED: "Revocado",
+    EXHAUSTED: "Agotado",
   },
   noExpiry: "Sin vencimiento",
   empty: {

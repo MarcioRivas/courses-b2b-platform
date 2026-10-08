@@ -55,13 +55,18 @@ export default async function OrganizationDetailPage({
   // `org_overview_stats` accepts an explicit org id from a platform admin
   // (D25's one exception: narrowing, never widening); no per-org analytics
   // page ships (D34) — a compact grid here is the whole surface.
+  const orgCrumb = [{ label: orgMessages.list.title, href: "/platform/organizations" }, { label: organization.name }]
   let overview: OrgOverviewStats | null
   try {
     overview = await getOrgOverview(orgId)
   } catch {
     return (
       <div className="flex flex-col gap-4">
-        <PageHeader title={organization.name} description={orgMessages.status[organization.status]} />
+        <PageHeader
+        title={organization.name}
+        description={orgMessages.status[organization.status]}
+        breadcrumb={orgCrumb}
+      />
         <ErrorState title={messages.errors.INTERNAL} />
       </div>
     )
@@ -74,7 +79,11 @@ export default async function OrganizationDetailPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title={organization.name} description={orgMessages.status[organization.status]} />
+      <PageHeader
+        title={organization.name}
+        description={orgMessages.status[organization.status]}
+        breadcrumb={orgCrumb}
+      />
 
       {overview && (
         <section className="flex flex-col gap-3">

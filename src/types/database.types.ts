@@ -1244,6 +1244,7 @@ export type Database = {
           id: string
           is_active: boolean
           label: string | null
+          max_uses: number | null
           organization_id: string
           revoked_at: string | null
           token: string
@@ -1258,6 +1259,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label?: string | null
+          max_uses?: number | null
           organization_id: string
           revoked_at?: string | null
           token?: string
@@ -1272,6 +1274,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label?: string | null
+          max_uses?: number | null
           organization_id?: string
           revoked_at?: string | null
           token?: string
@@ -1887,6 +1890,16 @@ export type Database = {
         Args: { p_group: string; p_user_ids: string[] }
         Returns: number
       }
+      admin_update_member_profile: {
+        Args: {
+          p_dni: string
+          p_first_name: string
+          p_last_name: string
+          p_phone: string
+          p_user: string
+        }
+        Returns: undefined
+      }
       answer_video_checkpoint: {
         Args: { p_answers: Json; p_checkpoint: string; p_enrollment: string }
         Returns: {
@@ -1935,6 +1948,15 @@ export type Database = {
       }
       assert_subtree_deletable: {
         Args: { p_course: string; p_lesson: string; p_module: string }
+        Returns: undefined
+      }
+      assert_valid_profile_fields: {
+        Args: {
+          p_dni: string
+          p_first_name: string
+          p_last_name: string
+          p_phone: string
+        }
         Returns: undefined
       }
       assessment_module_id: { Args: { p_assessment: string }; Returns: string }
@@ -2013,6 +2035,7 @@ export type Database = {
         Args: {
           p_expires_at?: string
           p_label: string
+          p_max_uses?: number
           p_org: string
           p_role?: Database["public"]["Enums"]["membership_role"]
         }
@@ -2050,6 +2073,7 @@ export type Database = {
       get_registration_link_public: {
         Args: { p_token: string }
         Returns: {
+          exhausted: boolean
           organization_name: string
           valid: boolean
         }[]
@@ -2180,6 +2204,7 @@ export type Database = {
           submitted_late: boolean
         }[]
       }
+      normalize_dni: { Args: { p_dni: string }; Returns: string }
       org_assessment_stats: {
         Args: { p_org: string }
         Returns: {

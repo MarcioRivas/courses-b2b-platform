@@ -7,8 +7,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { APP_NAME } from "@/lib/constants"
 import { messages } from "@/lib/messages/es"
 import { BrandMark } from "./brand-mark"
-import { NavLink } from "./nav-link"
-import { NAV_ITEMS, type AppRole } from "./side-nav"
+import { NavSections } from "./nav-sections"
+import { NAV_SECTIONS, type AppRole } from "./side-nav"
 import { UserMenu } from "./user-menu"
 
 interface TopNavProps {
@@ -20,7 +20,6 @@ interface TopNavProps {
 
 export function TopNav({ role, organizationName, userName, userEmail }: TopNavProps) {
   const [open, setOpen] = useState(false)
-  const items = NAV_ITEMS[role]
   const label = organizationName ?? APP_NAME
 
   return (
@@ -34,18 +33,7 @@ export function TopNav({ role, organizationName, userName, userEmail }: TopNavPr
             <SheetHeader>
               <SheetTitle>{label}</SheetTitle>
             </SheetHeader>
-            <nav className="flex flex-col gap-1 px-4">
-              {items.map((item) => (
-                <NavLink
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  exact={item.exact}
-                  icon={item.icon ? <item.icon /> : undefined}
-                  onClick={() => setOpen(false)}
-                />
-              ))}
-            </nav>
+            <NavSections sections={NAV_SECTIONS[role]} onNavigate={() => setOpen(false)} className="px-4" />
           </SheetContent>
         </Sheet>
         <BrandMark size="sm" />

@@ -1,6 +1,5 @@
-import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { ArrowLeftIcon } from "lucide-react"
+import { Breadcrumb } from "@/components/shared/breadcrumb"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { EmptyState } from "@/components/shared/empty-state"
 import { learnMessages } from "@/lib/messages/learn"
@@ -65,17 +64,15 @@ export default async function StudentLessonPage({ params }: PageProps) {
   return (
     <>
       <header className="mb-6 flex flex-col gap-2">
-        <Link
-          href={`/learn/courses/${enrollment.id}`}
-          className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeftIcon className="size-4" aria-hidden />
-          {learnMessages.lesson.backToCourse}
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: learnMessages.dashboard.title, href: "/learn" },
+            { label: enrollment.courseTitle, href: `/learn/courses/${enrollment.id}` },
+            { label: courseModule.title },
+            { label: lesson.title },
+          ]}
+        />
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {courseModule.title}
-          </p>
           <h1 className="text-xl font-semibold tracking-tight">{lesson.title}</h1>
           {lesson.description && (
             <p className="mt-1 text-sm text-muted-foreground">{lesson.description}</p>

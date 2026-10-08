@@ -1,6 +1,7 @@
 "use client"
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { FilterField } from "@/components/shared/filter-field"
 import { SearchInput } from "@/components/shared/search-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { messages } from "@/lib/messages/es"
@@ -26,29 +27,33 @@ export function MemberFilters() {
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
       <SearchInput paramName="q" placeholder={adminMembersMessages.searchPlaceholder} />
-      <Select value={searchParams.get("role") ?? ALL} onValueChange={(value) => setParam("role", value ?? ALL)}>
-        <SelectTrigger aria-label={adminMembersMessages.filters.roleLabel} className="w-full sm:w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{messages.common.all}</SelectItem>
-          <SelectItem value="ADMIN">{messages.roles.ADMIN}</SelectItem>
-          <SelectItem value="PROFESSOR">{messages.roles.PROFESSOR}</SelectItem>
-          <SelectItem value="STUDENT">{messages.roles.STUDENT}</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select value={searchParams.get("status") ?? ALL} onValueChange={(value) => setParam("status", value ?? ALL)}>
-        <SelectTrigger aria-label={adminMembersMessages.filters.statusLabel} className="w-full sm:w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{messages.common.all}</SelectItem>
-          <SelectItem value="ACTIVE">{messages.memberStatus.ACTIVE}</SelectItem>
-          <SelectItem value="INACTIVE">{messages.memberStatus.INACTIVE}</SelectItem>
-        </SelectContent>
-      </Select>
+      <FilterField label={adminMembersMessages.filters.roleLabel}>
+        <Select value={searchParams.get("role") ?? ALL} onValueChange={(value) => setParam("role", value ?? ALL)}>
+          <SelectTrigger aria-label={adminMembersMessages.filters.roleLabel} className="w-full sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{messages.common.all}</SelectItem>
+            <SelectItem value="ADMIN">{messages.roles.ADMIN}</SelectItem>
+            <SelectItem value="PROFESSOR">{messages.roles.PROFESSOR}</SelectItem>
+            <SelectItem value="STUDENT">{messages.roles.STUDENT}</SelectItem>
+          </SelectContent>
+        </Select>
+      </FilterField>
+      <FilterField label={adminMembersMessages.filters.statusLabel}>
+        <Select value={searchParams.get("status") ?? ALL} onValueChange={(value) => setParam("status", value ?? ALL)}>
+          <SelectTrigger aria-label={adminMembersMessages.filters.statusLabel} className="w-full sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{messages.common.all}</SelectItem>
+            <SelectItem value="ACTIVE">{messages.memberStatus.ACTIVE}</SelectItem>
+            <SelectItem value="INACTIVE">{messages.memberStatus.INACTIVE}</SelectItem>
+          </SelectContent>
+        </Select>
+      </FilterField>
     </div>
   )
 }

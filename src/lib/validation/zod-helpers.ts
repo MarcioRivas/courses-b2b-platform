@@ -23,6 +23,7 @@ export const phoneSchema = z
   .trim()
   .min(6, "Ingresá un teléfono válido.")
   .max(20, "Máximo 20 caracteres.")
+  .regex(/^[0-9 ()+.-]+$/, "Usá solo números, espacios y los símbolos + - ( ) .")
 
 /** Registration link token: matches the base64url charset generated in SQL (W3). */
 export const registrationTokenSchema = z

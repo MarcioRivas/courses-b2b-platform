@@ -2,15 +2,13 @@ import Link from "next/link"
 import { DataList, type DataListColumn } from "@/components/shared/data-list"
 import { Pagination } from "@/components/shared/pagination"
 import { SearchInput } from "@/components/shared/search-input"
-import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { Button } from "@/components/ui/button"
-import { messages } from "@/lib/messages/es"
 import { courseMessages } from "@/lib/messages/admin-courses"
 import { buildListHref, firstParam, type SearchParams } from "@/lib/search-params"
 import { listCourses, COURSES_PAGE_SIZE } from "../queries/list-courses"
-import { deleteCourse } from "../actions/delete-course"
 import type { CourseListItem, CourseStatus } from "../types"
 import { CourseStatusBadge } from "./course-status-badge"
+import { CourseStatusFilter } from "./course-status-filter"
 
 interface CourseListProps {
   organizationId: string
@@ -55,55 +53,19 @@ export async function CourseList({ organizationId, basePath, searchParams }: Cou
       header: courseMessages.list.viewAction,
       isActions: true,
       cell: (course) => (
-        <div className="flex gap-1">
-          <Button variant="outline" size="sm" render={<Link href={`${basePath}/${course.id}`} />}>
-            {courseMessages.list.viewAction}
-          </Button>
-          {course.status === "DRAFT" && (
-            <ConfirmDialog
-              trigger={
-                <Button variant="ghost" size="sm">
-                  {messages.common.delete}
-                </Button>
-              }
-              title={courseMessages.delete.title}
-              description={courseMessages.delete.description}
-              confirmLabel={messages.common.delete}
-              destructive
-              successMessage={courseMessages.delete.success}
-              action={deleteCourse}
-              input={{ courseId: course.id }}
-            />
-          )}
-        </div>
+        <Button variant="outline" size="sm" render={<Link href={`${basePath}/${course.id}`} />}>
+          {courseMessages.list.viewAction}
+        </Button>
       ),
     },
   ]
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <SearchInput placeholder={courseMessages.list.searchPlaceholder} />
-          <div className="flex flex-wrap gap-1">
-            <Button
-              variant={status === undefined ? "default" : "outline"}
-              size="sm"
-              render={<Link href={buildListHref(basePath, searchParams, { status: undefined, page: undefined })} />}
-            >
-              {courseMessages.list.statusFilterAll}
-            </Button>
-            {VALID_STATUSES.map((s) => (
-              <Button
-                key={s}
-                variant={status === s ? "default" : "outline"}
-                size="sm"
-                render={<Link href={buildListHref(basePath, searchParams, { status: s, page: undefined })} />}
-              >
-                {courseMessages.status[s]}
-              </Button>
-            ))}
-          </div>
+          <CourseStatusFilter />
         </div>
         <Button render={<Link href={`${basePath}/new`} />}>{courseMessages.list.createAction}</Button>
       </div>

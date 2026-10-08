@@ -9,6 +9,7 @@ export interface LinkListItem {
   token: string
   isActive: boolean
   useCount: number
+  maxUses: number | null
   expiresAt: string | null
   revokedAt: string | null
 }
@@ -41,7 +42,7 @@ export async function listLinks(params: ListLinksParams): Promise<ListLinksResul
 
   const { data, error, count } = await supabase
     .from("organization_registration_links")
-    .select("id, label, default_role, token, is_active, use_count, expires_at, revoked_at", { count: "exact" })
+    .select("id, label, default_role, token, is_active, use_count, max_uses, expires_at, revoked_at", { count: "exact" })
     .eq("organization_id", params.organizationId)
     // `id` breaks ties: links created in one transaction share created_at, and
     // an unstable order makes range() duplicate or skip rows between pages.
@@ -60,6 +61,7 @@ export async function listLinks(params: ListLinksParams): Promise<ListLinksResul
     token: row.token,
     isActive: row.is_active,
     useCount: row.use_count,
+    maxUses: row.max_uses,
     expiresAt: row.expires_at,
     revokedAt: row.revoked_at,
   }))

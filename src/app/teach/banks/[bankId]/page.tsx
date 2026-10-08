@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeftIcon, PencilIcon } from "lucide-react"
+import { PencilIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
@@ -28,11 +27,11 @@ export default async function BankDetailPage({ params }: BankDetailPageProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/teach/banks" className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4" /> {labels.backToBanks}
-      </Link>
-
-      <PageHeader title={bank.name} description={bank.courseTitle ?? labels.courseOrgWideBadge}>
+      <PageHeader
+        title={bank.name}
+        description={bank.courseTitle ?? labels.courseOrgWideBadge}
+        breadcrumb={[{ label: labels.title, href: "/teach/banks" }, { label: bank.name }]}
+      >
         <BankForm
           mode="edit"
           courses={[]}

@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import type { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
@@ -95,6 +95,32 @@ export function LinkForm({ organizationId, allowAdminRole }: LinkFormProps) {
                       {allowAdminRole && <SelectItem value="ADMIN">{messages.roles.ADMIN}</SelectItem>}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="maxUses"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{adminLinksMessages.form.maxUsesField}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      step={1}
+                      inputMode="numeric"
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(event.target.value === "" ? undefined : Number(event.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>{adminLinksMessages.form.maxUsesHint}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

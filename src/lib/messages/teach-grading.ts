@@ -27,7 +27,6 @@ export const teachGradingMessages = {
   },
   panel: {
     title: "Corregir entrega",
-    backToQueue: "Volver a la cola",
     autoScoreLabel: "Puntaje automático",
     manualScoreLabel: "Puntaje manual",
     totalScoreLabel: "Total",

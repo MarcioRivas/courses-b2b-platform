@@ -41,7 +41,11 @@ export async function LinkList({ organizationId, basePath, searchParams }: LinkL
   const columns: DataListColumn<LinkListItem>[] = [
     { key: "role", header: adminLinksMessages.columns.role, cell: (link) => messages.roles[link.defaultRole] },
     { key: "state", header: adminLinksMessages.columns.state, cell: (link) => <LinkStateBadge link={link} /> },
-    { key: "uses", header: adminLinksMessages.columns.uses, cell: (link) => link.useCount },
+    {
+      key: "uses",
+      header: adminLinksMessages.columns.uses,
+      cell: (link) => (link.maxUses == null ? link.useCount : `${link.useCount} / ${link.maxUses}`),
+    },
     { key: "expires", header: adminLinksMessages.columns.expires, cell: (link) => formatExpiry(link.expiresAt) },
     {
       key: "actions",

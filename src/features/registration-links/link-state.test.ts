@@ -32,6 +32,20 @@ describe("linkState", () => {
     expect(linkState({ isActive: true, revokedAt: null, expiresAt: null })).toBe("ACTIVE")
   })
 
+  it("is EXHAUSTED when useCount reaches maxUses", () => {
+    const base = { isActive: true, revokedAt: null, expiresAt: null }
+    expect(linkState({ ...base, useCount: 2, maxUses: 2 })).toBe("EXHAUSTED")
+    expect(linkState({ ...base, useCount: 1, maxUses: 2 })).toBe("ACTIVE")
+    expect(linkState({ ...base, useCount: 99, maxUses: null })).toBe("ACTIVE")
+  })
+
+  it("revoked, expired and inactive take precedence over EXHAUSTED", () => {
+    const full = { useCount: 2, maxUses: 2 }
+    expect(linkState({ isActive: true, revokedAt: "2020-01-01T00:00:00Z", expiresAt: null, ...full })).toBe("REVOKED")
+    expect(linkState({ isActive: true, revokedAt: null, expiresAt: "2000-01-01T00:00:00Z", ...full })).toBe("EXPIRED")
+    expect(linkState({ isActive: false, revokedAt: null, expiresAt: null, ...full })).toBe("INACTIVE")
+  })
+
   it("treats expiresAt exactly equal to now as EXPIRED (boundary)", () => {
     vi.useFakeTimers()
     try {

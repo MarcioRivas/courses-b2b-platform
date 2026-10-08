@@ -6,6 +6,7 @@
 export const messages = {
   common: {
     appName: "ENECourses",
+    breadcrumbLabel: "Ruta de navegación",
     loading: "Cargando…",
     logout: "Cerrar sesión",
     retry: "Reintentar",
@@ -59,6 +60,11 @@ export const messages = {
     invalidLinkDescription:
       "Este link de registro no existe, fue revocado o expiró. Pedile uno nuevo a tu organización.",
     alreadyRegistered: "Ya estás registrado en esta organización. Iniciá sesión.",
+    linkExhausted:
+      "Este link ya alcanzó el máximo de registros. Pedile uno nuevo a tu organización.",
+    exhaustedTitle: "Link agotado",
+    dniTaken: "Ya hay un miembro de esta organización registrado con ese DNI.",
+    invalidProfile: "Revisá los datos ingresados.",
     membershipInactive:
       "Tu acceso a esta organización fue desactivado. Contactá a tu administrador.",
     joiningOrgPrefix: "Te vas a unir a",

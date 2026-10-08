@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { z } from "zod"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
+import { learnMessages } from "@/lib/messages/learn"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { formatDateTimeInTimeZone } from "@/lib/dates/format-in-time-zone"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
@@ -50,6 +51,11 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
   }
 
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
+  const breadcrumb = [
+    { label: learnMessages.dashboard.title, href: "/learn" },
+    { label: enrollment.courseTitle, href: `/learn/courses/${enrollmentId}` },
+    { label: assessment.title },
+  ]
   const moduleState = assessment.moduleId
     ? unlockStates.find((state) => state.moduleId === assessment.moduleId)
     : undefined
@@ -66,7 +72,11 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
 
     return (
       <>
-        <PageHeader title={assessment.title} description={assessment.description ?? undefined} />
+        <PageHeader
+          title={assessment.title}
+          description={assessment.description ?? undefined}
+          breadcrumb={breadcrumb}
+        />
         <TaskSubmissionView
           settings={{
             assessmentId,
@@ -112,7 +122,11 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
 
   return (
     <>
-      <PageHeader title={assessment.title} description={assessment.description ?? undefined} />
+      <PageHeader
+        title={assessment.title}
+        description={assessment.description ?? undefined}
+        breadcrumb={breadcrumb}
+      />
 
       <div className="flex flex-col gap-4 rounded-lg border bg-card p-4">
         <dl className="grid gap-3 text-sm sm:grid-cols-2">

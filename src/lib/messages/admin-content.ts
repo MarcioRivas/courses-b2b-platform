@@ -3,7 +3,6 @@ export const contentMessages = {
   builder: {
     modulesTitle: "Módulos",
     lessonsTitle: "Lecciones",
-    breadcrumbLabel: "Ruta de navegación",
     coursesCrumb: "Cursos",
     courseEyebrow: "Contenido del curso",
     moduleEyebrow: (n: number) => `Módulo ${n}`,

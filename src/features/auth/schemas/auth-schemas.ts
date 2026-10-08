@@ -26,11 +26,16 @@ export const verifyOtpSchema = z.object({
 })
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>
 
-export const completeRegistrationSchema = z.object({
-  token: registrationTokenSchema,
+/** Personal-data fields shared by registration and the admin member editor. */
+export const profileFieldsSchema = z.object({
   firstName: nameSchema,
   lastName: nameSchema,
   phone: phoneSchema,
   dni: dniSchema,
+})
+export type ProfileFieldsInput = z.infer<typeof profileFieldsSchema>
+
+export const completeRegistrationSchema = profileFieldsSchema.extend({
+  token: registrationTokenSchema,
 })
 export type CompleteRegistrationInput = z.infer<typeof completeRegistrationSchema>

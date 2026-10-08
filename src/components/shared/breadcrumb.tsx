@@ -1,7 +1,7 @@
 import { Fragment } from "react"
 import Link from "next/link"
 import { ChevronRightIcon } from "lucide-react"
-import { contentMessages } from "@/lib/messages/admin-content"
+import { messages } from "@/lib/messages/es"
 
 export interface BreadcrumbItem {
   label: string
@@ -10,13 +10,13 @@ export interface BreadcrumbItem {
 }
 
 /**
- * `Cursos › {curso} › {módulo} › {lección}` trail for the drill-down builder.
+ * `Lista › {detalle}` trail shared by every detail page and the content builder.
  * Items wrap on narrow screens; each label is clamped so a long course title
  * never forces horizontal scroll at 375px.
  */
-export function ContentBreadcrumb({ items }: { items: BreadcrumbItem[] }) {
+export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav aria-label={contentMessages.builder.breadcrumbLabel}>
+    <nav aria-label={messages.common.breadcrumbLabel}>
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-sm text-muted-foreground">
         {items.map((item, index) => {
           const isLast = index === items.length - 1

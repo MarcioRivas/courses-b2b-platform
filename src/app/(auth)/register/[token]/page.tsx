@@ -26,6 +26,15 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
   const { data, error } = await supabase.rpc("get_registration_link_public", { p_token: parsedToken.data })
   const link = data?.[0]
 
+  if (!error && link?.exhausted) {
+    return (
+      <div className="flex flex-col gap-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">{messages.register.exhaustedTitle}</h1>
+        <p className="text-sm text-muted-foreground">{messages.register.linkExhausted}</p>
+      </div>
+    )
+  }
+
   if (error || !link || !link.valid) {
     return invalidLink
   }

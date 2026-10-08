@@ -59,6 +59,7 @@ export const auditActionLabels: Record<string, string> = {
 
   "member.role_changed": "Rol de miembro cambiado",
   "member.status_changed": "Estado de miembro cambiado",
+  "member.profile_updated": "Datos de miembro actualizados",
   "user.registered": "Usuario registrado",
 
   "registration_link.created": "Link de registro creado",

@@ -60,6 +60,7 @@ export async function createRegistrationLink(input: CreateLinkInput): Promise<Ac
     p_label: parsed.data.label,
     p_role: parsed.data.role,
     p_expires_at: expiresAt,
+    p_max_uses: parsed.data.maxUses,
   })
 
   if (error) {
