@@ -29,6 +29,7 @@ export const courseMessages = {
     titleLabel: "Título",
     descriptionLabel: "Descripción",
     accessTypeLabel: "Tipo de acceso",
+    accessTypeHelpHasEditions: "El tipo de acceso no se puede cambiar una vez creada una edición.",
     accessTypeHelpLocked: "El tipo de acceso no se puede cambiar una vez publicado el curso.",
     saved: "Curso guardado.",
   },

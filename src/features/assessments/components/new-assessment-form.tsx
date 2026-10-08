@@ -15,7 +15,7 @@ import { createAssessment } from "../actions/create-assessment"
 import { createAssessmentSchema, type CreateAssessmentInput } from "../schemas/assessment-schemas"
 
 /** Bare create (title + kind, B3/D12 defaults applied server-side); full config happens on the detail page. */
-export function NewAssessmentForm({ courseId, offeringId }: { courseId: string; offeringId: string }) {
+export function NewAssessmentForm({ offeringId, assessmentsPath }: { offeringId: string; assessmentsPath: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const labels = teachAssessmentMessages.assessments
@@ -32,7 +32,7 @@ export function NewAssessmentForm({ courseId, offeringId }: { courseId: string; 
         toast.error(result.message)
         return
       }
-      router.push(`/teach/courses/${courseId}/assessments/${result.data.id}`)
+      router.push(`${assessmentsPath}/${result.data.id}`)
     })
   }
 

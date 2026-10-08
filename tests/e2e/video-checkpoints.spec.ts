@@ -151,7 +151,7 @@ test("professor: adds a checkpoint from the preview, saves it, and sees statisti
 
   await useFakeYoutube(page)
   await loginViaOtp(page, professor.email, "/teach")
-  await page.goto(`/teach/courses/${lesson.course.courseId}/content/${lesson.course.modules[0]!.id}/${lesson.lessonId}`)
+  await page.goto(`/teach/courses/${lesson.course.courseId}/editions/${lesson.course.offeringId}/content/${lesson.course.modules[0]!.id}/${lesson.lessonId}`)
   await page.getByRole("listitem").getByRole("button", { name: "Editar", exact: true }).click()
 
   await expect(page.getByRole("heading", { name: "Preguntas en el video" })).toBeVisible()

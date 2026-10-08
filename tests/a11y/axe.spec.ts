@@ -23,6 +23,7 @@ test.describe("accessibility (axe) — key screens", () => {
   let studentId: string
   let professorId: string
   let courseId: string
+  let offeringId: string
   const bankIds: string[] = []
   let enrollmentId: string
   let registrationToken: string
@@ -42,6 +43,7 @@ test.describe("accessibility (axe) — key screens", () => {
       modules: [{ title: "Módulo 1", requiredBlocks: 1 }],
     })
     courseId = fixture.courseId
+    offeringId = fixture.offeringId
     moduleId = fixture.modules[0]!.id
     lessonId = fixture.modules[0]!.lessonId
 
@@ -155,13 +157,16 @@ test.describe("accessibility (axe) — key screens", () => {
     const admin = await makeUser("a11y-admin", { organizationId: ORG_A, role: "ADMIN" })
     try {
       await loginViaOtp(page, admin.email, "/admin")
-      await page.goto(`/admin/courses/${courseId}/content`)
-      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/content")
+      await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/content`)
+      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/offerings/[offeringId]/content")
+
+      await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/assessments`)
+      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/offerings/[offeringId]/assessments")
 
       // Drill-down deep link: the lesson page renders the block list full-width.
-      await page.goto(`/admin/courses/${courseId}/content/${moduleId}/${lessonId}`)
+      await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/content/${moduleId}/${lessonId}`)
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
-      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/content/[moduleId]/[lessonId]")
+      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/offerings/[offeringId]/content/[moduleId]/[lessonId]")
     } finally {
       await supabaseAdmin.auth.admin.deleteUser(admin.id)
     }

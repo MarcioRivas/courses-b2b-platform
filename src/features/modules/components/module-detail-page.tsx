@@ -1,6 +1,7 @@
 import { BookOpenIcon, PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
+import type { BreadcrumbItem } from "@/components/shared/breadcrumb"
 import { contentMessages } from "@/lib/messages/admin-content"
 import type { OfferingTree, OfferingTreeModule } from "@/features/courses/queries/get-offering-tree"
 import { LessonForm } from "@/features/lessons/components/lesson-form"
@@ -14,12 +15,13 @@ interface ModuleDetailPageProps {
   tree: OfferingTree
   module: OfferingTreeModule
   basePath: string
-  coursesHref: string
+  /** Crumbs up to (and including) the edition. */
+  breadcrumb: BreadcrumbItem[]
   canEdit: boolean
 }
 
 /** Level 2 of the drill-down: module header + ordered lesson rows + prev/next module. */
-export function ModuleDetailPage({ tree, module, basePath, coursesHref, canEdit }: ModuleDetailPageProps) {
+export function ModuleDetailPage({ tree, module, basePath, breadcrumb, canEdit }: ModuleDetailPageProps) {
   const labels = contentMessages
   const index = tree.modules.findIndex((m) => m.id === module.id)
   const modulePath = `${basePath}/${module.id}`
@@ -43,8 +45,7 @@ export function ModuleDetailPage({ tree, module, basePath, coursesHref, canEdit 
     <div className="flex flex-col gap-6">
       <ContentPageHeader
         breadcrumb={[
-          { label: labels.builder.coursesCrumb, href: coursesHref },
-          { label: tree.title, href: basePath },
+          ...breadcrumb,
           { label: module.title },
         ]}
         eyebrow={labels.builder.moduleEyebrow(index + 1)}

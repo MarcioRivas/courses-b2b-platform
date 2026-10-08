@@ -19,12 +19,24 @@ export interface CourseDetail {
   accessType: CourseAccessType
   publishedAt: string | null
   archivedAt: string | null
+  /** Once an edition exists the access type is locked (`ACCESS_TYPE_LOCKED`). */
+  hasEditions: boolean
 }
 
 export interface CourseCompleteness {
   hasModule: boolean
   hasLesson: boolean
   hasBlock: boolean
+}
+
+/** One row per edition the professor teaches (`/teach/courses`). */
+export interface ProfessorEditionListItem {
+  offeringId: string
+  offeringName: string
+  courseId: string
+  courseTitle: string
+  courseStatus: CourseStatus
+  accessType: CourseAccessType
 }
 
 export interface ProfessorCourseListItem {

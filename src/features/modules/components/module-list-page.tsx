@@ -1,9 +1,9 @@
-import Link from "next/link"
 import { LayersIcon, PlusIcon } from "lucide-react"
-import { Button, buttonVariants } from "@/components/ui/button"
+import type { ReactNode } from "react"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
+import type { BreadcrumbItem } from "@/components/shared/breadcrumb"
 import { contentMessages } from "@/lib/messages/admin-content"
-import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import type { OfferingTree } from "@/features/courses/queries/get-offering-tree"
 import { CourseStatusBadge } from "@/features/courses/components/course-status-badge"
 import { ContentPageHeader } from "./content-page-header"
@@ -12,17 +12,17 @@ import { ModuleList } from "./module-list"
 
 interface ModuleListPageProps {
   tree: OfferingTree
-  /** `/admin/courses/{id}/content` or `/teach/courses/{id}/content` — drives every link below. */
+  /** The edition's `…/content` route — drives every link below. */
   basePath: string
-  /** "Cursos" crumb target (`/admin/courses` or `/teach/courses`). */
-  coursesHref: string
-  /** Professor-only "Evaluaciones" link; the admin route has no mirror surface. */
-  assessmentsHref?: string
+  /** Crumbs up to (and including) the edition; the page appends nothing. */
+  breadcrumb: BreadcrumbItem[]
+  /** Edition tabs rendered under the header. */
+  tabs?: ReactNode
   canEdit: boolean
 }
 
 /** Level 1 of the drill-down: course header + ordered module rows. */
-export function ModuleListPage({ tree, basePath, coursesHref, assessmentsHref, canEdit }: ModuleListPageProps) {
+export function ModuleListPage({ tree, basePath, breadcrumb, tabs, canEdit }: ModuleListPageProps) {
   const labels = contentMessages
   const createTrigger = (
     <Button size="sm">
@@ -37,22 +37,15 @@ export function ModuleListPage({ tree, basePath, coursesHref, assessmentsHref, c
   return (
     <div className="flex flex-col gap-6">
       <ContentPageHeader
-        breadcrumb={[{ label: labels.builder.coursesCrumb, href: coursesHref }, { label: tree.title }]}
+        breadcrumb={breadcrumb}
         eyebrow={labels.builder.courseEyebrow}
         title={tree.title}
+        description={labels.builder.editionDescription(tree.offeringName)}
         icon={LayersIcon}
         badges={<CourseStatusBadge status={tree.status} />}
-        actions={
-          <>
-            {assessmentsHref && (
-              <Link href={assessmentsHref} className={buttonVariants({ variant: "outline", size: "sm" })}>
-                {teachAssessmentMessages.nav.assessments}
-              </Link>
-            )}
-            {!isEmpty && createForm}
-          </>
-        }
+        actions={!isEmpty && createForm}
       />
+      {tabs}
 
       {isEmpty ? (
         <EmptyState

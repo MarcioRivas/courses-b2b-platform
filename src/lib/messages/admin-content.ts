@@ -3,8 +3,8 @@ export const contentMessages = {
   builder: {
     modulesTitle: "Módulos",
     lessonsTitle: "Lecciones",
-    coursesCrumb: "Cursos",
-    courseEyebrow: "Contenido del curso",
+    courseEyebrow: "Contenido de la edición",
+    editionDescription: (name: string) => `Edición: ${name}`,
     moduleEyebrow: (n: number) => `Módulo ${n}`,
     lessonEyebrow: (n: number) => `Lección ${n}`,
     lessonCount: (n: number) => `${n} ${n === 1 ? "lección" : "lecciones"}`,

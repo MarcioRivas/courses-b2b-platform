@@ -27,7 +27,7 @@ import type { CourseDetail } from "../types"
 
 interface CourseFormProps {
   mode: "create" | "edit"
-  course?: Pick<CourseDetail, "id" | "title" | "description" | "accessType" | "status">
+  course?: Pick<CourseDetail, "id" | "title" | "description" | "accessType" | "status" | "hasEditions">
   /** "dialog" (default, mirrors GroupForm) for the edit flow; "inline" renders a plain full-page form for `/admin/courses/new`. */
   variant?: "dialog" | "inline"
   trigger?: ReactElement
@@ -38,7 +38,8 @@ export function CourseForm({ mode, course, variant = "dialog", trigger }: Course
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const accessTypeLocked = mode === "edit" && course?.status !== "DRAFT"
+  const hasEditions = mode === "edit" && Boolean(course?.hasEditions)
+  const accessTypeLocked = mode === "edit" && (course?.status !== "DRAFT" || hasEditions)
 
   const form = useForm<CreateCourseInput>({
     resolver: zodResolver(createCourseSchema),
@@ -119,7 +120,7 @@ export function CourseForm({ mode, course, variant = "dialog", trigger }: Course
                 </SelectContent>
               </Select>
               {accessTypeLocked && (
-                <p className="text-xs text-muted-foreground">{courseMessages.form.accessTypeHelpLocked}</p>
+                <p className="text-xs text-muted-foreground">{hasEditions ? courseMessages.form.accessTypeHelpHasEditions : courseMessages.form.accessTypeHelpLocked}</p>
               )}
               <FormMessage />
             </FormItem>

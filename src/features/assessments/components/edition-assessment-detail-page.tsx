@@ -1,56 +1,49 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeftIcon } from "lucide-react"
-import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditOffering } from "@/lib/auth/course-access"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { messages } from "@/lib/messages/es"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
+import { editionCrumbs, editionPaths, type EditionArea } from "@/lib/courses/edition-paths"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
-import { getAssessment } from "@/features/assessments/queries/get-assessment"
-import { getAssessmentConfigOptions } from "@/features/assessments/queries/get-assessment-config"
-import { isAssessmentReferenced } from "@/features/assessments/queries/is-assessment-referenced"
-import { AssessmentForm } from "@/features/assessments/components/assessment-form"
-import { AssessmentStatusBadge } from "@/features/assessments/components/assessment-status-badge"
-import { QuestionPicker } from "@/features/assessments/components/question-picker"
-import { ExtendWindowDialog } from "@/features/assessments/components/extend-window-dialog"
-import { PublishButton } from "@/features/assessments/components/publish-button"
-import { deleteAssessment } from "@/features/assessments/actions/delete-assessment"
+import type { OfferingTree } from "@/features/courses/queries/get-offering-tree"
+import { getAssessmentConfigOptions } from "../queries/get-assessment-config"
+import { isAssessmentReferenced } from "../queries/is-assessment-referenced"
+import { deleteAssessment } from "../actions/delete-assessment"
+import type { AssessmentDetail } from "../types"
+import { AssessmentForm } from "./assessment-form"
+import { AssessmentStatusBadge } from "./assessment-status-badge"
+import { QuestionPicker } from "./question-picker"
+import { ExtendWindowDialog } from "./extend-window-dialog"
+import { PublishButton } from "./publish-button"
 
-interface AssessmentDetailPageProps {
-  params: Promise<{ courseId: string; assessmentId: string }>
+interface EditionAssessmentDetailPageProps {
+  tree: OfferingTree
+  area: EditionArea
+  assessment: AssessmentDetail
 }
 
-export default async function AssessmentDetailPage({ params }: AssessmentDetailPageProps) {
-  const ctx = await requireOrgRole(["PROFESSOR"])
-  const { courseId, assessmentId } = await params
-
-  const assessment = await getAssessment(assessmentId)
-  if (!assessment || assessment.courseId !== courseId || !(await canEditOffering(assessment.offeringId))) {
-    return notFound()
-  }
-
+/** Evaluation detail/config of one edition, shared by the admin tab and the teach route. */
+export async function EditionAssessmentDetailPage({ tree, area, assessment }: EditionAssessmentDetailPageProps) {
+  const labels = teachAssessmentMessages.assessments
   const [{ banks, questions }, settings, isReferenced] = await Promise.all([
-    getAssessmentConfigOptions(courseId),
-    getOrgSettings(ctx.organizationId),
+    getAssessmentConfigOptions(tree.courseId),
+    getOrgSettings(tree.organizationId),
     isAssessmentReferenced(assessment.id),
   ])
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
-  const labels = teachAssessmentMessages.assessments
 
   return (
     <div className="flex flex-col gap-4">
-      <Link
-        href={`/teach/courses/${courseId}/assessments`}
-        className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      <PageHeader
+        title={assessment.title}
+        description={`${labels.kinds[assessment.kind]} · ${labels.editionDescription(tree.title, tree.offeringName)}`}
+        breadcrumb={[
+          ...editionCrumbs(area, { ...tree, courseTitle: tree.title }),
+          { label: labels.title, href: editionPaths(area, tree).assessments },
+          { label: assessment.title },
+        ]}
       >
-        <ArrowLeftIcon className="size-4" /> {labels.backToAssessments}
-      </Link>
-
-      <PageHeader title={assessment.title} description={labels.kinds[assessment.kind]}>
         <div className="flex flex-wrap items-center gap-2">
           <AssessmentStatusBadge status={assessment.status} />
           {assessment.status === "DRAFT" && <PublishButton assessmentId={assessment.id} />}

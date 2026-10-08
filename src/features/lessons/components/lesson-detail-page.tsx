@@ -1,4 +1,5 @@
 import { FileTextIcon } from "lucide-react"
+import type { BreadcrumbItem } from "@/components/shared/breadcrumb"
 import { contentMessages } from "@/lib/messages/admin-content"
 import type { OfferingTree, OfferingTreeLesson, OfferingTreeModule } from "@/features/courses/queries/get-offering-tree"
 import { BlockList } from "@/features/content-blocks/components/block-list"
@@ -12,12 +13,13 @@ interface LessonDetailPageProps {
   module: OfferingTreeModule
   lesson: OfferingTreeLesson
   basePath: string
-  coursesHref: string
+  /** Crumbs up to (and including) the edition. */
+  breadcrumb: BreadcrumbItem[]
   canEdit: boolean
 }
 
 /** Level 3 of the drill-down: lesson header + full-width block list + prev/next lesson. */
-export function LessonDetailPage({ tree, module, lesson, basePath, coursesHref, canEdit }: LessonDetailPageProps) {
+export function LessonDetailPage({ tree, module, lesson, basePath, breadcrumb, canEdit }: LessonDetailPageProps) {
   const labels = contentMessages.builder
   const modulePath = `${basePath}/${module.id}`
   const index = module.lessons.findIndex((l) => l.id === lesson.id)
@@ -27,8 +29,7 @@ export function LessonDetailPage({ tree, module, lesson, basePath, coursesHref, 
     <div className="flex flex-col gap-6">
       <ContentPageHeader
         breadcrumb={[
-          { label: labels.coursesCrumb, href: coursesHref },
-          { label: tree.title, href: basePath },
+          ...breadcrumb,
           { label: module.title, href: modulePath },
           { label: lesson.title },
         ]}

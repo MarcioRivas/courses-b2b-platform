@@ -16,6 +16,8 @@ export const offeringMessages = {
   },
   tabs: {
     detail: "Detalle",
+    content: "Contenido",
+    assessments: "Evaluaciones",
     professors: "Profesores",
   },
   detail: {

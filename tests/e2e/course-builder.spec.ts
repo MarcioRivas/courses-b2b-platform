@@ -17,6 +17,7 @@ test.describe.configure({ mode: "serial" })
 
 let page: Page
 let adminUserId: string
+let offeringId: string
 
 test.beforeAll(async ({ browser }) => {
   // A throwaway admin: the seeded org A admin is already driven by
@@ -74,7 +75,21 @@ test("publishing is refused while the course has no content", async () => {
 
 test("admin builds module, lesson and a content block, then publishes", async () => {
   const courseId = await courseIdByTitle(courseTitle)
-  await page.goto(`/admin/courses/${courseId}/content`)
+  // Content belongs to an edition: the course needs one before it can be built.
+  const { data: createdOffering, error: offeringError } = await supabaseAdmin
+    .from("course_offerings")
+    .insert({
+      course_id: courseId,
+      organization_id: ORG_A,
+      kind: "GROUP",
+      group_id: GROUP_A,
+      name: "Oferta E2E",
+    })
+    .select("id")
+    .single()
+  expect(offeringError).toBeNull()
+  offeringId = createdOffering!.id
+  await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/content`)
 
   await page.getByRole("button", { name: "Nuevo módulo" }).click()
   await page.getByLabel("Título").fill(moduleTitle)
@@ -107,14 +122,7 @@ test("admin builds module, lesson and a content block, then publishes", async ()
   // The structure really landed, not just the optimistic UI. Resolved step by
   // step rather than through a nested embed filter, so a failure points at the
   // missing row rather than at a mis-typed PostgREST path.
-  const { data: offering } = await supabaseAdmin
-    .from("course_offerings")
-    .select("id")
-    .eq("course_id", courseId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single()
-  const { data: modules } = await supabaseAdmin.from("modules").select("id").eq("offering_id", offering!.id)
+  const { data: modules } = await supabaseAdmin.from("modules").select("id").eq("offering_id", offeringId)
   expect(modules ?? []).toHaveLength(1)
 
   const { data: lessons } = await supabaseAdmin
@@ -147,7 +155,7 @@ test("admin builds module, lesson and a content block, then publishes", async ()
 
 test("deleting a module or lesson from its own detail page redirects instead of 404ing", async () => {
   const courseId = await courseIdByTitle(courseTitle)
-  const basePath = `/admin/courses/${courseId}/content`
+  const basePath = `/admin/courses/${courseId}/offerings/${offeringId}/content`
   const throwawayModuleTitle = "Módulo temporal"
   const throwawayLessonTitle = "Lección temporal"
 
@@ -183,26 +191,12 @@ test("deleting a module or lesson from its own detail page redirects instead of 
 test("an offering for a group enrolls that group's students", async () => {
   const courseId = await courseIdByTitle(courseTitle)
 
-  // The offering form is admin-only and derives kind from the course access
-  // type; PRIVATE is the default, so this is a GROUP offering.
+  // The GROUP edition was created by the builder test above.
   // The offerings page is headed by the course title; "Ediciones" is the section.
   await page.goto(`/admin/courses/${courseId}/offerings`)
   await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible()
 
-  const { data: offering, error } = await supabaseAdmin
-    .from("course_offerings")
-    .insert({
-      course_id: courseId,
-      organization_id: ORG_A,
-      kind: "GROUP",
-      group_id: GROUP_A,
-      name: "Oferta E2E",
-    })
-    .select("id")
-    .single()
-  expect(error).toBeNull()
-
-  await page.goto(`/admin/courses/${courseId}/offerings/${offering!.id}`)
+  await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}`)
   await page.getByRole("button", { name: "Sincronizar inscripciones" }).click()
 
   // Group A holds the three seeded students.
@@ -211,7 +205,7 @@ test("an offering for a group enrolls that group's students", async () => {
       const { count } = await supabaseAdmin
         .from("course_enrollments")
         .select("id", { count: "exact", head: true })
-        .eq("offering_id", offering!.id)
+        .eq("offering_id", offeringId)
         .eq("status", "ACTIVE")
       return count
     })

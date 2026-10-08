@@ -5,7 +5,14 @@ import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { AssessmentStatusBadge } from "./assessment-status-badge"
 import type { AssessmentListItem } from "../types"
 
-export function AssessmentList({ courseId, assessments }: { courseId: string; assessments: AssessmentListItem[] }) {
+interface AssessmentListProps {
+  /** The edition's `…/assessments` route. */
+  assessmentsPath: string
+  offeringName: string
+  assessments: AssessmentListItem[]
+}
+
+export function AssessmentList({ assessmentsPath, offeringName, assessments }: AssessmentListProps) {
   const labels = teachAssessmentMessages.assessments
 
   const titleColumn: DataListColumn<AssessmentListItem> = {
@@ -15,6 +22,11 @@ export function AssessmentList({ courseId, assessments }: { courseId: string; as
   }
 
   const columns: DataListColumn<AssessmentListItem>[] = [
+    {
+      key: "edition",
+      header: labels.editionLabel,
+      cell: () => offeringName,
+    },
     {
       key: "kind",
       header: labels.kindLabel,
@@ -38,7 +50,7 @@ export function AssessmentList({ courseId, assessments }: { courseId: string; as
       header: "",
       isActions: true,
       cell: (assessment) => (
-        <Button variant="outline" size="sm" render={<Link href={`/teach/courses/${courseId}/assessments/${assessment.id}`} />}>
+        <Button variant="outline" size="sm" render={<Link href={`${assessmentsPath}/${assessment.id}`} />}>
           {labels.editTitle}
         </Button>
       ),

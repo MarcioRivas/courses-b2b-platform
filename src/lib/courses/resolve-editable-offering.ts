@@ -1,7 +1,6 @@
 import "server-only"
 
 import { notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import type { MembershipRole } from "@/lib/auth/session"
 import { canEditOffering } from "@/lib/auth/course-access"
@@ -15,9 +14,13 @@ import {
 /**
  * Shared guard for the content builder routes (`/admin` + `/teach`,
  * `…/content`, `…/content/[moduleId]`, `…/content/[moduleId]/[lessonId]`):
- * role gate → `can_edit_offering` → tree, `notFound()` when either fails.
+ * role gate → `can_edit_offering` → tree (+ edition belongs to course), `notFound()` when any fails.
  */
-export async function resolveEditableOffering(offeringId: string, roles: MembershipRole[]): Promise<OfferingTree> {
+export async function resolveEditableOffering(
+  courseId: string,
+  offeringId: string,
+  roles: MembershipRole[]
+): Promise<OfferingTree> {
   await requireOrgRole(roles)
 
   if (!(await canEditOffering(offeringId))) {
@@ -25,37 +28,11 @@ export async function resolveEditableOffering(offeringId: string, roles: Members
   }
 
   const tree = await getOfferingTree(offeringId)
-  if (!tree) {
+  // The edition must belong to the course in the URL, otherwise 404.
+  if (!tree || tree.courseId !== courseId) {
     notFound()
   }
   return tree
-}
-
-/**
- * TEMPORARY bridge (B2 step 1): the old course-level builder routes still exist
- * until the content moves under `/offerings/[offeringId]` and
- * `/editions/[offeringId]` (step 2), so they serve the first edition the caller
- * can see. Delete together with those routes.
- */
-export async function firstVisibleOfferingId(courseId: string): Promise<string | null> {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("course_offerings")
-    .select("id")
-    .eq("course_id", courseId)
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true })
-    .limit(1)
-    .maybeSingle()
-  return data?.id ?? null
-}
-
-export async function resolveEditableFirstEdition(courseId: string, roles: MembershipRole[]): Promise<OfferingTree> {
-  const offeringId = await firstVisibleOfferingId(courseId)
-  if (!offeringId) {
-    notFound()
-  }
-  return resolveEditableOffering(offeringId, roles)
 }
 
 /** Module lookup by id inside an already-resolved tree; 404 keeps deep links honest. */

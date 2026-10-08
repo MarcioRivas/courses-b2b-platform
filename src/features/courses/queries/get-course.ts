@@ -7,7 +7,7 @@ export async function getCourse(courseId: string): Promise<CourseDetail | null> 
 
   const { data, error } = await supabase
     .from("courses")
-    .select("id, organization_id, title, description, status, access_type, published_at, archived_at")
+    .select("id, organization_id, title, description, status, access_type, published_at, archived_at, course_offerings(count)")
     .eq("id", courseId)
     .maybeSingle()
 
@@ -24,6 +24,7 @@ export async function getCourse(courseId: string): Promise<CourseDetail | null> 
     accessType: data.access_type,
     publishedAt: data.published_at,
     archivedAt: data.archived_at,
+    hasEditions: (data.course_offerings?.[0]?.count ?? 0) > 0,
   }
 }
 
