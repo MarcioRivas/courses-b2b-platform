@@ -187,7 +187,7 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     if (progressError || !progress) throw progressError ?? new Error("progress not created")
 
     const assessment = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: org,
       title: `Sec Evaluación ${org.slice(0, 8)}`,
       kind: "EXAM",

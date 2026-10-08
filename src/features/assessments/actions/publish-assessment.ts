@@ -1,9 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
@@ -28,7 +28,7 @@ export async function publishAssessment(input: PublishAssessmentInput): Promise<
   const { data: assessment } = await supabase
     .from("assessments")
     .select(
-      "id, course_id, organization_id, kind, instructions, max_files, duration_seconds, available_from, available_until, question_bank_id, random_question_count, assessment_questions(question_id)"
+      "id, offering_id, organization_id, kind, instructions, max_files, duration_seconds, available_from, available_until, question_bank_id, random_question_count, assessment_questions(question_id)"
     )
     .eq("id", parsed.data.assessmentId)
     .maybeSingle()
@@ -36,7 +36,7 @@ export async function publishAssessment(input: PublishAssessmentInput): Promise<
   if (!assessment) {
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
-  if (!(await canEditCourse(assessment.course_id))) {
+  if (!(await canEditOffering(assessment.offering_id))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
@@ -120,7 +120,7 @@ function taskPublishError(assessment: {
 
 async function markPublished(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  assessment: { id: string; course_id: string; organization_id: string }
+  assessment: { id: string; offering_id: string; organization_id: string }
 ): Promise<ActionResult<void>> {
   const { error } = await supabase.from("assessments").update({ status: "PUBLISHED" }).eq("id", assessment.id)
   if (error) {
@@ -134,8 +134,7 @@ async function markPublished(
     entityId: assessment.id,
   })
 
-  revalidatePath(`/teach/courses/${assessment.course_id}/assessments`)
-  revalidatePath(`/teach/courses/${assessment.course_id}/assessments/${assessment.id}`)
+  await revalidateOfferingAssessments(assessment.offering_id, assessment.id)
 
   return { ok: true, data: undefined }
 }

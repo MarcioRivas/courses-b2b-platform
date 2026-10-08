@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import type { ActionResult } from "@/lib/errors"
@@ -30,10 +30,9 @@ export async function saveVideoCheckpoints(input: SaveVideoCheckpointsInput): Pr
     return checkpointRpcErrorResult(error)
   }
 
-  const { data: courseId } = await supabase.rpc("course_id_of_block", { p_block: parsed.data.blockId })
-  if (courseId) {
-    revalidatePath(`/teach/courses/${courseId}/content`, "layout")
-    revalidatePath(`/admin/courses/${courseId}/content`, "layout")
+  const { data: offeringId } = await supabase.rpc("offering_id_of_block", { p_block: parsed.data.blockId })
+  if (offeringId) {
+    await revalidateOfferingContent(offeringId)
   }
 
   return { ok: true, data: undefined }

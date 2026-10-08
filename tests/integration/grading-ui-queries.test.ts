@@ -40,7 +40,7 @@ async function makeGradableCourse(title: string, professorId: string) {
   await assignOfferingProfessor(course.offeringId, professorId)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
     kind: "EXAM",
@@ -115,7 +115,7 @@ describe("buildPendingAttemptsQuery (5E grading queue)", () => {
     expect(count).toBe(2)
     expect((data ?? []).map((row) => row.id)).toEqual([attemptA, attemptB])
     for (const row of data ?? []) {
-      expect(row.assessments?.course_id).toBe(course.courseId)
+      expect(row.course_enrollments?.course_id).toBe(course.courseId)
     }
   })
 

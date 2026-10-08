@@ -24,7 +24,7 @@ test("task submission: student uploads a PDF → professor grades after the dead
 
   const task = await makeAssessmentFixture({
     organizationId: ORG_A,
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     title: "Tarea de planificación",
     kind: "TASK",
     instructions: "Armá un microciclo semanal y subilo en PDF.",

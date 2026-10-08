@@ -101,7 +101,7 @@ describe("assessment_score_distribution derives org/course from the row (D25)", 
     })
     courseIds.push(course.courseId)
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_B,
       title: "Evaluación aislamiento",
       kind: "QUIZ",
@@ -124,7 +124,7 @@ describe("assessment_score_distribution derives org/course from the row (D25)", 
     })
     courseIds.push(course.courseId)
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación aislamiento estudiante",
       kind: "QUIZ",

@@ -163,7 +163,7 @@ describe("sync_offering_enrollments: cancels only zero-progress departures", () 
 
     const { data: module } = await supabaseAdmin
       .from("modules")
-      .insert({ course_id: courseId, title: "Módulo", position: 1 })
+      .insert({ offering_id: offeringId, title: "Módulo", position: 1 })
       .select("id")
       .single()
     const { data: lesson } = await supabaseAdmin
@@ -215,7 +215,7 @@ describe("two offerings of one course: independent schedules and enrollments", (
 
     const { data: module } = await supabaseAdmin
       .from("modules")
-      .insert({ course_id: courseId, title: "Módulo paralelo", position: 1 })
+      .insert({ offering_id: offeringOne, title: "Módulo paralelo", position: 1 })
       .select("id")
       .single()
 

@@ -2,12 +2,12 @@ import { createClient } from "@/lib/supabase/server"
 
 /**
  * A QUIZ/TASK block may only point at an assessment of the matching kind in
- * the same course (Phase 5 step 3) — the DB CHECK only guarantees
- * `assessment_id is not null`, not that it's the right course or kind.
+ * the same edition (Phase 5 step 3, B2) — the DB CHECK only guarantees
+ * `assessment_id is not null`, not that it's the right edition or kind.
  */
-export async function assertBlockAssessmentMatchesCourse(
+export async function assertBlockAssessmentMatchesOffering(
   assessmentId: string,
-  courseId: string,
+  offeringId: string,
   blockType: "QUIZ" | "TASK"
 ): Promise<boolean> {
   const supabase = await createClient()
@@ -16,7 +16,7 @@ export async function assertBlockAssessmentMatchesCourse(
     .from("assessments")
     .select("id")
     .eq("id", assessmentId)
-    .eq("course_id", courseId)
+    .eq("offering_id", offeringId)
     .eq("kind", blockType)
     .maybeSingle()
 

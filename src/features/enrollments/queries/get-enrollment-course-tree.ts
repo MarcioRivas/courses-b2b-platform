@@ -39,14 +39,14 @@ export interface StudentModule {
 }
 
 /**
- * The student's view of a course: modules → lessons → blocks, each block
+ * The student's view of their edition's content: modules → lessons → blocks, each block
  * carrying whether this enrollment has already completed it.
  *
  * Availability is deliberately absent — it is decided by `module_unlock_state`
  * and merged in the page (D17). This query only reports what exists.
  */
 export async function getEnrollmentCourseTree(
-  courseId: string,
+  offeringId: string,
   enrollmentId: string
 ): Promise<StudentModule[]> {
   const supabase = await createClient()
@@ -60,7 +60,7 @@ export async function getEnrollmentCourseTree(
            lesson_content_blocks ( id, type, position, data, is_required, assessment_id,
              assessments ( title, kind ) ) )`
       )
-      .eq("course_id", courseId)
+      .eq("offering_id", offeringId)
       .order("position", { ascending: true }),
     supabase.from("content_progress").select("content_block_id").eq("enrollment_id", enrollmentId),
   ])

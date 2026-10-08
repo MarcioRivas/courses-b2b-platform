@@ -33,7 +33,7 @@ test("assessment full flow: student quiz → score; exam → save → reload →
   // Create quiz: 2 MC, pass if 50%
   const quiz = await makeAssessmentFixture({
     organizationId: ORG_A,
-    courseId: fixture.courseId,
+    offeringId: fixture.offeringId,
     title: "Quiz de prueba",
     kind: "QUIZ",
     multipleChoice: 2,
@@ -47,7 +47,7 @@ test("assessment full flow: student quiz → score; exam → save → reload →
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const exam = await makeAssessmentFixture({
     organizationId: ORG_A,
-    courseId: fixture.courseId,
+    offeringId: fixture.offeringId,
     title: "Examen de prueba",
     kind: "EXAM",
     multipleChoice: 1,

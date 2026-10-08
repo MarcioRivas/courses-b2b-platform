@@ -1,4 +1,4 @@
-import { resolveEditableCourse } from "@/lib/courses/resolve-editable-course"
+import { resolveEditableFirstEdition } from "@/lib/courses/resolve-editable-offering"
 import { ModuleListPage } from "@/features/modules/components/module-list-page"
 
 interface AdminCourseContentPageProps {
@@ -8,7 +8,7 @@ interface AdminCourseContentPageProps {
 /** ADMIN guard + `canEditCourse` — level 1 of the content drill-down (modules). */
 export default async function AdminCourseContentPage({ params }: AdminCourseContentPageProps) {
   const { courseId } = await params
-  const tree = await resolveEditableCourse(courseId, ["ADMIN"])
+  const tree = await resolveEditableFirstEdition(courseId, ["ADMIN"])
 
   return (
     <ModuleListPage

@@ -38,7 +38,7 @@ async function openAttempt(student: TestUser, title: string, openEnded = 1) {
   courseIds.push(course.courseId)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
     kind: "EXAM",
@@ -207,14 +207,14 @@ describe("H1: concurrent finalizes on one enrollment do not deadlock", () => {
     // Two assessments sharing ONE enrollment: finalizing both concurrently is
     // what cycled on the enrollment row before the lock order was fixed.
     const first = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "H1 uno",
       kind: "QUIZ",
       multipleChoice: 1,
     })
     const second = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "H1 dos",
       kind: "QUIZ",
@@ -258,7 +258,7 @@ describe("H1: concurrent finalizes on one enrollment do not deadlock", () => {
 })
 
 describe("M2: completion never crosses tenants", () => {
-  it("ignores a block in another course that points at this assessment", async () => {
+  it("refuses a block in another edition that points at this assessment, so completion cannot cross", async () => {
     const student = await member("gate-m2", ORG_A, "STUDENT")
     const course = await makeCourseFixture({
       organizationId: ORG_A,
@@ -273,7 +273,7 @@ describe("M2: completion never crosses tenants", () => {
     courseIds.push(course.courseId, foreign.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "M2 evaluación",
       kind: "QUIZ",
@@ -281,8 +281,9 @@ describe("M2: completion never crosses tenants", () => {
     })
     bankIds.push(fixture.bankId)
 
-    // A block in ORG_B's course pointing at ORG_A's assessment.
-    const { data: foreignBlock } = await supabaseAdmin
+    // A block in ORG_B's edition pointing at ORG_A's assessment: the same-edition
+    // trigger refuses it outright (B2), which is stronger than ignoring it later.
+    const { data: foreignBlock, error: foreignError } = await supabaseAdmin
       .from("lesson_content_blocks")
       .insert({
         lesson_id: foreign.modules[0]!.lessonId,
@@ -294,6 +295,8 @@ describe("M2: completion never crosses tenants", () => {
       })
       .select("id")
       .single()
+    expect(foreignError?.message).toContain("CROSS_EDITION_LINK")
+    expect(foreignBlock).toBeNull()
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const session = randomUUID()
@@ -311,7 +314,7 @@ describe("M2: completion never crosses tenants", () => {
     const { data: leaked } = await supabaseAdmin
       .from("content_progress")
       .select("id")
-      .eq("content_block_id", foreignBlock!.id)
+      .eq("enrollment_id", enrollmentId)
     expect(leaked ?? []).toHaveLength(0)
   })
 })
@@ -377,7 +380,7 @@ describe("B4: submit_attempt does not return a score before GRADED", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "B4 solo MC",
       kind: "QUIZ",

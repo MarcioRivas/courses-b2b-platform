@@ -76,7 +76,7 @@ describe("grade_open_answer", () => {
     const course = await makeProfessorCourse("Curso corrección", professor)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación abierta",
       kind: "EXAM",
@@ -121,7 +121,7 @@ describe("grade_open_answer", () => {
     const student = await member("grade-max-student", ORG_A, "STUDENT")
     const course = await makeProfessorCourse("Curso máximo", professor)
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación máximo",
       kind: "EXAM",
@@ -150,7 +150,7 @@ describe("grade_open_answer", () => {
     const student = await member("grade-own-student", ORG_A, "STUDENT")
     const course = await makeProfessorCourse("Curso ajeno corrección", professor)
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación ajena",
       kind: "EXAM",
@@ -192,7 +192,7 @@ describe("grade_open_answer", () => {
     const student = await member("grade-inflight-student", ORG_A, "STUDENT")
     const course = await makeProfessorCourse("Curso en curso", professor)
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación en curso",
       kind: "EXAM",
@@ -233,7 +233,7 @@ describe("QUIZ/TASK completion writes content_progress (D33)", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Quiz de bloque",
       kind: "QUIZ",
@@ -292,7 +292,7 @@ describe("QUIZ/TASK completion writes content_progress (D33)", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Quiz manual",
       kind: "QUIZ",
@@ -332,7 +332,7 @@ describe("QUIZ/TASK completion writes content_progress (D33)", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Quiz reprobado",
       kind: "QUIZ",
@@ -391,7 +391,7 @@ describe("QUIZ_PASSED unlocks a module (completes the Phase 4 stub)", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Quiz desbloqueante",
       kind: "QUIZ",
@@ -471,7 +471,7 @@ describe("deletion guards (C10)", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación con intentos",
       kind: "QUIZ",
@@ -507,7 +507,7 @@ describe("deletion guards (C10)", () => {
     courseIds.push(course.courseId)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación limpia",
       kind: "QUIZ",
@@ -534,7 +534,7 @@ describe("extend_assessment_window (D32)", () => {
     // out of step with the host cannot turn it into ASSESSMENT_EXPIRED.
     const until = new Date(Date.now() + 3_600_000).toISOString()
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Examen extendible",
       kind: "EXAM",
@@ -584,7 +584,7 @@ describe("extend_assessment_window (D32)", () => {
 
     const until = new Date(Date.now() + 3_600_000).toISOString()
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Examen no retrocede",
       kind: "EXAM",

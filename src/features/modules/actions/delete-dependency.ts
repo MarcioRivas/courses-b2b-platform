@@ -1,11 +1,11 @@
 "use server"
 
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
-import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { deleteDependencySchema, type DeleteDependencyInput } from "../schemas/module-schemas"
@@ -29,8 +29,8 @@ export async function deleteDependency(input: DeleteDependencyInput): Promise<Ac
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
 
-  const { data: courseId } = await supabase.rpc("course_id_of_module", { p_module: dependency.module_id })
-  if (!courseId || !(await canEditCourse(courseId))) {
+  const { data: offeringId } = await supabase.rpc("offering_id_of_module", { p_module: dependency.module_id })
+  if (!offeringId || !(await canEditOffering(offeringId))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
@@ -41,13 +41,13 @@ export async function deleteDependency(input: DeleteDependencyInput): Promise<Ac
   }
 
   await logAudit({
-    organizationId: await getCourseOrganizationId(courseId),
+    organizationId: await getOfferingOrganizationId(offeringId),
     action: "module_dependency.deleted",
     entityType: "module_dependency",
     entityId: parsed.data.dependencyId,
   })
 
-  revalidateCourseContent(courseId)
+  await revalidateOfferingContent(offeringId)
 
   return { ok: true, data: undefined }
 }

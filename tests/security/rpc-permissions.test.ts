@@ -49,7 +49,7 @@ describe("log_audit_system: cron/postgres-only writer, never authenticated (D28)
 describe("start_attempt outside the availability window", () => {
   it("rejects with ASSESSMENT_EXPIRED once available_until has passed", async () => {
     const expired = await makeAssessmentFixture({
-      courseId: fx.courseA.courseId,
+      offeringId: fx.courseA.offeringId,
       organizationId: fx.orgA,
       title: "Evaluación expirada",
       kind: "QUIZ",

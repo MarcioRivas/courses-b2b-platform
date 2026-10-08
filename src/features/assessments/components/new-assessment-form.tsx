@@ -15,14 +15,14 @@ import { createAssessment } from "../actions/create-assessment"
 import { createAssessmentSchema, type CreateAssessmentInput } from "../schemas/assessment-schemas"
 
 /** Bare create (title + kind, B3/D12 defaults applied server-side); full config happens on the detail page. */
-export function NewAssessmentForm({ courseId }: { courseId: string }) {
+export function NewAssessmentForm({ courseId, offeringId }: { courseId: string; offeringId: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const labels = teachAssessmentMessages.assessments
 
   const form = useForm<CreateAssessmentInput>({
     resolver: zodResolver(createAssessmentSchema),
-    defaultValues: { courseId, title: "", kind: "QUIZ" },
+    defaultValues: { offeringId, title: "", kind: "QUIZ" },
   })
 
   function onSubmit(values: CreateAssessmentInput) {

@@ -107,7 +107,14 @@ test("admin builds module, lesson and a content block, then publishes", async ()
   // The structure really landed, not just the optimistic UI. Resolved step by
   // step rather than through a nested embed filter, so a failure points at the
   // missing row rather than at a mis-typed PostgREST path.
-  const { data: modules } = await supabaseAdmin.from("modules").select("id").eq("course_id", courseId)
+  const { data: offering } = await supabaseAdmin
+    .from("course_offerings")
+    .select("id")
+    .eq("course_id", courseId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single()
+  const { data: modules } = await supabaseAdmin.from("modules").select("id").eq("offering_id", offering!.id)
   expect(modules ?? []).toHaveLength(1)
 
   const { data: lessons } = await supabaseAdmin

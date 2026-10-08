@@ -6,9 +6,9 @@ import { assignOfferingProfessor, ensureOffering } from "../helpers/course-fixtu
 
 /**
  * RLS/RPC coverage for the content builder (Part B): a professor may only
- * write modules/lessons/blocks under courses they're assigned to; a student
+ * write modules/lessons/blocks under editions they're assigned to; a student
  * never writes any of it; a student never reads a DRAFT course's content;
- * the reorder RPCs enforce `can_edit_course` and reject a partial id list.
+ * the reorder RPCs enforce `can_edit_offering` and reject a partial id list.
  */
 
 const ORG_A = "11111111-1111-1111-1111-111111111111"
@@ -20,9 +20,9 @@ const courseIds: string[] = []
 let professorA: Awaited<ReturnType<typeof member>>
 let professorB: Awaited<ReturnType<typeof member>>
 let studentA: Awaited<ReturnType<typeof member>>
-let courseAId: string
-let courseBId: string
-let draftCourseId: string
+let offeringAId: string
+let offeringBId: string
+let draftOfferingId: string
 let moduleA1Id: string
 let moduleA2Id: string
 let moduleBId: string
@@ -31,6 +31,7 @@ let lessonBId: string
 let blockAId: string
 let draftLessonId: string
 
+/** Creates a course with its OPEN edition (content belongs to the edition) and returns the edition id. */
 async function createCourse(status: "DRAFT" | "PUBLISHED"): Promise<string> {
   const { data, error } = await supabaseAdmin
     .from("courses")
@@ -39,11 +40,7 @@ async function createCourse(status: "DRAFT" | "PUBLISHED"): Promise<string> {
     .single()
   if (error || !data) throw error ?? new Error("course not created")
   courseIds.push(data.id)
-  return data.id
-}
-
-async function assignProfessor(courseId: string, userId: string): Promise<void> {
-  await assignOfferingProfessor(await ensureOffering(courseId, ORG_A), userId)
+  return ensureOffering(data.id, ORG_A)
 }
 
 beforeAll(async () => {
@@ -51,22 +48,22 @@ beforeAll(async () => {
   professorB = await member("cb-prof-b", ORG_A, "PROFESSOR")
   studentA = await member("cb-student-a", ORG_A, "STUDENT")
 
-  courseAId = await createCourse("PUBLISHED")
-  courseBId = await createCourse("PUBLISHED")
-  draftCourseId = await createCourse("DRAFT")
+  offeringAId = await createCourse("PUBLISHED")
+  offeringBId = await createCourse("PUBLISHED")
+  draftOfferingId = await createCourse("DRAFT")
 
-  await assignProfessor(courseAId, professorA.id)
-  await assignProfessor(courseBId, professorB.id)
+  await assignOfferingProfessor(offeringAId, professorA.id)
+  await assignOfferingProfessor(offeringBId, professorB.id)
 
   const { data: modules } = await supabaseAdmin
     .from("modules")
     .insert([
-      { course_id: courseAId, title: "Módulo A1", position: 1 },
-      { course_id: courseAId, title: "Módulo A2", position: 2 },
-      { course_id: courseBId, title: "Módulo B1", position: 1 },
-      { course_id: draftCourseId, title: "Módulo Draft", position: 1 },
+      { offering_id: offeringAId, title: "Módulo A1", position: 1 },
+      { offering_id: offeringAId, title: "Módulo A2", position: 2 },
+      { offering_id: offeringBId, title: "Módulo B1", position: 1 },
+      { offering_id: draftOfferingId, title: "Módulo Draft", position: 1 },
     ])
-    .select("id, course_id, title")
+    .select("id, offering_id, title")
   if (!modules) throw new Error("modules not created")
 
   moduleA1Id = modules.find((m) => m.title === "Módulo A1")!.id
@@ -107,12 +104,12 @@ afterAll(async () => {
 })
 
 describe("modules/lessons/blocks write policy", () => {
-  it("professor of course A cannot create a module under course B", async () => {
-    const { error } = await professorA.client.from("modules").insert({ course_id: courseBId, title: "hack", position: 99 })
+  it("professor of edition A cannot create a module under edition B", async () => {
+    const { error } = await professorA.client.from("modules").insert({ offering_id: offeringBId, title: "hack", position: 99 })
     expect(error).not.toBeNull()
   })
 
-  it("professor of course A cannot update a module under course B", async () => {
+  it("professor of edition A cannot update a module under edition B", async () => {
     const { data } = await professorA.client
       .from("modules")
       .update({ title: "hacked" })
@@ -124,7 +121,7 @@ describe("modules/lessons/blocks write policy", () => {
     expect(untouched?.title).toBe("Módulo B1")
   })
 
-  it("professor of course A cannot delete a lesson under course B", async () => {
+  it("professor of edition A cannot delete a lesson under edition B", async () => {
     const { data } = await professorA.client.from("lessons").delete().eq("id", lessonBId).select("id")
     expect(data).toEqual([])
 
@@ -132,15 +129,15 @@ describe("modules/lessons/blocks write policy", () => {
     expect(stillThere).not.toBeNull()
   })
 
-  it("professor of course A cannot create a content block under course B", async () => {
+  it("professor of edition A cannot create a content block under edition B", async () => {
     const { error } = await professorA.client
       .from("lesson_content_blocks")
       .insert({ lesson_id: lessonBId, type: "RICH_TEXT", position: 5, data: { html: "<p>x</p>" } })
     expect(error).not.toBeNull()
   })
 
-  it("a student cannot create a module anywhere, including their own org's course", async () => {
-    const { error } = await studentA.client.from("modules").insert({ course_id: courseAId, title: "x", position: 50 })
+  it("a student cannot create a module anywhere, including their own org's edition", async () => {
+    const { error } = await studentA.client.from("modules").insert({ offering_id: offeringAId, title: "x", position: 50 })
     expect(error).not.toBeNull()
   })
 
@@ -168,7 +165,7 @@ describe("student read visibility", () => {
     expect(data).toEqual([])
   })
 
-  it("the assigned professor CAN read their own course's blocks (positive control)", async () => {
+  it("the assigned professor CAN read their own edition's blocks (positive control)", async () => {
     const { data } = await professorA.client.from("lesson_content_blocks").select("id").eq("id", blockAId)
     expect(data).toHaveLength(1)
   })
@@ -177,7 +174,7 @@ describe("student read visibility", () => {
 describe("reorder RPCs", () => {
   it("reorder_modules rejects a caller who cannot edit the course", async () => {
     const { error } = await professorB.client.rpc("reorder_modules", {
-      p_course: courseAId,
+      p_offering: offeringAId,
       p_ordered_ids: [moduleA1Id, moduleA2Id],
     })
     expect(error).not.toBeNull()
@@ -185,7 +182,7 @@ describe("reorder RPCs", () => {
 
   it("reorder_modules rejects a partial id list from an eligible editor", async () => {
     const { error } = await professorA.client.rpc("reorder_modules", {
-      p_course: courseAId,
+      p_offering: offeringAId,
       p_ordered_ids: [moduleA1Id],
     })
     expect(error).not.toBeNull()
@@ -194,7 +191,7 @@ describe("reorder RPCs", () => {
 
   it("reorder_modules succeeds for the assigned professor with the full ordered list", async () => {
     const { error } = await professorA.client.rpc("reorder_modules", {
-      p_course: courseAId,
+      p_offering: offeringAId,
       p_ordered_ids: [moduleA2Id, moduleA1Id],
     })
     expect(error).toBeNull()

@@ -30,7 +30,7 @@ export default async function StudentCoursePage({ params }: PageProps) {
   }
 
   const [modules, unlockStates, summaries, settings] = await Promise.all([
-    getEnrollmentCourseTree(enrollment.courseId, enrollment.id),
+    getEnrollmentCourseTree(enrollment.offeringId, enrollment.id),
     getUnlockState(enrollment.id),
     getModuleSummary(enrollment.id),
     getOrgSettings(ctx.organizationId),

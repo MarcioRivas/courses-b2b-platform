@@ -30,7 +30,7 @@ export async function getAttemptForGrading(attemptId: string): Promise<AttemptFo
         `id, status, attempt_number, submitted_at, auto_score, manual_score, total_score, max_score,
          score_percent, score_label, passed,
          profiles(first_name, last_name),
-         assessments(id, title, kind, course_id, courses(id, title)),
+         assessments(id, title, kind, offering_id, course_offerings(course_id, courses(id, title))),
          assessment_feedback(feedback)`
       )
       .eq("id", attemptId)
@@ -77,8 +77,8 @@ export async function getAttemptForGrading(attemptId: string): Promise<AttemptFo
     assessmentId: attempt.assessments.id,
     assessmentTitle: attempt.assessments.title,
     assessmentKind: attempt.assessments.kind,
-    courseId: attempt.assessments.course_id,
-    courseTitle: attempt.assessments.courses?.title ?? "—",
+    courseId: attempt.assessments.course_offerings?.course_id ?? "",
+    courseTitle: attempt.assessments.course_offerings?.courses?.title ?? "—",
     autoScore: attempt.auto_score,
     manualScore: attempt.manual_score,
     totalScore: attempt.total_score,

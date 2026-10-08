@@ -34,7 +34,7 @@ describe("set_assessment_questions", () => {
     await assignOfferingProfessor(course.offeringId, professor.id)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Eval SAQ Happy",
       kind: "QUIZ",
@@ -84,7 +84,7 @@ describe("set_assessment_questions", () => {
     await assignOfferingProfessor(course.offeringId, professor.id)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Eval SAQ Student",
       kind: "QUIZ",

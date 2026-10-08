@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Database, Json } from "@/types/database.types"
 
 /**
- * Self-contained tree fetch for the content builder (Part B). Deliberately
+ * Self-contained tree fetch for the content builder of ONE edition (B2). Deliberately
  * does not import anything else from `src/features/courses/**` (owned by
  * Part A) — only the generated database types and the server Supabase client.
  */
@@ -11,7 +11,7 @@ type ContentBlockType = Database["public"]["Enums"]["content_block_type"]
 type DependencyCondition = Database["public"]["Enums"]["dependency_condition"]
 type CourseStatus = Database["public"]["Enums"]["course_status"]
 
-export interface CourseTreeBlock {
+export interface OfferingTreeBlock {
   id: string
   type: ContentBlockType
   position: number
@@ -21,15 +21,15 @@ export interface CourseTreeBlock {
   checkpointCount: number
 }
 
-export interface CourseTreeLesson {
+export interface OfferingTreeLesson {
   id: string
   title: string
   description: string | null
   position: number
-  blocks: CourseTreeBlock[]
+  blocks: OfferingTreeBlock[]
 }
 
-export interface CourseTreeDependency {
+export interface OfferingTreeDependency {
   id: string
   condition: DependencyCondition
   dependsOnModuleId: string | null
@@ -37,33 +37,37 @@ export interface CourseTreeDependency {
   minScore: number | null
 }
 
-export interface CourseTreeModule {
+export interface OfferingTreeModule {
   id: string
   title: string
   description: string | null
   position: number
-  lessons: CourseTreeLesson[]
-  dependencies: CourseTreeDependency[]
+  lessons: OfferingTreeLesson[]
+  dependencies: OfferingTreeDependency[]
 }
 
-export interface CourseTree {
+export interface OfferingTree {
   courseId: string
+  offeringId: string
   organizationId: string
+  /** Course title. */
   title: string
+  /** Edition name. */
+  offeringName: string
   status: CourseStatus
-  modules: CourseTreeModule[]
+  modules: OfferingTreeModule[]
 }
 
-export async function getCourseTree(courseId: string): Promise<CourseTree | null> {
+export async function getOfferingTree(offeringId: string): Promise<OfferingTree | null> {
   const supabase = await createClient()
 
-  const { data: course } = await supabase
-    .from("courses")
-    .select("id, organization_id, title, status")
-    .eq("id", courseId)
+  const { data: offering } = await supabase
+    .from("course_offerings")
+    .select("id, name, course_id, organization_id, courses ( title, status )")
+    .eq("id", offeringId)
     .maybeSingle()
 
-  if (!course) {
+  if (!offering || !offering.courses) {
     return null
   }
 
@@ -75,7 +79,7 @@ export async function getCourseTree(courseId: string): Promise<CourseTree | null
          lesson_content_blocks ( id, type, position, data, is_required, video_checkpoints ( count ) ) ),
        module_dependencies!module_dependencies_module_id_fkey ( id, condition, depends_on_module_id, assessment_id, min_score )`
     )
-    .eq("course_id", courseId)
+    .eq("offering_id", offeringId)
     .order("position", { ascending: true })
 
   // Embedded resources are not guaranteed ordered by the top-level `.order()`
@@ -83,10 +87,12 @@ export async function getCourseTree(courseId: string): Promise<CourseTree | null
   const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - b.position
 
   return {
-    courseId: course.id,
-    organizationId: course.organization_id,
-    title: course.title,
-    status: course.status,
+    courseId: offering.course_id,
+    offeringId: offering.id,
+    organizationId: offering.organization_id,
+    title: offering.courses.title,
+    offeringName: offering.name,
+    status: offering.courses.status,
     modules: (modules ?? []).map((module) => ({
       id: module.id,
       title: module.title,

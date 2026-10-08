@@ -69,4 +69,7 @@ export interface GradableAssessmentOption {
   id: string
   title: string
   courseId: string
+  offeringId: string
+  /** Evaluations belong to an edition: every label shows it. */
+  offeringName: string
 }

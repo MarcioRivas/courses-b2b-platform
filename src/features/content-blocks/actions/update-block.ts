@@ -1,18 +1,18 @@
 "use server"
 
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
-import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { sanitizeHtml } from "@/lib/html/sanitize"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { updateContentBlockSchema, type UpdateContentBlockInput } from "../schemas/content-block-schemas"
 import { sanitizeBlockData, resolveBlockAssessmentId } from "../lib/sanitize-block-data"
-import { assertBlockAssessmentMatchesCourse } from "../lib/assert-block-assessment"
+import { assertBlockAssessmentMatchesOffering } from "../lib/assert-block-assessment"
 
 /** Re-validates `data` server-side unconditionally — the client payload is never trusted (requirement 6). */
 export async function updateBlock(input: UpdateContentBlockInput): Promise<ActionResult<void>> {
@@ -34,15 +34,15 @@ export async function updateBlock(input: UpdateContentBlockInput): Promise<Actio
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
 
-  const { data: courseId } = await supabase.rpc("course_id_of_lesson", { p_lesson: existing.lesson_id })
-  if (!courseId || !(await canEditCourse(courseId))) {
+  const { data: offeringId } = await supabase.rpc("offering_id_of_lesson", { p_lesson: existing.lesson_id })
+  if (!offeringId || !(await canEditOffering(offeringId))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
   const { block } = parsed.data
   const assessmentId = resolveBlockAssessmentId(block)
   if (assessmentId && (block.type === "QUIZ" || block.type === "TASK")) {
-    if (!(await assertBlockAssessmentMatchesCourse(assessmentId, courseId, block.type))) {
+    if (!(await assertBlockAssessmentMatchesOffering(assessmentId, offeringId, block.type))) {
       return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.assessmentKindMismatch }
     }
   }
@@ -59,14 +59,14 @@ export async function updateBlock(input: UpdateContentBlockInput): Promise<Actio
   }
 
   await logAudit({
-    organizationId: await getCourseOrganizationId(courseId),
+    organizationId: await getOfferingOrganizationId(offeringId),
     action: "content_block.updated",
     entityType: "content_block",
     entityId: parsed.data.blockId,
     metadata: { type: block.type },
   })
 
-  revalidateCourseContent(courseId)
+  await revalidateOfferingContent(offeringId)
 
   return { ok: true, data: undefined }
 }

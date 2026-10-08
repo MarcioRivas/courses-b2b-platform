@@ -214,7 +214,7 @@ describe("complete_content_block: refusals", () => {
     // the placeholder uuid this test used originally no longer inserts — a
     // QUIZ block now needs an assessment that actually exists.
     const assessment = await makeAssessmentFixture({
-      courseId: fixture.courseId,
+      offeringId: fixture.offeringId,
       organizationId: ORG_A,
       title: "Quiz de bloque (rechazo manual)",
       kind: "QUIZ",

@@ -2,7 +2,7 @@ import { BookOpenIcon, PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
 import { contentMessages } from "@/lib/messages/admin-content"
-import type { CourseTree, CourseTreeModule } from "@/features/courses/queries/get-course-tree"
+import type { OfferingTree, OfferingTreeModule } from "@/features/courses/queries/get-offering-tree"
 import { LessonForm } from "@/features/lessons/components/lesson-form"
 import { LessonList } from "@/features/lessons/components/lesson-list"
 import { ContentPageHeader } from "./content-page-header"
@@ -11,8 +11,8 @@ import { DependencyChips } from "./dependency-chips"
 import { ModuleRowActions } from "./module-row-actions"
 
 interface ModuleDetailPageProps {
-  tree: CourseTree
-  module: CourseTreeModule
+  tree: OfferingTree
+  module: OfferingTreeModule
   basePath: string
   coursesHref: string
   canEdit: boolean
@@ -24,7 +24,7 @@ export function ModuleDetailPage({ tree, module, basePath, coursesHref, canEdit 
   const index = tree.modules.findIndex((m) => m.id === module.id)
   const modulePath = `${basePath}/${module.id}`
   const isEmpty = module.lessons.length === 0
-  const toSibling = (m: CourseTreeModule | undefined) => (m ? { href: `${basePath}/${m.id}`, title: m.title } : null)
+  const toSibling = (m: OfferingTreeModule | undefined) => (m ? { href: `${basePath}/${m.id}`, title: m.title } : null)
 
   const createForm = canEdit ? (
     <LessonForm
@@ -56,7 +56,7 @@ export function ModuleDetailPage({ tree, module, basePath, coursesHref, canEdit 
             <>
               <ModuleRowActions
                 variant="header"
-                courseId={tree.courseId}
+                offeringId={tree.offeringId}
                 module={{
                   id: module.id,
                   title: module.title,

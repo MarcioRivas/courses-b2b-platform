@@ -2,10 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
-import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { createModuleSchema, type CreateModuleInput } from "../schemas/module-schemas"
@@ -18,7 +18,7 @@ export async function createModule(input: CreateModuleInput): Promise<ActionResu
 
   await requireOrgRole(["ADMIN", "PROFESSOR"])
 
-  if (!(await canEditCourse(parsed.data.courseId))) {
+  if (!(await canEditOffering(parsed.data.offeringId))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
@@ -27,7 +27,7 @@ export async function createModule(input: CreateModuleInput): Promise<ActionResu
   const { data: last } = await supabase
     .from("modules")
     .select("position")
-    .eq("course_id", parsed.data.courseId)
+    .eq("offering_id", parsed.data.offeringId)
     .order("position", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -37,7 +37,7 @@ export async function createModule(input: CreateModuleInput): Promise<ActionResu
   const { data, error } = await supabase
     .from("modules")
     .insert({
-      course_id: parsed.data.courseId,
+      offering_id: parsed.data.offeringId,
       title: parsed.data.title,
       description: parsed.data.description || null,
       position: nextPosition,
@@ -50,14 +50,14 @@ export async function createModule(input: CreateModuleInput): Promise<ActionResu
   }
 
   await logAudit({
-    organizationId: await getCourseOrganizationId(parsed.data.courseId),
+    organizationId: await getOfferingOrganizationId(parsed.data.offeringId),
     action: "module.created",
     entityType: "module",
     entityId: data.id,
-    metadata: { title: parsed.data.title, courseId: parsed.data.courseId },
+    metadata: { title: parsed.data.title, offeringId: parsed.data.offeringId },
   })
 
-  revalidateCourseContent(parsed.data.courseId)
+  await revalidateOfferingContent(parsed.data.offeringId)
 
   return { ok: true, data: { id: data.id } }
 }

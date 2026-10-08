@@ -11,7 +11,7 @@ import type { AssessmentPickerOption } from "@/features/assessments/types"
 import type { AssessmentBlockData } from "../lib/block-editor-types"
 
 interface AssessmentBlockEditorProps {
-  courseId: string
+  offeringId: string
   kind: "QUIZ" | "TASK"
   value: AssessmentBlockData
   onChange: (value: AssessmentBlockData) => void
@@ -21,17 +21,17 @@ interface AssessmentBlockEditorProps {
 /**
  * Picks an existing QUIZ/TASK assessment of this course (5B step 3 deviation,
  * documented in the phase report): the assessment itself is authored on
- * `/teach/courses/[courseId]/assessments`, not inline here — creating a full
+ * `/teach/courses/[courseId]/editions/[offeringId]/assessments`, not inline here — creating a full
  * question/config flow inside the block editor would duplicate that surface.
  */
-export function AssessmentBlockEditor({ courseId, kind, value, onChange, errors }: AssessmentBlockEditorProps) {
+export function AssessmentBlockEditor({ offeringId, kind, value, onChange, errors }: AssessmentBlockEditorProps) {
   const [options, setOptions] = useState<AssessmentPickerOption[] | null>(null)
   const labels = teachAssessmentMessages.block
   const pickerId = useId()
 
   useEffect(() => {
     let cancelled = false
-    listAssessmentsForBlock(courseId, kind)
+    listAssessmentsForBlock(offeringId, kind)
       .then((result) => {
         if (!cancelled) setOptions(result)
       })
@@ -41,7 +41,7 @@ export function AssessmentBlockEditor({ courseId, kind, value, onChange, errors 
     return () => {
       cancelled = true
     }
-  }, [courseId, kind])
+  }, [offeringId, kind])
 
   return (
     <div className="flex flex-col gap-1.5">

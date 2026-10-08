@@ -1,9 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
@@ -30,14 +30,14 @@ export async function setAssessmentQuestions(input: SetAssessmentQuestionsInput)
 
   const { data: assessment } = await supabase
     .from("assessments")
-    .select("id, course_id, organization_id")
+    .select("id, offering_id, organization_id")
     .eq("id", parsed.data.assessmentId)
     .maybeSingle()
 
   if (!assessment) {
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
-  if (!(await canEditCourse(assessment.course_id))) {
+  if (!(await canEditOffering(assessment.offering_id))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
@@ -86,7 +86,7 @@ export async function setAssessmentQuestions(input: SetAssessmentQuestionsInput)
     metadata: { fixedCount: parsed.data.fixedQuestions.length, randomBankId: randomBankId ?? null, randomCount: randomCount ?? null },
   })
 
-  revalidatePath(`/teach/courses/${assessment.course_id}/assessments/${assessment.id}`)
+  await revalidateOfferingAssessments(assessment.offering_id, assessment.id)
 
   return { ok: true, data: undefined }
 }

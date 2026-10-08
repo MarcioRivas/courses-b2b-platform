@@ -9,7 +9,7 @@ const descriptionSchema = z
   .or(z.literal(""))
 
 export const createModuleSchema = z.object({
-  courseId: z.guid(),
+  offeringId: z.guid(),
   title: titleSchema,
   description: descriptionSchema,
 })
@@ -26,7 +26,7 @@ export const deleteModuleSchema = z.object({ moduleId: z.guid() })
 export type DeleteModuleInput = z.infer<typeof deleteModuleSchema>
 
 export const reorderModulesSchema = z.object({
-  courseId: z.guid(),
+  offeringId: z.guid(),
   orderedIds: z.array(z.guid()).min(1),
 })
 export type ReorderModulesInput = z.infer<typeof reorderModulesSchema>

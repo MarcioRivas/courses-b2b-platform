@@ -71,6 +71,7 @@ describe("edition A professor vs edition B", () => {
   let attempt2: string
   let attemptQuestion2: string
   let assessmentId: string
+  let assessmentId2: string
   let videoBlockId: string
 
   beforeAll(async () => {
@@ -105,7 +106,7 @@ describe("edition A professor vs edition B", () => {
     await assignOfferingProfessor(offering2, prof2.id)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Examen ediciones",
       kind: "EXAM",
@@ -116,6 +117,20 @@ describe("edition A professor vs edition B", () => {
     })
     bankIds.push(fixture.bankId)
     assessmentId = fixture.assessmentId
+
+    // Evaluations belong to an edition: edition 2 has its own.
+    const fixture2 = await makeAssessmentFixture({
+      offeringId: offering2,
+      organizationId: ORG_A,
+      title: "Examen ediciones 2",
+      kind: "EXAM",
+      openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
+    })
+    bankIds.push(fixture2.bankId)
+    assessmentId2 = fixture2.assessmentId
 
     const { data: video } = await supabaseAdmin
       .from("lesson_content_blocks")
@@ -135,7 +150,7 @@ describe("edition A professor vs edition B", () => {
     }
 
     const first = await submitAndGrade(student1, prof1, enrollment1, fixture.assessmentId)
-    const secondAttempt = await submitAndGrade(student2, prof2, enrollment2, fixture.assessmentId)
+    const secondAttempt = await submitAndGrade(student2, prof2, enrollment2, fixture2.assessmentId)
     attempt1 = first.attemptId
     attempt2 = secondAttempt.attemptId
     attemptQuestion2 = secondAttempt.attemptQuestionId
@@ -204,7 +219,7 @@ describe("edition A professor vs edition B", () => {
   it("keeps working on course-level reads through any of its editions", async () => {
     const courses = await prof1.client.from("courses").select("id")
     expect(courses.data).toHaveLength(1)
-    const { data: can } = await prof1.client.rpc("can_edit_course_content", { p_course: courseIds[0]! })
+    const { data: can } = await prof1.client.rpc("is_professor_of_any_edition", { p_course: courseIds[0]! })
     expect(can).toBe(true)
   })
 
@@ -213,18 +228,23 @@ describe("edition A professor vs edition B", () => {
     expect(await ids(admin.client, "assessment_attempts", "id", attempt2)).toBe(1)
   })
 
-  it("assessment_score_distribution counts only the caller's editions for a professor", async () => {
-    const total = async (client: Member["client"]) => {
-      const { data, error } = await client.rpc("assessment_score_distribution", { p_assessment: assessmentId })
+  it("assessment_score_distribution is scoped to the edition that owns the evaluation", async () => {
+    const total = async (client: Member["client"], assessment: string) => {
+      const { data, error } = await client.rpc("assessment_score_distribution", { p_assessment: assessment })
       expect(error).toBeNull()
       return (data ?? []).reduce((sum, row) => sum + Number(row.bucket_count), 0)
     }
-    expect(await total(prof1.client)).toBe(1)
-    expect(await total(prof2.client)).toBe(1)
-    expect(await total(admin.client)).toBe(2)
+    expect(await total(prof1.client, assessmentId)).toBe(1)
+    expect(await total(prof2.client, assessmentId2)).toBe(1)
+    expect(await total(admin.client, assessmentId)).toBe(1)
+    expect(await total(admin.client, assessmentId2)).toBe(1)
+
+    // A professor of edition 1 gets nothing from edition 2's evaluation.
+    const foreign = await prof1.client.rpc("assessment_score_distribution", { p_assessment: assessmentId2 })
+    expect(foreign.error?.code).toBe("42501")
   })
 
-  it("video_checkpoint_stats counts only the caller's editions for a professor", async () => {
+  it("video_checkpoint_stats counts the block's own edition and refuses the other edition's professor", async () => {
     const checkpoints = [
       {
         atSeconds: 30,
@@ -241,8 +261,12 @@ describe("edition A professor vs edition B", () => {
       return (data as unknown as { enrolledCount: number }).enrolledCount
     }
     expect(await enrolled(prof1.client)).toBe(1)
-    expect(await enrolled(prof2.client)).toBe(1)
-    expect(await enrolled(admin.client)).toBe(2)
+    expect(await enrolled(admin.client)).toBe(1)
+
+    const foreign = await prof2.client.rpc("video_checkpoint_stats", { p_block: videoBlockId })
+    expect(foreign.error?.code).toBe("42501")
+    const foreignSave = await prof2.client.rpc("save_video_checkpoints", { p_block: videoBlockId, p_checkpoints: checkpoints as never })
+    expect(foreignSave.error?.code).toBe("42501")
   })
 
   it("professors cannot write offering_professors", async () => {

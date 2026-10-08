@@ -9,7 +9,7 @@ import { messages } from "@/lib/messages/es"
 import { courseMessages } from "@/lib/messages/admin-courses"
 import { updateCourseSchema, type UpdateCourseInput } from "../schemas/course-schemas"
 
-/** Access type is editable only while DRAFT — offerings derive their `kind` from it once live. */
+/** Access type is fixed once the course has an edition (a FREE course gets its OPEN edition at creation). */
 export async function updateCourse(input: UpdateCourseInput): Promise<ActionResult<void>> {
   const parsed = updateCourseSchema.safeParse(input)
   if (!parsed.success) {
@@ -25,7 +25,7 @@ export async function updateCourse(input: UpdateCourseInput): Promise<ActionResu
 
   const { data: existing } = await supabase
     .from("courses")
-    .select("status, access_type")
+    .select("access_type")
     .eq("id", parsed.data.courseId)
     .eq("organization_id", ctx.organizationId)
     .maybeSingle()
@@ -34,7 +34,7 @@ export async function updateCourse(input: UpdateCourseInput): Promise<ActionResu
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
 
-  if (existing.status !== "DRAFT" && existing.access_type !== parsed.data.accessType) {
+  if (existing.access_type !== parsed.data.accessType && (await courseHasEdition(supabase, parsed.data.courseId))) {
     return { ok: false, code: "CONFLICT", message: courseMessages.errors.accessTypeLocked }
   }
 
@@ -50,6 +50,10 @@ export async function updateCourse(input: UpdateCourseInput): Promise<ActionResu
     .select("id")
 
   if (error) {
+    // The DB trigger refuses an access-type change once the course has an edition.
+    if (error.message.includes("ACCESS_TYPE_LOCKED")) {
+      return { ok: false, code: "CONFLICT", message: courseMessages.errors.accessTypeLocked }
+    }
     return { ok: false, ...toActionError(error) }
   }
   if (!data || data.length === 0) {
@@ -68,4 +72,12 @@ export async function updateCourse(input: UpdateCourseInput): Promise<ActionResu
   revalidatePath(`/admin/courses/${parsed.data.courseId}`)
 
   return { ok: true, data: undefined }
+}
+
+async function courseHasEdition(supabase: Awaited<ReturnType<typeof createClient>>, courseId: string) {
+  const { count } = await supabase
+    .from("course_offerings")
+    .select("id", { count: "exact", head: true })
+    .eq("course_id", courseId)
+  return (count ?? 0) > 0
 }

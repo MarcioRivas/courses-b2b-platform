@@ -49,7 +49,7 @@ async function setupTask(label: string, options: { maxFiles?: number; allowLate?
   await assignOfferingProfessor(course.offeringId, professor.id)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `Tarea ${label}`,
     kind: "TASK",

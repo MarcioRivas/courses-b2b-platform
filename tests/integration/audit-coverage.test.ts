@@ -57,7 +57,7 @@ describe("seeded happy path produces the expected audit trail", () => {
     await assignOfferingProfessor(course.offeringId, professor.id)
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: orgId,
       title: "Evaluación cobertura",
       kind: "QUIZ",

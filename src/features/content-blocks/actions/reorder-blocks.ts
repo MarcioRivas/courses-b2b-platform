@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { toActionError, type ActionResult } from "@/lib/errors"
@@ -18,7 +18,7 @@ export async function reorderBlocks(input: ReorderContentBlocksInput): Promise<A
   await requireOrgRole(["ADMIN", "PROFESSOR"])
   const supabase = await createClient()
 
-  const { data: courseId } = await supabase.rpc("course_id_of_lesson", { p_lesson: parsed.data.lessonId })
+  const { data: offeringId } = await supabase.rpc("offering_id_of_lesson", { p_lesson: parsed.data.lessonId })
 
   const { error } = await supabase.rpc("reorder_content_blocks", {
     p_lesson: parsed.data.lessonId,
@@ -32,8 +32,8 @@ export async function reorderBlocks(input: ReorderContentBlocksInput): Promise<A
     return { ok: false, ...toActionError(error) }
   }
 
-  if (courseId) {
-    revalidateCourseContent(courseId)
+  if (offeringId) {
+    await revalidateOfferingContent(offeringId)
   }
 
   return { ok: true, data: undefined }

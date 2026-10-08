@@ -21,19 +21,15 @@ export async function createCourse(input: CreateCourseInput): Promise<ActionResu
   const ctx = await requireOrgRole(["ADMIN"])
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from("courses")
-    .insert({
-      organization_id: ctx.organizationId,
-      title: parsed.data.title,
-      description: parsed.data.description || null,
-      access_type: parsed.data.accessType,
-      created_by: ctx.user.id,
-    })
-    .select("id")
-    .single()
+  // One transaction: the course and, for a FREE course, its OPEN edition.
+  const { data: courseId, error } = await supabase.rpc("create_course", {
+    p_organization: ctx.organizationId,
+    p_title: parsed.data.title,
+    p_description: parsed.data.description ?? "",
+    p_access_type: parsed.data.accessType,
+  })
 
-  if (error || !data) {
+  if (error || !courseId) {
     return { ok: false, ...toActionError(error) }
   }
 
@@ -41,11 +37,11 @@ export async function createCourse(input: CreateCourseInput): Promise<ActionResu
     organizationId: ctx.organizationId,
     action: "course.created",
     entityType: "course",
-    entityId: data.id,
+    entityId: courseId,
     metadata: { title: parsed.data.title, accessType: parsed.data.accessType },
   })
 
   revalidatePath("/admin/courses")
 
-  return { ok: true, data: { id: data.id } }
+  return { ok: true, data: { id: courseId } }
 }

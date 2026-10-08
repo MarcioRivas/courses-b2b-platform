@@ -19,20 +19,20 @@ import { createModuleSchema, type CreateModuleInput } from "../schemas/module-sc
 interface ModuleFormProps {
   trigger: ReactElement
   mode: "create" | "edit"
-  courseId: string
+  offeringId: string
   module?: { id: string; title: string; description: string | null }
   onSaved?: () => void
   /** Create mode only: after saving, navigate to `${openAfterCreateBase}/${newId}` ("create, then fill"). */
   openAfterCreateBase?: string
 }
 
-export function ModuleForm({ trigger, mode, courseId, module, onSaved, openAfterCreateBase }: ModuleFormProps) {
+export function ModuleForm({ trigger, mode, offeringId, module, onSaved, openAfterCreateBase }: ModuleFormProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const form = useForm<CreateModuleInput>({
     resolver: zodResolver(createModuleSchema),
-    defaultValues: { courseId, title: module?.title ?? "", description: module?.description ?? "" },
+    defaultValues: { offeringId, title: module?.title ?? "", description: module?.description ?? "" },
   })
 
   function onSubmit(values: CreateModuleInput) {
@@ -53,7 +53,7 @@ export function ModuleForm({ trigger, mode, courseId, module, onSaved, openAfter
         router.push(`${openAfterCreateBase}/${result.data.id}`)
         return
       }
-      form.reset(mode === "create" ? { courseId, title: "", description: "" } : values)
+      form.reset(mode === "create" ? { offeringId, title: "", description: "" } : values)
     })
   }
 

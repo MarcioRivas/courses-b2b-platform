@@ -46,7 +46,7 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
     getUnlockState(enrollmentId),
   ])
 
-  if (!enrollment || !assessment || assessment.courseId !== enrollment.courseId) {
+  if (!enrollment || !assessment || assessment.offeringId !== enrollment.offeringId) {
     notFound()
   }
 

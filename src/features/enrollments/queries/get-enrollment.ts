@@ -4,6 +4,8 @@ import type { Database } from "@/types/database.types"
 export interface EnrollmentHeader {
   id: string
   courseId: string
+  /** The edition the student is enrolled in: its content and evaluations. */
+  offeringId: string
   courseTitle: string
   courseDescription: string | null
   offeringName: string
@@ -37,6 +39,7 @@ export async function getEnrollment(enrollmentId: string): Promise<EnrollmentHea
   return {
     id: row.enrollment_id,
     courseId: row.course_id,
+    offeringId: row.offering_id,
     courseTitle: row.course_title,
     courseDescription: row.course_description,
     offeringName: row.offering_name,

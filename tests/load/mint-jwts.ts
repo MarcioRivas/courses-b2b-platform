@@ -105,7 +105,7 @@ async function doMint(args: Args) {
   // The window itself stays generous (24h) — `durationSeconds` is the per-attempt
   // timer that the abandonment run shortens via --duration-minutes.
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: "Carga k6 — examen",
     kind: "EXAM",

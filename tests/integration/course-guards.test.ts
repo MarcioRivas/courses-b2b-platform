@@ -26,13 +26,16 @@ afterAll(async () => {
 
 const member = createMemberFactory(cleanup)
 
-async function makeCourse(status: "DRAFT" | "PUBLISHED" = "PUBLISHED"): Promise<string> {
+async function makeCourse(
+  status: "DRAFT" | "PUBLISHED" = "PUBLISHED",
+  accessType: "FREE" | "PRIVATE" = "PRIVATE"
+): Promise<string> {
   const { data, error } = await supabaseAdmin
     .from("courses")
     .insert({
       organization_id: ORG_A,
       title: `Guard course ${Date.now()}-${Math.random()}`,
-      access_type: "PRIVATE",
+      access_type: accessType,
       status,
     })
     .select("id")
@@ -42,13 +45,14 @@ async function makeCourse(status: "DRAFT" | "PUBLISHED" = "PUBLISHED"): Promise<
   return data.id
 }
 
-/** Course → module → lesson → one required block. Returns the ids. */
-async function makeCourseTree(status: "DRAFT" | "PUBLISHED" = "PUBLISHED") {
-  const courseId = await makeCourse(status)
+/** Course → OPEN edition → module → lesson → one required block (content belongs to the edition). Returns the ids. */
+async function makeCourseTree(status: "DRAFT" | "PUBLISHED" = "PUBLISHED", accessType: "FREE" | "PRIVATE" = "PRIVATE") {
+  const courseId = await makeCourse(status, accessType)
+  const offeringId = await ensureOffering(courseId, ORG_A)
 
   const { data: mod } = await supabaseAdmin
     .from("modules")
-    .insert({ course_id: courseId, title: "M1", position: 1 })
+    .insert({ offering_id: offeringId, title: "M1", position: 1 })
     .select("id")
     .single()
 
@@ -69,26 +73,22 @@ async function makeCourseTree(status: "DRAFT" | "PUBLISHED" = "PUBLISHED") {
     .select("id")
     .single()
 
-  return { courseId, moduleId: mod!.id, lessonId: lesson!.id, blockId: block!.id }
+  return { courseId, offeringId, moduleId: mod!.id, lessonId: lesson!.id, blockId: block!.id }
 }
 
 describe("D24: content_progress has no client write path", () => {
   it("an enrolled student cannot insert their own progress row", async () => {
     const student = await member("cg-progress-student", ORG_A, "STUDENT")
-    const { courseId, blockId } = await makeCourseTree()
+    const { courseId, offeringId, blockId } = await makeCourseTree()
 
-    const { data: offering } = await supabaseAdmin
-      .from("course_offerings")
-      .insert({ course_id: courseId, organization_id: ORG_A, kind: "OPEN", name: "O" })
-      .select("id")
-      .single()
+    const offering = { id: offeringId }
 
     const { data: enrollment } = await supabaseAdmin
       .from("course_enrollments")
       .insert({
         organization_id: ORG_A,
         course_id: courseId,
-        offering_id: offering!.id,
+        offering_id: offering.id,
         user_id: student.id,
         source: "FREE_COURSE",
       })
@@ -114,20 +114,16 @@ describe("D24: content_progress has no client write path", () => {
   it("an org admin cannot insert or delete progress either", async () => {
     const admin = await member("cg-progress-admin", ORG_A, "ADMIN")
     const student = await member("cg-progress-target", ORG_A, "STUDENT")
-    const { courseId, blockId } = await makeCourseTree()
+    const { courseId, offeringId, blockId } = await makeCourseTree()
 
-    const { data: offering } = await supabaseAdmin
-      .from("course_offerings")
-      .insert({ course_id: courseId, organization_id: ORG_A, kind: "OPEN", name: "O" })
-      .select("id")
-      .single()
+    const offering = { id: offeringId }
 
     const { data: enrollment } = await supabaseAdmin
       .from("course_enrollments")
       .insert({
         organization_id: ORG_A,
         course_id: courseId,
-        offering_id: offering!.id,
+        offering_id: offering.id,
         user_id: student.id,
         source: "FREE_COURSE",
       })
@@ -171,8 +167,7 @@ describe("D13: a course has at most one OPEN offering", () => {
 
   it("publishing a FREE course twice still leaves exactly one OPEN offering", async () => {
     const admin = await member("cg-d13-admin", ORG_A, "ADMIN")
-    const { courseId } = await makeCourseTree("DRAFT")
-    await supabaseAdmin.from("courses").update({ access_type: "FREE" }).eq("id", courseId)
+    const { courseId } = await makeCourseTree("DRAFT", "FREE")
 
     await admin.client.rpc("publish_course", { p_course: courseId })
     await admin.client.rpc("publish_course", { p_course: courseId })
@@ -202,9 +197,10 @@ describe("publish_course validation", () => {
   it("refuses a course whose module has a lesson but no content block", async () => {
     const admin = await member("cg-publish-admin-2", ORG_A, "ADMIN")
     const courseId = await makeCourse("DRAFT")
+    const offeringId = await ensureOffering(courseId, ORG_A)
     const { data: mod } = await supabaseAdmin
       .from("modules")
-      .insert({ course_id: courseId, title: "M", position: 1 })
+      .insert({ offering_id: offeringId, title: "M", position: 1 })
       .select("id")
       .single()
     await supabaseAdmin.from("lessons").insert({ module_id: mod!.id, title: "L", position: 1 })
@@ -224,28 +220,24 @@ describe("publish_course validation", () => {
 })
 
 describe("can_view_block: the gate in front of every signed URL (D26)", () => {
-  async function enrol(userId: string, courseId: string): Promise<string> {
-    const { data: offering } = await supabaseAdmin
-      .from("course_offerings")
-      .insert({ course_id: courseId, organization_id: ORG_A, kind: "OPEN", name: "O" })
-      .select("id")
-      .single()
+  async function enrol(userId: string, courseId: string, offeringId: string): Promise<string> {
+    const offering = { id: offeringId }
 
     await supabaseAdmin.from("course_enrollments").insert({
       organization_id: ORG_A,
       course_id: courseId,
-      offering_id: offering!.id,
+      offering_id: offering.id,
       user_id: userId,
       source: "FREE_COURSE",
     })
 
-    return offering!.id
+    return offering.id
   }
 
   it("allows an enrolled student when the module has no schedule row", async () => {
     const student = await member("cg-view-open", ORG_A, "STUDENT")
-    const { courseId, blockId } = await makeCourseTree()
-    await enrol(student.id, courseId)
+    const { courseId, offeringId, blockId } = await makeCourseTree()
+    await enrol(student.id, courseId, offeringId)
 
     const { data } = await student.client.rpc("can_view_block", { p_block: blockId })
     expect(data).toBe(true)
@@ -253,8 +245,8 @@ describe("can_view_block: the gate in front of every signed URL (D26)", () => {
 
   it("denies an enrolled student before the module opens", async () => {
     const student = await member("cg-view-early", ORG_A, "STUDENT")
-    const { courseId, moduleId, blockId } = await makeCourseTree()
-    const offeringId = await enrol(student.id, courseId)
+    const { courseId, offeringId, moduleId, blockId } = await makeCourseTree()
+    await enrol(student.id, courseId, offeringId)
 
     await supabaseAdmin.from("offering_module_schedules").insert({
       offering_id: offeringId,
@@ -268,8 +260,8 @@ describe("can_view_block: the gate in front of every signed URL (D26)", () => {
 
   it("denies an enrolled student after the module closes", async () => {
     const student = await member("cg-view-late", ORG_A, "STUDENT")
-    const { courseId, moduleId, blockId } = await makeCourseTree()
-    const offeringId = await enrol(student.id, courseId)
+    const { courseId, offeringId, moduleId, blockId } = await makeCourseTree()
+    await enrol(student.id, courseId, offeringId)
 
     await supabaseAdmin.from("offering_module_schedules").insert({
       offering_id: offeringId,
@@ -291,8 +283,8 @@ describe("can_view_block: the gate in front of every signed URL (D26)", () => {
 
   it("allows an editor regardless of any schedule window", async () => {
     const admin = await member("cg-view-admin", ORG_A, "ADMIN")
-    const { courseId, moduleId, blockId } = await makeCourseTree()
-    const offeringId = await enrol(admin.id, courseId)
+    const { courseId, offeringId, moduleId, blockId } = await makeCourseTree()
+    await enrol(admin.id, courseId, offeringId)
 
     await supabaseAdmin.from("offering_module_schedules").insert({
       offering_id: offeringId,
@@ -307,15 +299,11 @@ describe("can_view_block: the gate in front of every signed URL (D26)", () => {
 
 describe("offering_module_schedules window constraint", () => {
   it("rejects a window that ends before it starts", async () => {
-    const { courseId, moduleId } = await makeCourseTree()
-    const { data: offering } = await supabaseAdmin
-      .from("course_offerings")
-      .insert({ course_id: courseId, organization_id: ORG_A, kind: "OPEN", name: "O" })
-      .select("id")
-      .single()
+    const { offeringId, moduleId } = await makeCourseTree()
+    const offering = { id: offeringId }
 
     const { error } = await supabaseAdmin.from("offering_module_schedules").insert({
-      offering_id: offering!.id,
+      offering_id: offering.id,
       module_id: moduleId,
       available_from: new Date(Date.now() + 86_400_000).toISOString(),
       available_until: new Date(Date.now() - 86_400_000).toISOString(),
@@ -325,15 +313,11 @@ describe("offering_module_schedules window constraint", () => {
   })
 
   it("accepts a one-sided window", async () => {
-    const { courseId, moduleId } = await makeCourseTree()
-    const { data: offering } = await supabaseAdmin
-      .from("course_offerings")
-      .insert({ course_id: courseId, organization_id: ORG_A, kind: "OPEN", name: "O" })
-      .select("id")
-      .single()
+    const { offeringId, moduleId } = await makeCourseTree()
+    const offering = { id: offeringId }
 
     const { error } = await supabaseAdmin.from("offering_module_schedules").insert({
-      offering_id: offering!.id,
+      offering_id: offering.id,
       module_id: moduleId,
       available_from: new Date().toISOString(),
     })

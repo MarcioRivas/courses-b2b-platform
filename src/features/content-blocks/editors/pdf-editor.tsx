@@ -10,12 +10,13 @@ import type { PdfBlockData } from "../lib/block-editor-types"
 interface PdfEditorProps {
   organizationId: string
   courseId: string
+  offeringId: string
   value: PdfBlockData
   onChange: (value: PdfBlockData) => void
   errors?: Record<string, string>
 }
 
-export function PdfEditor({ organizationId, courseId, value, onChange, errors }: PdfEditorProps) {
+export function PdfEditor({ organizationId, courseId, offeringId, value, onChange, errors }: PdfEditorProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
@@ -24,7 +25,7 @@ export function PdfEditor({ organizationId, courseId, value, onChange, errors }:
     setUploading(true)
     setUploadError(null)
 
-    const result = await uploadCourseFile({ organizationId, courseId, file })
+    const result = await uploadCourseFile({ organizationId, courseId, offeringId, file })
 
     setUploading(false)
     if (!result.ok || !result.path) {

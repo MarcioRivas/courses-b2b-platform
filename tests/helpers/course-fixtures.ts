@@ -29,8 +29,8 @@ export interface MakeCourseOptions {
 }
 
 /**
- * Builds course → module → lesson → blocks → OPEN offering with the service
- * role. Deliberately bypasses the authoring RPCs: these suites exercise the
+ * Builds course → OPEN edition → module → lesson → blocks with the service
+ * role (content belongs to the edition). Deliberately bypasses the authoring RPCs: these suites exercise the
  * Phase 4 progression functions, not Phase 3's write paths.
  *
  * Push the returned `courseId` onto the caller's cleanup array — deleting the
@@ -50,12 +50,27 @@ export async function makeCourseFixture(options: MakeCourseOptions): Promise<Cou
     .single()
   if (error || !course) throw error ?? new Error("course not created")
 
+  // The edition owns the content (B2): create it before any module.
+  const { data: offering } = await supabaseAdmin
+    .from("course_offerings")
+    .insert({
+      course_id: course.id,
+      organization_id: options.organizationId,
+      kind: "OPEN",
+      name: `${options.title} — edición`,
+      ends_at: options.offeringEndsAt ?? null,
+      status: options.offeringStatus ?? "ACTIVE",
+    })
+    .select("id")
+    .single()
+  if (!offering) throw new Error("offering not created")
+
   const modules: CourseFixture["modules"] = []
 
   for (const [index, spec] of options.modules.entries()) {
     const { data: module } = await supabaseAdmin
       .from("modules")
-      .insert({ course_id: course.id, title: spec.title, position: index + 1 })
+      .insert({ offering_id: offering.id, title: spec.title, position: index + 1 })
       .select("id")
       .single()
     if (!module) throw new Error("module not created")
@@ -99,20 +114,6 @@ export async function makeCourseFixture(options: MakeCourseOptions): Promise<Cou
 
     modules.push({ id: module.id, lessonId: lesson.id, blockIds, optionalBlockIds })
   }
-
-  const { data: offering } = await supabaseAdmin
-    .from("course_offerings")
-    .insert({
-      course_id: course.id,
-      organization_id: options.organizationId,
-      kind: "OPEN",
-      name: `${options.title} — edición`,
-      ends_at: options.offeringEndsAt ?? null,
-      status: options.offeringStatus ?? "ACTIVE",
-    })
-    .select("id")
-    .single()
-  if (!offering) throw new Error("offering not created")
 
   return { courseId: course.id, offeringId: offering.id, modules }
 }
@@ -178,7 +179,8 @@ export async function deleteCourses(courseIds: string[]): Promise<void> {
 }
 
 export interface AssessmentSpec {
-  courseId: string
+  /** Evaluations belong to an edition; the course (for the question bank) is derived from it. */
+  offeringId: string
   organizationId: string
   title: string
   kind: Database["public"]["Enums"]["assessment_kind"]
@@ -220,9 +222,16 @@ export async function makeAssessmentFixture(spec: AssessmentSpec): Promise<Asses
     throw new Error("A TASK has no questions; use QUIZ or EXAM for question fixtures")
   }
 
+  const { data: offering } = await supabaseAdmin
+    .from("course_offerings")
+    .select("course_id")
+    .eq("id", spec.offeringId)
+    .single()
+  if (!offering) throw new Error("offering not found")
+
   const { data: bank, error: bankError } = await supabaseAdmin
     .from("question_banks")
-    .insert({ organization_id: spec.organizationId, course_id: spec.courseId, name: `${spec.title} — banco` })
+    .insert({ organization_id: spec.organizationId, course_id: offering.course_id, name: `${spec.title} — banco` })
     .select("id")
     .single()
   if (bankError || !bank) throw bankError ?? new Error("bank not created")
@@ -278,7 +287,7 @@ export async function makeAssessmentFixture(spec: AssessmentSpec): Promise<Asses
     .from("assessments")
     .insert({
       organization_id: spec.organizationId,
-      course_id: spec.courseId,
+      offering_id: spec.offeringId,
       module_id: spec.moduleId ?? null,
       kind: spec.kind,
       status: spec.status ?? "PUBLISHED",

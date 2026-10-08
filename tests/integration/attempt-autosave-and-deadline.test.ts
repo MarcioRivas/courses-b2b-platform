@@ -54,7 +54,7 @@ async function startAttempt(
   courseIds.push(course.courseId)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
     kind: "QUIZ",

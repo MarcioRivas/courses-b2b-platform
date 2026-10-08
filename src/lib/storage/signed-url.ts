@@ -42,10 +42,14 @@ export async function createSignedUrlForBlock(
     return null
   }
 
-  // The stored value must also belong to this block's own course. Otherwise an
+  // The stored value must also belong to this block's own course (its editions
+  // share files when copied, so the course prefix is the boundary). Otherwise an
   // editor could paste another course's (or another tenant's) path into a block
   // they control and have the service-role client sign it for them.
-  const { data: owner } = await supabase.rpc("course_id_of_block", { p_block: blockId })
+  const { data: offering } = await supabase.rpc("offering_id_of_block", { p_block: blockId })
+  const { data: owner } = offering
+    ? await supabase.rpc("course_id_of_offering", { p_offering: offering })
+    : { data: null }
   if (!owner) {
     return null
   }

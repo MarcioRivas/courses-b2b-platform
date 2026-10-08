@@ -119,13 +119,13 @@ export function assessmentsSpec(): MatrixCase[] {
       table: "assessments",
       op: "insert",
       allow: ["superAdmin", "adminA", "profA"],
-      payload: (fx) => ({ organization_id: fx.orgA, course_id: fx.courseA.courseId, kind: "QUIZ", title: "Matrix Assessment" }),
+      payload: (fx) => ({ organization_id: fx.orgA, offering_id: fx.courseA.offeringId, kind: "QUIZ", title: "Matrix Assessment" }),
     },
     {
       table: "assessments",
       op: "update",
       allow: ["superAdmin", "adminA", "profA"],
-      seed: (fx) => Promise.resolve({ organization_id: fx.orgA, course_id: fx.courseA.courseId, kind: "QUIZ", title: "Seed Assessment" }),
+      seed: (fx) => Promise.resolve({ organization_id: fx.orgA, offering_id: fx.courseA.offeringId, kind: "QUIZ", title: "Seed Assessment" }),
       mutateColumn: "title",
       updatePayload: { title: "Renamed Assessment" },
     },
@@ -134,7 +134,7 @@ export function assessmentsSpec(): MatrixCase[] {
       op: "delete",
       allow: ["superAdmin", "adminA", "profA"],
       seed: (fx, i) =>
-        Promise.resolve({ organization_id: fx.orgA, course_id: fx.courseA.courseId, kind: "QUIZ", title: `Del Assessment ${i}` }),
+        Promise.resolve({ organization_id: fx.orgA, offering_id: fx.courseA.offeringId, kind: "QUIZ", title: `Del Assessment ${i}` }),
     },
 
     {

@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
@@ -23,7 +23,7 @@ export async function extendWindow(input: ExtendWindowInput): Promise<ActionResu
 
   const { data: existing } = await supabase
     .from("assessments")
-    .select("course_id")
+    .select("offering_id")
     .eq("id", parsed.data.assessmentId)
     .maybeSingle()
 
@@ -44,7 +44,7 @@ export async function extendWindow(input: ExtendWindowInput): Promise<ActionResu
   }
 
   if (existing) {
-    revalidatePath(`/teach/courses/${existing.course_id}/assessments/${parsed.data.assessmentId}`)
+    await revalidateOfferingAssessments(existing.offering_id, parsed.data.assessmentId)
   }
 
   return { ok: true, data: { attemptsUpdated: data ?? 0 } }

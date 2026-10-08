@@ -32,7 +32,7 @@ async function scenario(title: string, assessment: Partial<Parameters<typeof mak
   courseIds.push(course.courseId)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
     kind: "QUIZ",
@@ -198,7 +198,7 @@ describe("start_attempt: admission", () => {
     })
 
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Examen en módulo bloqueado",
       kind: "EXAM",

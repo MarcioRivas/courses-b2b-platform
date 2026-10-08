@@ -12,7 +12,7 @@ const optionalDateTimeLocal = z
   .or(z.literal(""))
 
 export const createAssessmentSchema = z.object({
-  courseId: z.guid(),
+  offeringId: z.guid(),
   title: titleSchema,
   kind: kindSchema,
 })

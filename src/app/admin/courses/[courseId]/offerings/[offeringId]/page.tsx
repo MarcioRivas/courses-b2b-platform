@@ -38,7 +38,7 @@ export default async function OfferingDetailPage({ params }: OfferingDetailPageP
 
   const [settings, schedule, groups] = await Promise.all([
     getOrgSettings(ctx.organizationId),
-    getOfferingSchedule(offeringId, courseId),
+    getOfferingSchedule(offeringId),
     listOrgGroups(ctx.organizationId),
   ])
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE

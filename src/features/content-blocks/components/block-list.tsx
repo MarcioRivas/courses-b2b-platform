@@ -28,12 +28,13 @@ export interface BlockListItem {
 interface BlockListProps {
   organizationId: string
   courseId: string
+  offeringId: string
   lessonId: string
   blocks: BlockListItem[]
   canEdit: boolean
 }
 
-export function BlockList({ organizationId, courseId, lessonId, blocks, canEdit }: BlockListProps) {
+export function BlockList({ organizationId, courseId, offeringId, lessonId, blocks, canEdit }: BlockListProps) {
   const [editing, setEditing] = useState<"new" | string | null>(null)
   const [isPending, startTransition] = useTransition()
   const labels = contentMessages.blocks
@@ -56,6 +57,7 @@ export function BlockList({ organizationId, courseId, lessonId, blocks, canEdit 
       <BlockEditorPanel
         organizationId={organizationId}
         courseId={courseId}
+        offeringId={offeringId}
         lessonId={lessonId}
         onSaved={() => setEditing(null)}
         onCancel={() => setEditing(null)}
@@ -69,6 +71,7 @@ export function BlockList({ organizationId, courseId, lessonId, blocks, canEdit 
       <BlockEditorPanel
         organizationId={organizationId}
         courseId={courseId}
+        offeringId={offeringId}
         lessonId={lessonId}
         existingBlock={editingBlock}
         onSaved={() => setEditing(null)}

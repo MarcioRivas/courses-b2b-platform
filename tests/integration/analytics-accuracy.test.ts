@@ -34,6 +34,7 @@ let professor: TestUser
 let student1: TestUser
 let student2: TestUser
 let courseId: string
+let offeringId: string
 let mcAssessmentId: string
 let openAssessmentId: string
 let ranges: ScoreRange[]
@@ -124,6 +125,7 @@ beforeAll(async () => {
   })
   courseIds.push(course.courseId)
   courseId = course.courseId
+  offeringId = course.offeringId
   await assignOfferingProfessor(course.offeringId, professor.id)
 
   const enrollment1 = await enrollStudent(course, ORG_A, student1.id)
@@ -146,7 +148,7 @@ beforeAll(async () => {
     .insert({ enrollment_id: enrollment2, content_block_id: course.modules[0]!.blockIds[0]! })
 
   const mcFixture = await makeAssessmentFixture({
-    courseId,
+    offeringId,
     organizationId: ORG_A,
     title: "Quiz analítica MC",
     kind: "QUIZ",
@@ -174,7 +176,7 @@ beforeAll(async () => {
   ])
 
   const openFixture = await makeAssessmentFixture({
-    courseId,
+    offeringId,
     organizationId: ORG_A,
     title: "Tarea analítica",
     kind: "EXAM",
@@ -297,7 +299,7 @@ describe("assessment_score_distribution", () => {
     courseIds.push(fracCourse.courseId)
 
     const fracFixture = await makeAssessmentFixture({
-      courseId: fracCourse.courseId,
+      offeringId: fracCourse.offeringId,
       organizationId: ORG_A,
       title: "Tarea fracción",
       kind: "EXAM",
@@ -340,7 +342,7 @@ describe("assessment_score_distribution", () => {
     courseIds.push(outCourse.courseId)
 
     const outFixture = await makeAssessmentFixture({
-      courseId: outCourse.courseId,
+      offeringId: outCourse.offeringId,
       organizationId: ORG_A,
       title: "Tarea sin rango",
       kind: "EXAM",

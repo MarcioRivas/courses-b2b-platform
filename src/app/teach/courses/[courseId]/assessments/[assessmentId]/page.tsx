@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
@@ -28,12 +28,8 @@ export default async function AssessmentDetailPage({ params }: AssessmentDetailP
   const ctx = await requireOrgRole(["PROFESSOR"])
   const { courseId, assessmentId } = await params
 
-  if (!(await canEditCourse(courseId))) {
-    return notFound()
-  }
-
   const assessment = await getAssessment(assessmentId)
-  if (!assessment || assessment.courseId !== courseId) {
+  if (!assessment || assessment.courseId !== courseId || !(await canEditOffering(assessment.offeringId))) {
     return notFound()
   }
 

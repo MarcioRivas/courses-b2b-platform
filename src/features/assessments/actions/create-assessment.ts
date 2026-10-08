@@ -1,10 +1,11 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
@@ -26,19 +27,20 @@ export async function createAssessment(input: CreateAssessmentInput): Promise<Ac
   }
 
   const ctx = await requireOrgRole(["ADMIN", "PROFESSOR"])
-  if (!(await canEditCourse(parsed.data.courseId))) {
+  if (!(await canEditOffering(parsed.data.offeringId))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
   const supabase = await createClient()
+  const organizationId = await getOfferingOrganizationId(parsed.data.offeringId)
   const settings = await getOrgSettings(ctx.organizationId)
   const defaults = assessmentKindDefaults(parsed.data.kind)
 
   const { data, error } = await supabase
     .from("assessments")
     .insert({
-      organization_id: ctx.organizationId,
-      course_id: parsed.data.courseId,
+      organization_id: organizationId,
+      offering_id: parsed.data.offeringId,
       kind: parsed.data.kind,
       title: parsed.data.title,
       passing_score: settings?.defaultPassingScore ?? 60,
@@ -56,14 +58,14 @@ export async function createAssessment(input: CreateAssessmentInput): Promise<Ac
   }
 
   await logAudit({
-    organizationId: ctx.organizationId,
+    organizationId,
     action: "assessment.created",
     entityType: "assessment",
     entityId: data.id,
-    metadata: { courseId: parsed.data.courseId, kind: parsed.data.kind },
+    metadata: { offeringId: parsed.data.offeringId, kind: parsed.data.kind },
   })
 
-  revalidatePath(`/teach/courses/${parsed.data.courseId}/assessments`)
+  await revalidateOfferingAssessments(parsed.data.offeringId)
 
   return { ok: true, data: { id: data.id } }
 }

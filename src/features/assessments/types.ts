@@ -25,6 +25,9 @@ export interface AssessmentDetail {
   id: string
   organizationId: string
   courseId: string
+  offeringId: string
+  /** Edition name: every evaluation label shows its edition. */
+  offeringName: string
   moduleId: string | null
   kind: AssessmentKind
   status: AssessmentStatus

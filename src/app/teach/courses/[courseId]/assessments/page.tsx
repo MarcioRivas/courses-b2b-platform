@@ -2,7 +2,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeftIcon, PlusIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
+import { firstVisibleOfferingId } from "@/lib/courses/resolve-editable-offering"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
@@ -17,11 +18,12 @@ export default async function CourseAssessmentsPage({ params }: CourseAssessment
   await requireOrgRole(["PROFESSOR"])
   const { courseId } = await params
 
-  if (!(await canEditCourse(courseId))) {
+  const offeringId = await firstVisibleOfferingId(courseId)
+  if (!offeringId || !(await canEditOffering(offeringId))) {
     return notFound()
   }
 
-  const assessments = await listAssessments(courseId)
+  const assessments = await listAssessments(offeringId)
   const labels = teachAssessmentMessages.assessments
 
   return (

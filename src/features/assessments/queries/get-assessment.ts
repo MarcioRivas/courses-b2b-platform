@@ -7,7 +7,8 @@ export async function getAssessment(assessmentId: string): Promise<AssessmentDet
   const { data, error } = await supabase
     .from("assessments")
     .select(
-      `id, organization_id, course_id, module_id, kind, status, title, description,
+      `id, organization_id, offering_id, module_id,
+       course_offerings ( course_id, name ), kind, status, title, description,
        question_bank_id, random_question_count, duration_seconds, available_from, available_until,
        passing_score, max_attempts, instructions, max_files, allow_late_submissions,
        assessment_questions ( id, question_id, position, points, questions ( prompt, type ) )`
@@ -22,7 +23,9 @@ export async function getAssessment(assessmentId: string): Promise<AssessmentDet
   return {
     id: data.id,
     organizationId: data.organization_id,
-    courseId: data.course_id,
+    courseId: data.course_offerings?.course_id ?? "",
+    offeringId: data.offering_id,
+    offeringName: data.course_offerings?.name ?? "",
     moduleId: data.module_id,
     kind: data.kind,
     status: data.status,

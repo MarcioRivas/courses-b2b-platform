@@ -2,7 +2,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
+import { firstVisibleOfferingId } from "@/lib/courses/resolve-editable-offering"
 import { PageHeader } from "@/components/shared/page-header"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { NewAssessmentForm } from "@/features/assessments/components/new-assessment-form"
@@ -15,7 +16,8 @@ export default async function NewAssessmentPage({ params }: NewAssessmentPagePro
   await requireOrgRole(["PROFESSOR"])
   const { courseId } = await params
 
-  if (!(await canEditCourse(courseId))) {
+  const offeringId = await firstVisibleOfferingId(courseId)
+  if (!offeringId || !(await canEditOffering(offeringId))) {
     return notFound()
   }
 
@@ -30,7 +32,7 @@ export default async function NewAssessmentPage({ params }: NewAssessmentPagePro
         <ArrowLeftIcon className="size-4" /> {labels.backToAssessments}
       </Link>
       <PageHeader title={labels.createTitle} />
-      <NewAssessmentForm courseId={courseId} />
+      <NewAssessmentForm courseId={courseId} offeringId={offeringId} />
     </div>
   )
 }

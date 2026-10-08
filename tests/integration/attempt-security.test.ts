@@ -39,7 +39,7 @@ async function scenario(title: string, spec: { multipleChoice?: number; openEnde
   courseIds.push(course.courseId)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
     kind: "QUIZ",

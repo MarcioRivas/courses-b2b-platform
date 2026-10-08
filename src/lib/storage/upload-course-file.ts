@@ -18,7 +18,7 @@ export interface UploadCourseFileResult {
  * Browser → Storage upload with the session client. The bucket enforces the
  * 50MB limit and MIME allowlist server-side; these checks give the author
  * instant feedback without a round trip. The write policy re-checks
- * `can_edit_course_content(folder[2])` regardless (D10) — this helper cannot bypass it.
+ * `can_edit_offering(folder[3])` regardless (D10) — this helper cannot bypass it.
  *
  * `organizationId` must come from the course row, resolved server-side by the
  * page that renders the uploader — never from anything the browser can set.
@@ -26,9 +26,10 @@ export interface UploadCourseFileResult {
 export async function uploadCourseFile(params: {
   organizationId: string
   courseId: string
+  offeringId: string
   file: File
 }): Promise<UploadCourseFileResult> {
-  const { organizationId, courseId, file } = params
+  const { organizationId, courseId, offeringId, file } = params
 
   if (file.size > MAX_COURSE_FILE_BYTES) {
     return { ok: false, errorCode: "TOO_LARGE" }
@@ -38,7 +39,7 @@ export async function uploadCourseFile(params: {
     return { ok: false, errorCode: "INVALID_TYPE" }
   }
 
-  const path = buildCourseFilePath({ organizationId, courseId, fileName: file.name })
+  const path = buildCourseFilePath({ organizationId, courseId, offeringId, fileName: file.name })
   const supabase = createClient()
 
   const { error } = await supabase.storage.from(COURSE_FILES_BUCKET).upload(path, file, {

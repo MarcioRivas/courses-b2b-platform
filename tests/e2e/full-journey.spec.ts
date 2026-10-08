@@ -28,7 +28,7 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
 
   const quiz = await makeAssessmentFixture({
     organizationId: JOURNEY_ORG,
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     title: "Quiz Jornada",
     kind: "QUIZ",
     multipleChoice: 2,
@@ -48,7 +48,7 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
   const now = new Date()
   const exam = await makeAssessmentFixture({
     organizationId: JOURNEY_ORG,
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     title: "Examen Jornada",
     kind: "EXAM",
     multipleChoice: 1,
@@ -96,7 +96,7 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
     await studentPage.waitForURL("/learn")
 
     studentId = userIdByEmail(studentEmail)
-    const enrollmentId = await enrollViaGroupOffering(course.courseId, studentId, admin.client, professor.id)
+    const enrollmentId = await enrollViaGroupOffering(course, studentId, admin.client, professor.id)
 
     // ===== Module 1: complete the required block =====
     await studentPage.goto(`/learn/courses/${enrollmentId}`)

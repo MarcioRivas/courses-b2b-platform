@@ -135,7 +135,7 @@ export const teachAssessmentMessages = {
   errors: {
     selfDependency: "Un módulo no puede depender de sí mismo.",
     cycleDetected: "Esa dependencia generaría un ciclo entre módulos.",
-    dependencyCourseMismatch: "El módulo o evaluación requerida debe pertenecer al mismo curso.",
+    dependencyCourseMismatch: "El módulo o evaluación requerida debe pertenecer al misma edición.",
     minScoreRequired: "Ingresá un puntaje mínimo entre 0 y 100.",
     bankInUse: "No se puede eliminar: el banco tiene preguntas asociadas.",
     questionInUse: "No se puede desactivar: revisá si ya está en uso o intentá de nuevo.",

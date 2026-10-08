@@ -1,14 +1,14 @@
 import { createClient } from "@/lib/supabase/server"
 import type { ModuleScheduleRow } from "../types"
 
-/** Every module of the course, left-joined (in memory) with this offering's schedule row, if any. */
-export async function getOfferingSchedule(offeringId: string, courseId: string): Promise<ModuleScheduleRow[]> {
+/** Every module of the edition, left-joined (in memory) with this offering's schedule row, if any. */
+export async function getOfferingSchedule(offeringId: string): Promise<ModuleScheduleRow[]> {
   const supabase = await createClient()
 
   const { data: modules } = await supabase
     .from("modules")
     .select("id, title, position")
-    .eq("course_id", courseId)
+    .eq("offering_id", offeringId)
     .order("position", { ascending: true })
 
   const { data: schedules } = await supabase

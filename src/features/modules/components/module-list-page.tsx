@@ -4,14 +4,14 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
 import { contentMessages } from "@/lib/messages/admin-content"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
-import type { CourseTree } from "@/features/courses/queries/get-course-tree"
+import type { OfferingTree } from "@/features/courses/queries/get-offering-tree"
 import { CourseStatusBadge } from "@/features/courses/components/course-status-badge"
 import { ContentPageHeader } from "./content-page-header"
 import { ModuleForm } from "./module-form"
 import { ModuleList } from "./module-list"
 
 interface ModuleListPageProps {
-  tree: CourseTree
+  tree: OfferingTree
   /** `/admin/courses/{id}/content` or `/teach/courses/{id}/content` — drives every link below. */
   basePath: string
   /** "Cursos" crumb target (`/admin/courses` or `/teach/courses`). */
@@ -29,7 +29,7 @@ export function ModuleListPage({ tree, basePath, coursesHref, assessmentsHref, c
       <PlusIcon className="size-4" /> {labels.modules.addAction}
     </Button>
   )
-  const createForm = canEdit ? <ModuleForm mode="create" courseId={tree.courseId} openAfterCreateBase={basePath} trigger={createTrigger} /> : null
+  const createForm = canEdit ? <ModuleForm mode="create" offeringId={tree.offeringId} openAfterCreateBase={basePath} trigger={createTrigger} /> : null
   // The create CTA lives in exactly one place: the empty state when there are no
   // modules, the header otherwise (a duplicate would also break `getByRole` in E2E).
   const isEmpty = tree.modules.length === 0
@@ -63,7 +63,7 @@ export function ModuleListPage({ tree, basePath, coursesHref, assessmentsHref, c
         />
       ) : (
         <ModuleList
-          courseId={tree.courseId}
+          offeringId={tree.offeringId}
           basePath={basePath}
           canEdit={canEdit}
           modules={tree.modules.map((m) => ({

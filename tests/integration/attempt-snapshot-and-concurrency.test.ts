@@ -36,7 +36,7 @@ async function scenario(title: string, spec: { multipleChoice?: number; openEnde
   courseIds.push(course.courseId)
 
   const fixture = await makeAssessmentFixture({
-    courseId: course.courseId,
+    offeringId: course.offeringId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
     kind: "QUIZ",
@@ -239,7 +239,7 @@ describe("scoring edge cases", () => {
 
     // An assessment with no questions at all: max_score is 0.
     const fixture = await makeAssessmentFixture({
-      courseId: course.courseId,
+      offeringId: course.offeringId,
       organizationId: ORG_A,
       title: "Evaluación vacía",
       kind: "QUIZ",

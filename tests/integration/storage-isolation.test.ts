@@ -9,7 +9,7 @@ import { buildCourseFilePath, COURSE_FILES_BUCKET } from "@/lib/storage/file-pat
  * D10/D26: nobody reads a `course-files` object with their own session, not
  * even an enrolled student of the same org — every read is a signed URL
  * minted server-side after `can_view_block`. Writes are scoped to
- * `can_edit_course(folder[2])`, so a professor of one course cannot touch
+ * `can_edit_offering(folder[3])`, so a professor of one course cannot touch
  * another course's prefix even inside the same organization.
  */
 
@@ -26,6 +26,8 @@ let professorY: Awaited<ReturnType<typeof member>>
 let studentA: Awaited<ReturnType<typeof member>>
 let courseXId: string
 let courseYId: string
+let offeringXId: string
+let offeringYId: string
 let seededPath: string
 
 beforeAll(async () => {
@@ -46,7 +48,8 @@ beforeAll(async () => {
   courseYId = courses.find((c) => c.title.startsWith("Curso Y"))!.id
   courseIds.push(courseXId, courseYId)
 
-  await assignOfferingProfessor(await ensureOffering(courseYId, ORG_A), professorY.id)
+  offeringYId = await ensureOffering(courseYId, ORG_A)
+  await assignOfferingProfessor(offeringYId, professorY.id)
 
   // Enroll studentA in course X through a real OPEN offering + enrollment row
   // (service-role fixture, D19) so the "enrolled student" case is genuine.
@@ -56,6 +59,7 @@ beforeAll(async () => {
     .select("id")
     .single()
   if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+  offeringXId = offering.id
   await assignOfferingProfessor(offering.id, professorX.id)
 
   const { error: enrollError } = await supabaseAdmin.from("course_enrollments").insert({
@@ -67,7 +71,7 @@ beforeAll(async () => {
   })
   if (enrollError) throw enrollError
 
-  seededPath = buildCourseFilePath({ organizationId: ORG_A, courseId: courseXId, fileName: "sample.pdf" })
+  seededPath = buildCourseFilePath({ organizationId: ORG_A, courseId: courseXId, offeringId: offeringXId, fileName: "sample.pdf" })
   uploadedPaths.push(seededPath)
 
   const { error: uploadError } = await supabaseAdmin.storage
@@ -84,7 +88,7 @@ afterAll(async () => {
 
 describe("no authenticated SELECT on storage.objects (D10/D26)", () => {
   it("an enrolled student of the same org cannot list() the course's own folder", async () => {
-    const { data } = await studentA.client.storage.from(COURSE_FILES_BUCKET).list(`${ORG_A}/${courseXId}`)
+    const { data } = await studentA.client.storage.from(COURSE_FILES_BUCKET).list(`${ORG_A}/${courseXId}/${offeringXId}`)
     const names = (data ?? []).map((f) => f.name)
     expect(names).not.toContain(seededPath.split("/").pop())
   })
@@ -96,9 +100,9 @@ describe("no authenticated SELECT on storage.objects (D10/D26)", () => {
   })
 })
 
-describe("write policy scoped to can_edit_course(folder[2]) (D10)", () => {
-  it("a professor of course Y cannot upload under course X's prefix", async () => {
-    const hackPath = buildCourseFilePath({ organizationId: ORG_A, courseId: courseXId, fileName: "hack.pdf" })
+describe("write policy scoped to can_edit_offering(folder[3]) (D10)", () => {
+  it("a professor of edition Y cannot upload under edition X's prefix", async () => {
+    const hackPath = buildCourseFilePath({ organizationId: ORG_A, courseId: courseXId, offeringId: offeringXId, fileName: "hack.pdf" })
 
     const { error } = await professorY.client.storage
       .from(COURSE_FILES_BUCKET)
@@ -107,20 +111,20 @@ describe("write policy scoped to can_edit_course(folder[2]) (D10)", () => {
     expect(error).not.toBeNull()
   })
 
-  it("a professor of course Y cannot delete an object under course X's prefix", async () => {
+  it("a professor of edition Y cannot delete an object under edition X's prefix", async () => {
     await professorY.client.storage.from(COURSE_FILES_BUCKET).remove([seededPath])
 
     // RLS filters the delete to zero matching rows rather than raising, so the
     // only reliable proof is that the object is still there afterwards.
     const { data } = await supabaseAdmin.storage
       .from(COURSE_FILES_BUCKET)
-      .list(`${ORG_A}/${courseXId}`)
+      .list(`${ORG_A}/${courseXId}/${offeringXId}`)
     const names = (data ?? []).map((f) => f.name)
     expect(names).toContain(seededPath.split("/").pop())
   })
 
-  it("the assigned professor CAN upload and delete under their own course prefix (positive control)", async () => {
-    const ownPath = buildCourseFilePath({ organizationId: ORG_A, courseId: courseXId, fileName: "own.pdf" })
+  it("the assigned professor CAN upload and delete under their own edition prefix (positive control)", async () => {
+    const ownPath = buildCourseFilePath({ organizationId: ORG_A, courseId: courseXId, offeringId: offeringXId, fileName: "own.pdf" })
 
     const { error: uploadError } = await professorX.client.storage
       .from(COURSE_FILES_BUCKET)

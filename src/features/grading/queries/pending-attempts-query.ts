@@ -43,8 +43,8 @@ export function buildPendingAttemptsQuery(
     .select(
       `id, status, submitted_at, attempt_number, submitted_late,
        profiles(first_name, last_name),
-       assessments!inner(id, title, kind, course_id, available_until, courses(id, title)),
-       course_enrollments!inner(offering_id)`,
+       assessments!inner(id, title, kind, offering_id, available_until),
+       course_enrollments!inner(offering_id, course_id, courses(id, title))`,
       { count: "exact" }
     )
     .in("status", statuses)
@@ -60,7 +60,7 @@ export function buildPendingAttemptsQuery(
     })
   }
   if (filters.courseId) {
-    query = query.eq("assessments.course_id", filters.courseId)
+    query = query.eq("course_enrollments.course_id", filters.courseId)
   }
   if (filters.offeringId) {
     query = query.eq("course_enrollments.offering_id", filters.offeringId)

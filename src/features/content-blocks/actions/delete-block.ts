@@ -1,19 +1,20 @@
 "use server"
 
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
-import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
-import { COURSE_FILES_BUCKET } from "@/lib/storage/file-path"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
 import { deleteContentBlockSchema, type DeleteContentBlockInput } from "../schemas/content-block-schemas"
 
-/** PDF/IMAGE blocks own a stored object; it's removed here too (requirement 9). */
+/**
+ * Deleting a block never deletes its stored object: edition copies share files
+ * (B2), so removal is left to a future storage GC (backlog).
+ */
 export async function deleteBlock(input: DeleteContentBlockInput): Promise<ActionResult<void>> {
   const parsed = deleteContentBlockSchema.safeParse(input)
   if (!parsed.success) {
@@ -33,16 +34,15 @@ export async function deleteBlock(input: DeleteContentBlockInput): Promise<Actio
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
 
-  const { data: courseId } = await supabase.rpc("course_id_of_lesson", { p_lesson: block.lesson_id })
-  if (!courseId || !(await canEditCourse(courseId))) {
+  const { data: offeringId } = await supabase.rpc("offering_id_of_lesson", { p_lesson: block.lesson_id })
+  if (!offeringId || !(await canEditOffering(offeringId))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
   // Deleting the row cascades into `content_progress`, so it goes through the
   // guarded RPC like module and lesson deletion (C10). The RPC refuses with
-  // CONTENT_IN_USE when a student has already completed the block, and returns
-  // the stored object path so the file can be removed afterwards.
-  const { data: storedPath, error } = await supabase.rpc("delete_content_block", {
+  // CONTENT_IN_USE when a student has already completed the block.
+  const { error } = await supabase.rpc("delete_content_block", {
     p_block: parsed.data.blockId,
   })
 
@@ -53,27 +53,14 @@ export async function deleteBlock(input: DeleteContentBlockInput): Promise<Actio
     return { ok: false, ...toActionError(error) }
   }
 
-  if (storedPath) {
-    // Removed with the service-role client: `authenticated` has no SELECT on
-    // storage.objects by design (D26), so a user-session remove cannot see the
-    // object it is trying to delete. Authorisation already happened above.
-    const admin = createAdminClient()
-    const { error: storageError } = await admin.storage.from(COURSE_FILES_BUCKET).remove([storedPath])
-    if (storageError) {
-      // An orphaned object is accepted and documented (Risk Assessment) rather
-      // than failing a deletion that already committed.
-      console.error(`Failed to remove course file ${storedPath}: ${storageError.message}`)
-    }
-  }
-
   await logAudit({
-    organizationId: await getCourseOrganizationId(courseId),
+    organizationId: await getOfferingOrganizationId(offeringId),
     action: "content_block.deleted",
     entityType: "content_block",
     entityId: parsed.data.blockId,
   })
 
-  revalidateCourseContent(courseId)
+  await revalidateOfferingContent(offeringId)
 
   return { ok: true, data: undefined }
 }

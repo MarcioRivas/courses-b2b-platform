@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { toActionError, type ActionResult } from "@/lib/errors"
@@ -20,7 +20,7 @@ export async function deleteAssessment(input: DeleteAssessmentInput): Promise<Ac
 
   const { data: existing } = await supabase
     .from("assessments")
-    .select("course_id")
+    .select("offering_id")
     .eq("id", parsed.data.assessmentId)
     .maybeSingle()
 
@@ -34,7 +34,7 @@ export async function deleteAssessment(input: DeleteAssessmentInput): Promise<Ac
   }
 
   if (existing) {
-    revalidatePath(`/teach/courses/${existing.course_id}/assessments`)
+    await revalidateOfferingAssessments(existing.offering_id)
   }
 
   return { ok: true, data: undefined }

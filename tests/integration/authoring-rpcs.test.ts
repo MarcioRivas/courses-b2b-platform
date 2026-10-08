@@ -33,9 +33,9 @@ async function makeProfessorCourse(title: string, professor: TestUser) {
   return course
 }
 
-async function makeMcFixture(courseId: string, title: string) {
+async function makeMcFixture(offeringId: string, title: string) {
   const fixture = await makeAssessmentFixture({
-    courseId,
+    offeringId,
     organizationId: ORG_A,
     title,
     kind: "QUIZ",
@@ -49,7 +49,7 @@ describe("replace_question_options", () => {
   it("professor replaces options atomically", async () => {
     const professor = await member("rqo-prof", ORG_A, "PROFESSOR")
     const course = await makeProfessorCourse("Curso RQO", professor)
-    const fixture = await makeMcFixture(course.courseId, "Eval RQO")
+    const fixture = await makeMcFixture(course.offeringId, "Eval RQO")
     const questionId = fixture.questions[0]!.questionId
 
     const { error } = await professor.client.rpc("replace_question_options", {
@@ -74,7 +74,7 @@ describe("replace_question_options", () => {
   it("rejects an invalid payload (two correct options) and leaves old options intact", async () => {
     const professor = await member("rqo-prof-2", ORG_A, "PROFESSOR")
     const course = await makeProfessorCourse("Curso RQO 2", professor)
-    const fixture = await makeMcFixture(course.courseId, "Eval RQO 2")
+    const fixture = await makeMcFixture(course.offeringId, "Eval RQO 2")
     const questionId = fixture.questions[0]!.questionId
 
     const { error } = await professor.client.rpc("replace_question_options", {
@@ -94,7 +94,7 @@ describe("replace_question_options", () => {
     const owner = await member("rqo-owner", ORG_A, "PROFESSOR")
     const outsider = await member("rqo-outsider", ORG_A, "PROFESSOR")
     const course = await makeProfessorCourse("Curso RQO Owner", owner)
-    const fixture = await makeMcFixture(course.courseId, "Eval RQO Owner")
+    const fixture = await makeMcFixture(course.offeringId, "Eval RQO Owner")
     const questionId = fixture.questions[0]!.questionId
 
     const { error } = await outsider.client.rpc("replace_question_options", {
@@ -114,7 +114,7 @@ describe("replace_question_options", () => {
     const professor = await member("rqo-prof-3", ORG_A, "PROFESSOR")
     const student = await member("rqo-student", ORG_A, "STUDENT")
     const course = await makeProfessorCourse("Curso RQO 3", professor)
-    const fixture = await makeMcFixture(course.courseId, "Eval RQO 3")
+    const fixture = await makeMcFixture(course.offeringId, "Eval RQO 3")
     const questionId = fixture.questions[0]!.questionId
 
     const { error } = await student.client.rpc("replace_question_options", {
@@ -135,9 +135,9 @@ describe("set_assessment_questions", () => {
     const courseA = await makeProfessorCourse("Curso SAQ A", professorA)
     const courseB = await makeProfessorCourse("Curso SAQ B", professorB)
 
-    const fixtureA = await makeMcFixture(courseA.courseId, "Eval SAQ A")
+    const fixtureA = await makeMcFixture(courseA.offeringId, "Eval SAQ A")
     const fixtureB = await makeAssessmentFixture({
-      courseId: courseB.courseId,
+      offeringId: courseB.offeringId,
       organizationId: ORG_A,
       title: "Eval SAQ B",
       kind: "QUIZ",

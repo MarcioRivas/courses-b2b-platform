@@ -36,7 +36,18 @@ export async function getCourse(courseId: string): Promise<CourseDetail | null> 
 export async function getCourseCompleteness(courseId: string): Promise<CourseCompleteness> {
   const supabase = await createClient()
 
-  const { data: modules } = await supabase.from("modules").select("id").eq("course_id", courseId)
+  // FREE courses live in their OPEN edition only; PRIVATE courses count any edition.
+  const { data: course } = await supabase.from("courses").select("access_type").eq("id", courseId).maybeSingle()
+  let offerings = supabase.from("course_offerings").select("id").eq("course_id", courseId)
+  if (course?.access_type === "FREE") {
+    offerings = offerings.eq("kind", "OPEN")
+  }
+  const { data: offeringRows } = await offerings
+  const offeringIds = (offeringRows ?? []).map((o) => o.id)
+
+  const { data: modules } = offeringIds.length
+    ? await supabase.from("modules").select("id").in("offering_id", offeringIds)
+    : { data: [] as { id: string }[] }
   const moduleIds = (modules ?? []).map((m) => m.id)
 
   if (moduleIds.length === 0) {

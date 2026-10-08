@@ -4,6 +4,7 @@ import type { AssessmentKind } from "../types"
 export interface AssessmentPreflight {
   id: string
   courseId: string
+  offeringId: string
   moduleId: string | null
   title: string
   description: string | null
@@ -31,7 +32,7 @@ export async function getAssessmentPreflight(assessmentId: string): Promise<Asse
   const { data, error } = await supabase
     .from("assessments")
     .select(
-      "id, course_id, module_id, title, description, kind, duration_seconds, available_from, available_until, max_attempts, random_question_count, instructions, max_files, allow_late_submissions"
+      "id, offering_id, course_offerings(course_id), module_id, title, description, kind, duration_seconds, available_from, available_until, max_attempts, random_question_count, instructions, max_files, allow_late_submissions"
     )
     .eq("id", assessmentId)
     .maybeSingle()
@@ -42,7 +43,8 @@ export async function getAssessmentPreflight(assessmentId: string): Promise<Asse
 
   return {
     id: data.id,
-    courseId: data.course_id,
+    courseId: data.course_offerings?.course_id ?? "",
+    offeringId: data.offering_id,
     moduleId: data.module_id,
     title: data.title,
     description: data.description,

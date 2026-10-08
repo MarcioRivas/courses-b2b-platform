@@ -1,10 +1,10 @@
 "use server"
 
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { logAudit } from "@/lib/audit/log"
-import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
@@ -20,7 +20,7 @@ export async function deleteLesson(input: DeleteLessonInput): Promise<ActionResu
   await requireOrgRole(["ADMIN", "PROFESSOR"])
   const supabase = await createClient()
 
-  const { data: courseId } = await supabase.rpc("course_id_of_lesson", { p_lesson: parsed.data.lessonId })
+  const { data: offeringId } = await supabase.rpc("offering_id_of_lesson", { p_lesson: parsed.data.lessonId })
 
   const { error } = await supabase.rpc("delete_lesson", { p_lesson: parsed.data.lessonId })
 
@@ -31,14 +31,14 @@ export async function deleteLesson(input: DeleteLessonInput): Promise<ActionResu
     return { ok: false, ...toActionError(error) }
   }
 
-  if (courseId) {
+  if (offeringId) {
     await logAudit({
-      organizationId: await getCourseOrganizationId(courseId),
+      organizationId: await getOfferingOrganizationId(offeringId),
       action: "lesson.deleted",
       entityType: "lesson",
       entityId: parsed.data.lessonId,
     })
-    revalidateCourseContent(courseId)
+    await revalidateOfferingContent(offeringId)
   }
 
   return { ok: true, data: undefined }

@@ -77,7 +77,7 @@ export function GradingFilters({ courses, assessments, editions }: GradingFilter
           <SelectItem value={ALL}>{messages.common.all}</SelectItem>
           {visibleAssessments.map((assessment) => (
             <SelectItem key={assessment.id} value={assessment.id}>
-              {assessment.title}
+              {assessment.title} · {assessment.offeringName}
             </SelectItem>
           ))}
         </SelectContent>

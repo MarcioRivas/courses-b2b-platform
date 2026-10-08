@@ -10,7 +10,7 @@ import { ModuleForm } from "./module-form"
 import { DependencyEditor, type ModuleDependencyItem } from "./dependency-editor"
 
 export interface ModuleRowActionsProps {
-  courseId: string
+  offeringId: string
   module: { id: string; title: string; description: string | null; dependencies: ModuleDependencyItem[] }
   otherModules: { id: string; title: string }[]
   /** Reorder controls are omitted when `onMove` is absent (module header). */
@@ -26,7 +26,7 @@ export interface ModuleRowActionsProps {
 
 /** up/down · edit · dependencies · delete — shared by module rows and the module page header. */
 export function ModuleRowActions({
-  courseId,
+  offeringId,
   module,
   otherModules,
   onMove,
@@ -54,7 +54,7 @@ export function ModuleRowActions({
       )}
       <ModuleForm
         mode="edit"
-        courseId={courseId}
+        offeringId={offeringId}
         module={module}
         trigger={
           isHeader ? (
@@ -65,7 +65,7 @@ export function ModuleRowActions({
         }
       />
       <DependencyEditor
-        courseId={courseId}
+        offeringId={offeringId}
         moduleId={module.id}
         dependencies={module.dependencies}
         otherModules={otherModules}

@@ -69,6 +69,6 @@ export const courseMessages = {
     duplicateName: "Ya existe un curso con ese título.",
     deleteNotDraft: "Solo se pueden eliminar cursos en borrador. Archivá el curso en su lugar.",
     deleteHasEnrollments: "No se puede eliminar un curso con inscripciones.",
-    accessTypeLocked: "No se puede cambiar el tipo de acceso de un curso publicado o archivado.",
+    accessTypeLocked: "No se puede cambiar el tipo de acceso de un curso que ya tiene ediciones.",
   },
 } as const

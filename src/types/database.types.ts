@@ -438,7 +438,6 @@ export type Database = {
           allow_late_submissions: boolean
           available_from: string | null
           available_until: string | null
-          course_id: string
           created_at: string
           created_by: string | null
           description: string | null
@@ -449,6 +448,7 @@ export type Database = {
           max_attempts: number | null
           max_files: number | null
           module_id: string | null
+          offering_id: string
           organization_id: string
           passing_score: number | null
           question_bank_id: string | null
@@ -461,7 +461,6 @@ export type Database = {
           allow_late_submissions?: boolean
           available_from?: string | null
           available_until?: string | null
-          course_id: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -472,6 +471,7 @@ export type Database = {
           max_attempts?: number | null
           max_files?: number | null
           module_id?: string | null
+          offering_id: string
           organization_id: string
           passing_score?: number | null
           question_bank_id?: string | null
@@ -484,7 +484,6 @@ export type Database = {
           allow_late_submissions?: boolean
           available_from?: string | null
           available_until?: string | null
-          course_id?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -495,6 +494,7 @@ export type Database = {
           max_attempts?: number | null
           max_files?: number | null
           module_id?: string | null
+          offering_id?: string
           organization_id?: string
           passing_score?: number | null
           question_bank_id?: string | null
@@ -504,13 +504,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "assessments_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "assessments_created_by_fkey"
             columns: ["created_by"]
@@ -523,6 +516,13 @@ export type Database = {
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "course_offerings"
             referencedColumns: ["id"]
           },
           {
@@ -1066,38 +1066,38 @@ export type Database = {
       }
       modules: {
         Row: {
-          course_id: string
           created_at: string
           description: string | null
           id: string
+          offering_id: string
           position: number
           title: string
           updated_at: string
         }
         Insert: {
-          course_id: string
           created_at?: string
           description?: string | null
           id?: string
+          offering_id: string
           position: number
           title: string
           updated_at?: string
         }
         Update: {
-          course_id?: string
           created_at?: string
           description?: string | null
           id?: string
+          offering_id?: string
           position?: number
           title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "modules_course_id_fkey"
-            columns: ["course_id"]
+            foreignKeyName: "modules_offering_id_fkey"
+            columns: ["offering_id"]
             isOneToOne: false
-            referencedRelation: "courses"
+            referencedRelation: "course_offerings"
             referencedColumns: ["id"]
           },
         ]
@@ -1947,7 +1947,7 @@ export type Database = {
         }
       }
       assert_subtree_deletable: {
-        Args: { p_course: string; p_lesson: string; p_module: string }
+        Args: { p_lesson: string; p_module: string; p_offering: string }
         Returns: undefined
       }
       assert_valid_profile_fields: {
@@ -1992,13 +1992,13 @@ export type Database = {
           status: Database["public"]["Enums"]["attempt_status"]
         }[]
       }
-      can_edit_course_content: { Args: { p_course: string }; Returns: boolean }
+      can_edit_offering: { Args: { p_offering: string }; Returns: boolean }
       can_edit_question_bank: { Args: { p_bank: string }; Returns: boolean }
       can_grade_attempt: { Args: { p_attempt: string }; Returns: boolean }
       can_view_attempt: { Args: { p_attempt: string }; Returns: boolean }
       can_view_block: { Args: { p_block: string }; Returns: boolean }
       can_view_enrollment: { Args: { p_enrollment: string }; Returns: boolean }
-      can_write_course_file: { Args: { p_name: string }; Returns: boolean }
+      can_write_offering_file: { Args: { p_name: string }; Returns: boolean }
       checkpoint_enrollment_check: {
         Args: { p_enrollment: string; p_lesson: string }
         Returns: string
@@ -2021,9 +2021,20 @@ export type Database = {
         }
         Returns: string
       }
-      course_id_of_block: { Args: { p_block: string }; Returns: string }
-      course_id_of_lesson: { Args: { p_lesson: string }; Returns: string }
-      course_id_of_module: { Args: { p_module: string }; Returns: string }
+      copy_edition_content: {
+        Args: { p_source: string; p_target: string }
+        Returns: undefined
+      }
+      course_id_of_offering: { Args: { p_offering: string }; Returns: string }
+      create_course: {
+        Args: {
+          p_access_type: Database["public"]["Enums"]["course_access"]
+          p_description: string
+          p_organization: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: {
@@ -2045,7 +2056,7 @@ export type Database = {
         }[]
       }
       delete_assessment: { Args: { p_assessment: string }; Returns: undefined }
-      delete_content_block: { Args: { p_block: string }; Returns: string }
+      delete_content_block: { Args: { p_block: string }; Returns: undefined }
       delete_lesson: { Args: { p_lesson: string }; Returns: undefined }
       delete_module: { Args: { p_module: string }; Returns: undefined }
       enrollment_module_summary: {
@@ -2186,6 +2197,7 @@ export type Database = {
           course_title: string
           ends_at: string
           enrollment_id: string
+          offering_id: string
           offering_name: string
           offering_status: Database["public"]["Enums"]["offering_status"]
           progress_percent: number
@@ -2209,6 +2221,13 @@ export type Database = {
         }[]
       }
       normalize_dni: { Args: { p_dni: string }; Returns: string }
+      offering_id_of_assessment: {
+        Args: { p_assessment: string }
+        Returns: string
+      }
+      offering_id_of_block: { Args: { p_block: string }; Returns: string }
+      offering_id_of_lesson: { Args: { p_lesson: string }; Returns: string }
+      offering_id_of_module: { Args: { p_module: string }; Returns: string }
       org_assessment_stats: {
         Args: { p_org: string }
         Returns: {
@@ -2306,8 +2325,8 @@ export type Database = {
         Args: { p_enrollment: string }
         Returns: undefined
       }
-      refresh_course_enrollment_totals: {
-        Args: { p_course: string }
+      refresh_offering_enrollment_totals: {
+        Args: { p_offering: string }
         Returns: undefined
       }
       release_session: {
@@ -2327,14 +2346,17 @@ export type Database = {
         Returns: undefined
       }
       reorder_modules: {
-        Args: { p_course: string; p_ordered_ids: string[] }
+        Args: { p_offering: string; p_ordered_ids: string[] }
         Returns: undefined
       }
       replace_question_options: {
         Args: { p_options: Json; p_question: string }
         Returns: undefined
       }
-      required_block_count: { Args: { p_course: string }; Returns: number }
+      required_block_count_for_offering: {
+        Args: { p_offering: string }
+        Returns: number
+      }
       resolve_score_label: {
         Args: { p_org: string; p_percent: number }
         Returns: {
@@ -2405,6 +2427,10 @@ export type Database = {
         }[]
       }
       student_can_view_course: { Args: { p_course: string }; Returns: boolean }
+      student_can_view_offering: {
+        Args: { p_offering: string }
+        Returns: boolean
+      }
       submit_attempt: {
         Args: { p_answers?: Json; p_attempt: string; p_session: string }
         Returns: {
@@ -2471,7 +2497,7 @@ export type Database = {
         Args: { p_org: string }
         Returns: Database["public"]["Enums"]["membership_role"]
       }
-      video_checkpoint_course: {
+      video_checkpoint_offering: {
         Args: { p_checkpoint: string }
         Returns: string
       }

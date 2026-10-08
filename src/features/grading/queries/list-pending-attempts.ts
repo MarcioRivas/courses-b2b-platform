@@ -45,8 +45,8 @@ export async function listPendingAttempts(
         assessmentId: assessment.id,
         assessmentTitle: assessment.title,
         assessmentKind: assessment.kind,
-        courseId: assessment.course_id,
-        courseTitle: assessment.courses?.title ?? "—",
+        courseId: row.course_enrollments?.course_id ?? "",
+        courseTitle: row.course_enrollments?.courses?.title ?? "—",
       },
     ]
   })

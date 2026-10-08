@@ -8,6 +8,9 @@ export const JOURNEY_ORG = "11111111-1111-1111-1111-111111111111"
 
 export interface JourneyCourse {
   courseId: string
+  /** The GROUP edition that owns the content (B2). */
+  offeringId: string
+  groupId: string
   module1Id: string
   module1LessonId: string
   module2Id: string
@@ -30,13 +33,30 @@ export async function buildJourneyCourse(title: string): Promise<JourneyCourse> 
     .single()
   if (error || !course) throw error ?? new Error("course not created")
 
+  // Content belongs to the edition: group + GROUP edition first, modules on it.
+  const { data: group, error: groupError } = await supabaseAdmin
+    .from("groups")
+    .insert({ organization_id: JOURNEY_ORG, name: `Grupo jornada ${Date.now()}` })
+    .select("id")
+    .single()
+  if (groupError || !group) throw groupError ?? new Error("group not created")
+
+  const { data: offering, error: offeringError } = await supabaseAdmin
+    .from("course_offerings")
+    .insert({ course_id: course.id, organization_id: JOURNEY_ORG, kind: "GROUP", group_id: group.id, name: "Oferta jornada" })
+    .select("id")
+    .single()
+  if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+
   const [module1, module2] = await Promise.all([
-    insertModuleWithLesson(course.id, "Módulo 1", 1),
-    insertModuleWithLesson(course.id, "Módulo 2", 2),
+    insertModuleWithLesson(offering.id, "Módulo 1", 1),
+    insertModuleWithLesson(offering.id, "Módulo 2", 2),
   ])
 
   return {
     courseId: course.id,
+    offeringId: offering.id,
+    groupId: group.id,
     module1Id: module1.moduleId,
     module1LessonId: module1.lessonId,
     module2Id: module2.moduleId,
@@ -45,13 +65,13 @@ export async function buildJourneyCourse(title: string): Promise<JourneyCourse> 
 }
 
 async function insertModuleWithLesson(
-  courseId: string,
+  offeringId: string,
   title: string,
   position: number
 ): Promise<{ moduleId: string; lessonId: string }> {
   const { data: module } = await supabaseAdmin
     .from("modules")
-    .insert({ course_id: courseId, title, position })
+    .insert({ offering_id: offeringId, title, position })
     .select("id")
     .single()
   if (!module) throw new Error("module not created")
@@ -94,33 +114,21 @@ export async function createRegistrationLink(): Promise<string> {
 }
 
 /**
- * Group + GROUP offering created via the service role (impractical to drive
- * through the UI here without duplicating `course-builder.spec.ts`), then the
- * real `sync_offering_enrollments` RPC — the same one the "Sincronizar
+ * The journey course's GROUP edition (created by `buildJourneyCourse`), then
+ * the real `sync_offering_enrollments` RPC — the same one the "Sincronizar
  * inscripciones" button calls — materialises the enrollment once `studentId`
  * has joined the group. The RPC asserts `is_org_admin()` from `auth.uid()`
  * internally, so it must run as the signed-in admin's client, not the
  * service role (which has no `auth.uid()`).
  */
 export async function enrollViaGroupOffering(
-  courseId: string,
+  course: Pick<JourneyCourse, "offeringId" | "groupId">,
   studentId: string,
   adminClient: SupabaseClient<Database>,
   professorId?: string
 ): Promise<string> {
-  const { data: group, error: groupError } = await supabaseAdmin
-    .from("groups")
-    .insert({ organization_id: JOURNEY_ORG, name: `Grupo jornada ${Date.now()}` })
-    .select("id")
-    .single()
-  if (groupError || !group) throw groupError ?? new Error("group not created")
-
-  const { data: offering, error: offeringError } = await supabaseAdmin
-    .from("course_offerings")
-    .insert({ course_id: courseId, organization_id: JOURNEY_ORG, kind: "GROUP", group_id: group.id, name: "Oferta jornada" })
-    .select("id")
-    .single()
-  if (offeringError || !offering) throw offeringError ?? new Error("offering not created")
+  const offering = { id: course.offeringId }
+  const group = { id: course.groupId }
   if (professorId) await assignOfferingProfessor(offering.id, professorId)
 
   const { error: memberError } = await supabaseAdmin.from("group_members").insert({ group_id: group.id, user_id: studentId })

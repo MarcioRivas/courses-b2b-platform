@@ -1,11 +1,11 @@
 "use server"
 
-import { revalidateCourseContent } from "@/lib/courses/revalidate-course-content"
+import { revalidateOfferingContent } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
-import { getCourseOrganizationId } from "@/lib/courses/get-course-organization-id"
+import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
@@ -41,23 +41,23 @@ async function upsertModuleCompletedDependency(
     return { ok: false, code: "CONFLICT", message: contentMessages.errors.selfDependency }
   }
 
-  const [{ data: courseOfModule }, { data: courseOfPrereq }] = await Promise.all([
-    supabase.rpc("course_id_of_module", { p_module: moduleId }),
-    supabase.rpc("course_id_of_module", { p_module: dependsOnModuleId }),
+  const [{ data: offeringOfModule }, { data: offeringOfPrereq }] = await Promise.all([
+    supabase.rpc("offering_id_of_module", { p_module: moduleId }),
+    supabase.rpc("offering_id_of_module", { p_module: dependsOnModuleId }),
   ])
 
-  if (!courseOfModule || !courseOfPrereq) {
+  if (!offeringOfModule || !offeringOfPrereq) {
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
-  if (courseOfModule !== courseOfPrereq) {
+  if (offeringOfModule !== offeringOfPrereq) {
     return { ok: false, code: "VALIDATION", message: contentMessages.errors.dependencyCourseMismatch }
   }
-  if (!(await canEditCourse(courseOfModule))) {
+  if (!(await canEditOffering(offeringOfModule))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
-  const { data: courseModules } = await supabase.from("modules").select("id").eq("course_id", courseOfModule)
-  const moduleIds = (courseModules ?? []).map((m) => m.id)
+  const { data: offeringModules } = await supabase.from("modules").select("id").eq("offering_id", offeringOfModule)
+  const moduleIds = (offeringModules ?? []).map((m) => m.id)
 
   const { data: existingEdges } = await supabase
     .from("module_dependencies")
@@ -97,14 +97,14 @@ async function upsertModuleCompletedDependency(
   }
 
   await logAudit({
-    organizationId: await getCourseOrganizationId(courseOfModule),
+    organizationId: await getOfferingOrganizationId(offeringOfModule),
     action: "module_dependency.upserted",
     entityType: "module_dependency",
     entityId: inserted.id,
     metadata: { moduleId, dependsOnModuleId, condition: "MODULE_COMPLETED" },
   })
 
-  revalidateCourseContent(courseOfModule)
+  await revalidateOfferingContent(offeringOfModule)
 
   return { ok: true, data: { id: inserted.id } }
 }
@@ -115,21 +115,21 @@ async function upsertQuizPassedDependency(
 ): Promise<ActionResult<{ id: string }>> {
   const { moduleId, assessmentId, minScore } = data
 
-  const { data: courseOfModule } = await supabase.rpc("course_id_of_module", { p_module: moduleId })
-  if (!courseOfModule) {
+  const { data: offeringOfModule } = await supabase.rpc("offering_id_of_module", { p_module: moduleId })
+  if (!offeringOfModule) {
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
-  if (!(await canEditCourse(courseOfModule))) {
+  if (!(await canEditOffering(offeringOfModule))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
   const { data: assessment } = await supabase
     .from("assessments")
-    .select("id, course_id, kind")
+    .select("id, offering_id, kind")
     .eq("id", assessmentId)
     .maybeSingle()
 
-  if (!assessment || assessment.kind !== "QUIZ" || assessment.course_id !== courseOfModule) {
+  if (!assessment || assessment.kind !== "QUIZ" || assessment.offering_id !== offeringOfModule) {
     return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.dependencyCourseMismatch }
   }
 
@@ -144,14 +144,14 @@ async function upsertQuizPassedDependency(
   }
 
   await logAudit({
-    organizationId: await getCourseOrganizationId(courseOfModule),
+    organizationId: await getOfferingOrganizationId(offeringOfModule),
     action: "module_dependency.upserted",
     entityType: "module_dependency",
     entityId: inserted.id,
     metadata: { moduleId, assessmentId, minScore, condition: "QUIZ_PASSED" },
   })
 
-  revalidateCourseContent(courseOfModule)
+  await revalidateOfferingContent(offeringOfModule)
 
   return { ok: true, data: { id: inserted.id } }
 }

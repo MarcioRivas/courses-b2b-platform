@@ -31,22 +31,22 @@ export async function discardTaskUploads(input: DiscardTaskUploadsInput): Promis
   // Both reads run under the student's own RLS: an enrollment that is not
   // theirs, or an assessment they cannot see, returns nothing.
   const [{ data: enrollment }, { data: assessment }] = await Promise.all([
-    supabase.from("course_enrollments").select("id, course_id, user_id").eq("id", enrollmentId).maybeSingle(),
-    supabase.from("assessments").select("id, course_id, organization_id").eq("id", assessmentId).maybeSingle(),
+    supabase.from("course_enrollments").select("id, course_id, offering_id, user_id").eq("id", enrollmentId).maybeSingle(),
+    supabase.from("assessments").select("id, offering_id, organization_id").eq("id", assessmentId).maybeSingle(),
   ])
 
   if (
     !enrollment ||
     !assessment ||
     enrollment.user_id !== ctx.user.id ||
-    enrollment.course_id !== assessment.course_id
+    enrollment.offering_id !== assessment.offering_id
   ) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
   const prefix = taskSubmissionPrefix({
     organizationId: assessment.organization_id,
-    courseId: assessment.course_id,
+    courseId: enrollment.course_id,
     assessmentId,
     enrollmentId,
   })

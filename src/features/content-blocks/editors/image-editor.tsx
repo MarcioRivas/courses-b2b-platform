@@ -11,12 +11,13 @@ import type { ImageBlockData } from "../lib/block-editor-types"
 interface ImageEditorProps {
   organizationId: string
   courseId: string
+  offeringId: string
   value: ImageBlockData
   onChange: (value: ImageBlockData) => void
   errors?: Record<string, string>
 }
 
-export function ImageEditor({ organizationId, courseId, value, onChange, errors }: ImageEditorProps) {
+export function ImageEditor({ organizationId, courseId, offeringId, value, onChange, errors }: ImageEditorProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
@@ -25,7 +26,7 @@ export function ImageEditor({ organizationId, courseId, value, onChange, errors 
     setUploading(true)
     setUploadError(null)
 
-    const result = await uploadCourseFile({ organizationId, courseId, file })
+    const result = await uploadCourseFile({ organizationId, courseId, offeringId, file })
 
     setUploading(false)
     if (!result.ok || !result.path) {

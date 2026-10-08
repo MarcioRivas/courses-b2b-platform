@@ -29,7 +29,7 @@ afterAll(async () => {
 
 describe("cross-org path isolation (D10/D26)", () => {
   it("org B's admin cannot upload under org A's course prefix", async () => {
-    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, fileName: "cross-org.pdf" })
+    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, offeringId: fx.courseA.offeringId, fileName: "cross-org.pdf" })
     const { error } = await fx.users.adminB.client.storage
       .from(COURSE_FILES_BUCKET)
       .upload(path, PDF_BYTES, { contentType: "application/pdf" })
@@ -37,20 +37,20 @@ describe("cross-org path isolation (D10/D26)", () => {
   })
 
   it("org B's professor cannot delete an object under org A's course prefix", async () => {
-    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, fileName: "seed.pdf" })
+    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, offeringId: fx.courseA.offeringId, fileName: "seed.pdf" })
     uploadedPaths.push(path)
     await supabaseAdmin.storage.from(COURSE_FILES_BUCKET).upload(path, PDF_BYTES, { contentType: "application/pdf" })
 
     await fx.users.profB.client.storage.from(COURSE_FILES_BUCKET).remove([path])
 
-    const { data } = await supabaseAdmin.storage.from(COURSE_FILES_BUCKET).list(`${fx.orgA}/${fx.courseA.courseId}`)
+    const { data } = await supabaseAdmin.storage.from(COURSE_FILES_BUCKET).list(`${fx.orgA}/${fx.courseA.courseId}/${fx.courseA.offeringId}`)
     expect((data ?? []).map((f) => f.name)).toContain(path.split("/").pop())
   })
 })
 
 describe("signed URL expiry", () => {
   it("a URL minted with a 1s expiry stops serving the file shortly after", async () => {
-    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, fileName: "expiring.pdf" })
+    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, offeringId: fx.courseA.offeringId, fileName: "expiring.pdf" })
     uploadedPaths.push(path)
     await supabaseAdmin.storage.from(COURSE_FILES_BUCKET).upload(path, PDF_BYTES, { contentType: "application/pdf" })
 
@@ -70,7 +70,7 @@ describe("signed URL expiry", () => {
 
 describe("bucket config rejects oversized / wrong-MIME uploads (50MB, pdf/png/jpeg/webp only)", () => {
   it("rejects a text/plain upload regardless of who's uploading", async () => {
-    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, fileName: "not-allowed.txt" })
+    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, offeringId: fx.courseA.offeringId, fileName: "not-allowed.txt" })
     const { error } = await fx.users.profA.client.storage
       .from(COURSE_FILES_BUCKET)
       .upload(path, Buffer.from("plain text"), { contentType: "text/plain" })
@@ -78,7 +78,7 @@ describe("bucket config rejects oversized / wrong-MIME uploads (50MB, pdf/png/jp
   })
 
   it("rejects a file over the 50MB bucket limit", async () => {
-    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, fileName: "too-big.pdf" })
+    const path = buildCourseFilePath({ organizationId: fx.orgA, courseId: fx.courseA.courseId, offeringId: fx.courseA.offeringId, fileName: "too-big.pdf" })
     const oversized = Buffer.alloc(52_428_800 + 1024, 0)
     const { error } = await fx.users.profA.client.storage
       .from(COURSE_FILES_BUCKET)

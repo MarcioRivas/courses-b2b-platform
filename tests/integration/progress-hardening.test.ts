@@ -145,13 +145,13 @@ describe("M2: completed_at survives a course growing", () => {
   })
 })
 
-describe("M4: refresh_course_enrollment_totals is not a client write path", () => {
+describe("M4: refresh_offering_enrollment_totals is not a client write path", () => {
   it("denies an authenticated caller", async () => {
     const student = await member("hardening-refresh", ORG_A, "STUDENT")
     const fixture = await course("Curso refresh", 1)
 
-    const { error } = await student.client.rpc("refresh_course_enrollment_totals", {
-      p_course: fixture.courseId,
+    const { error } = await student.client.rpc("refresh_offering_enrollment_totals", {
+      p_offering: fixture.offeringId,
     })
     expect(error).not.toBeNull()
   })
@@ -264,7 +264,7 @@ describe("QUIZ_PASSED dependency (stub replaced in Phase 5)", () => {
     courseIds.push(fixture.courseId)
 
     const assessment = await makeAssessmentFixture({
-      courseId: fixture.courseId,
+      offeringId: fixture.offeringId,
       organizationId: ORG_A,
       title: "Quiz dependencia",
       kind: "QUIZ",

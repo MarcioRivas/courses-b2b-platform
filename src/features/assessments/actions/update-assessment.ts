@@ -1,9 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
-import { canEditCourse } from "@/lib/auth/course-access"
+import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
@@ -42,14 +42,14 @@ export async function updateAssessment(input: UpdateAssessmentInput): Promise<Ac
 
   const { data: existing } = await supabase
     .from("assessments")
-    .select("id, course_id, organization_id, status, kind, duration_seconds, available_from, available_until")
+    .select("id, offering_id, organization_id, status, kind, duration_seconds, available_from, available_until")
     .eq("id", parsed.data.assessmentId)
     .maybeSingle()
 
   if (!existing) {
     return { ok: false, code: "NOT_FOUND", message: messages.errors.NOT_FOUND }
   }
-  if (!(await canEditCourse(existing.course_id))) {
+  if (!(await canEditOffering(existing.offering_id))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
@@ -134,8 +134,7 @@ export async function updateAssessment(input: UpdateAssessmentInput): Promise<Ac
     metadata: { kind },
   })
 
-  revalidatePath(`/teach/courses/${existing.course_id}/assessments`)
-  revalidatePath(`/teach/courses/${existing.course_id}/assessments/${existing.id}`)
+  await revalidateOfferingAssessments(existing.offering_id, existing.id)
 
   return { ok: true, data: undefined }
 }

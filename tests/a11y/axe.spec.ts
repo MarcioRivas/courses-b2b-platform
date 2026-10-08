@@ -49,7 +49,7 @@ test.describe("accessibility (axe) — key screens", () => {
 
     const quiz = await makeAssessmentFixture({
       organizationId: ORG_A,
-      courseId,
+      offeringId: fixture.offeringId,
       title: "Quiz A11y",
       kind: "QUIZ",
       multipleChoice: 2,
@@ -61,7 +61,7 @@ test.describe("accessibility (axe) — key screens", () => {
     const now = new Date()
     const exam = await makeAssessmentFixture({
       organizationId: ORG_A,
-      courseId,
+      offeringId: fixture.offeringId,
       title: "Examen A11y",
       kind: "EXAM",
       multipleChoice: 1,

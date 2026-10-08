@@ -24,6 +24,7 @@ import { videoCheckpointMessages } from "@/lib/messages/video-checkpoints"
 interface BlockEditorPanelProps {
   organizationId: string
   courseId: string
+  offeringId: string
   lessonId: string
   existingBlock?: { id: string; type: OfferableBlockType; data: unknown; isRequired: boolean; checkpointCount?: number }
   onSaved: () => void
@@ -31,7 +32,7 @@ interface BlockEditorPanelProps {
 }
 
 /** Client-only editing surface (requirement 1): the rest of the builder stays server-rendered. */
-export function BlockEditorPanel({ organizationId, courseId, lessonId, existingBlock, onSaved, onCancel }: BlockEditorPanelProps) {
+export function BlockEditorPanel({ organizationId, courseId, offeringId, lessonId, existingBlock, onSaved, onCancel }: BlockEditorPanelProps) {
   const [type, setType] = useState<OfferableBlockType | null>(existingBlock?.type ?? null)
   const [data, setData] = useState<Record<string, unknown>>(
     (existingBlock?.data as Record<string, unknown>) ?? {}
@@ -91,14 +92,14 @@ export function BlockEditorPanel({ organizationId, courseId, lessonId, existingB
       {videoChanged && <p className="rounded-md bg-warning-soft p-2 text-sm text-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-300">{videoCheckpointMessages.editor.videoChangedWarning}</p>}
       {type === "RICH_TEXT" && <RichTextEditor value={data as never} onChange={setData} errors={fieldErrors} />}
       {type === "PDF" && (
-        <PdfEditor organizationId={organizationId} courseId={courseId} value={data as never} onChange={setData} errors={fieldErrors} />
+        <PdfEditor organizationId={organizationId} courseId={courseId} offeringId={offeringId} value={data as never} onChange={setData} errors={fieldErrors} />
       )}
       {type === "IMAGE" && (
-        <ImageEditor organizationId={organizationId} courseId={courseId} value={data as never} onChange={setData} errors={fieldErrors} />
+        <ImageEditor organizationId={organizationId} courseId={courseId} offeringId={offeringId} value={data as never} onChange={setData} errors={fieldErrors} />
       )}
       {type === "EXTERNAL_LINK" && <LinkEditor value={data as never} onChange={setData} errors={fieldErrors} />}
       {(type === "QUIZ" || type === "TASK") && (
-        <AssessmentBlockEditor courseId={courseId} kind={type} value={data as never} onChange={setData} errors={fieldErrors} />
+        <AssessmentBlockEditor offeringId={offeringId} kind={type} value={data as never} onChange={setData} errors={fieldErrors} />
       )}
 
       <div className="flex items-center gap-2">

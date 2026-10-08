@@ -76,8 +76,8 @@ describe("courses RLS: cross-org isolation", () => {
   })
 })
 
-describe("can_edit_course: professor scope", () => {
-  it("a professor of course A cannot edit course B (insert a module)", async () => {
+describe("can_edit_offering: professor scope", () => {
+  it("a professor of edition A cannot edit course B's edition (insert a module)", async () => {
     const courseA = await makeCourse(ORG_A, { title: "Curso A" })
     const courseB = await makeCourse(ORG_A, { title: "Curso B" })
     const professor = await member("rls-prof-scope", ORG_A, "PROFESSOR")
@@ -86,7 +86,7 @@ describe("can_edit_course: professor scope", () => {
 
     const { data, error } = await professor.client
       .from("modules")
-      .insert({ course_id: courseB, title: "Módulo intruso", position: 1 })
+      .insert({ offering_id: await ensureOffering(courseB, ORG_A), title: "Módulo intruso", position: 1 })
       .select("id")
 
     // A failed WITH CHECK on INSERT raises rather than silently filtering.
@@ -97,11 +97,12 @@ describe("can_edit_course: professor scope", () => {
   it("the same professor can create a module on their own assigned course", async () => {
     const courseA = await makeCourse(ORG_A, { title: "Curso asignado" })
     const professor = await member("rls-prof-ok", ORG_A, "PROFESSOR")
-    await assignOfferingProfessor(await ensureOffering(courseA, ORG_A), professor.id)
+    const offeringA = await ensureOffering(courseA, ORG_A)
+    await assignOfferingProfessor(offeringA, professor.id)
 
     const { data, error } = await professor.client
       .from("modules")
-      .insert({ course_id: courseA, title: "Módulo propio", position: 1 })
+      .insert({ offering_id: offeringA, title: "Módulo propio", position: 1 })
       .select("id")
       .single()
 

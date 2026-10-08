@@ -14,13 +14,13 @@ export function contentSpec(): MatrixCase[] {
       table: "modules",
       op: "insert",
       allow: ["superAdmin", "adminA", "profA"],
-      payload: (fx) => ({ course_id: fx.courseA.courseId, title: "Matrix Module", position: 900 }),
+      payload: (fx) => ({ offering_id: fx.courseA.offeringId, title: "Matrix Module", position: 900 }),
     },
     {
       table: "modules",
       op: "update",
       allow: ["superAdmin", "adminA", "profA"],
-      seed: (fx) => Promise.resolve({ course_id: fx.courseA.courseId, title: "Seed Module", position: 901 }),
+      seed: (fx) => Promise.resolve({ offering_id: fx.courseA.offeringId, title: "Seed Module", position: 901 }),
       mutateColumn: "title",
       updatePayload: { title: "Renamed Module" },
     },
@@ -28,7 +28,7 @@ export function contentSpec(): MatrixCase[] {
       table: "modules",
       op: "delete",
       allow: [],
-      seed: (fx, i) => Promise.resolve({ course_id: fx.courseA.courseId, title: `Del Module ${i}`, position: 950 + i }),
+      seed: (fx, i) => Promise.resolve({ offering_id: fx.courseA.offeringId, title: `Del Module ${i}`, position: 950 + i }),
     },
 
     {

@@ -34,7 +34,7 @@ export async function getTaskSubmissionForGrading(attemptId: string): Promise<Ta
       .select(
         `id, status, submitted_at, submitted_late, score_percent, score_label,
          profiles(first_name, last_name),
-         assessments(title, instructions, available_until, courses(title)),
+         assessments(title, instructions, available_until, course_offerings(courses(title))),
          assessment_feedback(feedback)`
       )
       .eq("id", attemptId)
@@ -57,7 +57,7 @@ export async function getTaskSubmissionForGrading(attemptId: string): Promise<Ta
     submittedLate: attempt.submitted_late,
     studentName: attempt.profiles ? `${attempt.profiles.first_name} ${attempt.profiles.last_name}`.trim() : "—",
     assessmentTitle: attempt.assessments.title,
-    courseTitle: attempt.assessments.courses?.title ?? "—",
+    courseTitle: attempt.assessments.course_offerings?.courses?.title ?? "—",
     instructions: attempt.assessments.instructions,
     availableUntil: attempt.assessments.available_until,
     scorePercent: attempt.score_percent,

@@ -32,14 +32,14 @@ export interface ModuleDependencyItem {
 
 interface DependencyEditorProps {
   trigger: ReactElement
-  courseId: string
+  offeringId: string
   moduleId: string
   dependencies: ModuleDependencyItem[]
   otherModules: { id: string; title: string }[]
 }
 
 /** Both conditions are selectable since Phase 5 (D18/C9): MODULE_COMPLETED and QUIZ_PASSED. */
-export function DependencyEditor({ trigger, courseId, moduleId, dependencies, otherModules }: DependencyEditorProps) {
+export function DependencyEditor({ trigger, offeringId, moduleId, dependencies, otherModules }: DependencyEditorProps) {
   const [open, setOpen] = useState(false)
   const [condition, setCondition] = useState<DependencyCondition>("MODULE_COMPLETED")
   const [selectedModule, setSelectedModule] = useState<string | null>(otherModules[0]?.id ?? null)
@@ -51,13 +51,13 @@ export function DependencyEditor({ trigger, courseId, moduleId, dependencies, ot
 
   useEffect(() => {
     if (!open) return
-    listAssessmentsForBlock(courseId, "QUIZ")
+    listAssessmentsForBlock(offeringId, "QUIZ")
       .then((options) => {
         setQuizzes(options)
         setSelectedAssessment((current) => current ?? options[0]?.id ?? null)
       })
       .catch(() => toast.error(messages.errors.INTERNAL))
-  }, [open, courseId])
+  }, [open, offeringId])
 
   const titleFor = (id: string | null) => otherModules.find((m) => m.id === id)?.title ?? id ?? ""
   const quizTitleFor = (id: string | null) => quizzes.find((q) => q.id === id)?.title ?? id ?? ""

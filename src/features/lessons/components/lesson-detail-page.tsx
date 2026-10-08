@@ -1,6 +1,6 @@
 import { FileTextIcon } from "lucide-react"
 import { contentMessages } from "@/lib/messages/admin-content"
-import type { CourseTree, CourseTreeLesson, CourseTreeModule } from "@/features/courses/queries/get-course-tree"
+import type { OfferingTree, OfferingTreeLesson, OfferingTreeModule } from "@/features/courses/queries/get-offering-tree"
 import { BlockList } from "@/features/content-blocks/components/block-list"
 import { OFFERABLE_BLOCK_TYPES } from "@/features/content-blocks/schemas/content-block-schemas"
 import { ContentPageHeader } from "@/features/modules/components/content-page-header"
@@ -8,9 +8,9 @@ import { ContentSiblingNav } from "@/features/modules/components/content-sibling
 import { LessonRowActions } from "./lesson-row-actions"
 
 interface LessonDetailPageProps {
-  tree: CourseTree
-  module: CourseTreeModule
-  lesson: CourseTreeLesson
+  tree: OfferingTree
+  module: OfferingTreeModule
+  lesson: OfferingTreeLesson
   basePath: string
   coursesHref: string
   canEdit: boolean
@@ -21,7 +21,7 @@ export function LessonDetailPage({ tree, module, lesson, basePath, coursesHref, 
   const labels = contentMessages.builder
   const modulePath = `${basePath}/${module.id}`
   const index = module.lessons.findIndex((l) => l.id === lesson.id)
-  const toSibling = (l: CourseTreeLesson | undefined) => (l ? { href: `${modulePath}/${l.id}`, title: l.title } : null)
+  const toSibling = (l: OfferingTreeLesson | undefined) => (l ? { href: `${modulePath}/${l.id}`, title: l.title } : null)
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,6 +51,7 @@ export function LessonDetailPage({ tree, module, lesson, basePath, coursesHref, 
       <BlockList
         organizationId={tree.organizationId}
         courseId={tree.courseId}
+        offeringId={tree.offeringId}
         lessonId={lesson.id}
         // Only block types this builder knows how to render; guards against a future DB enum value.
         blocks={lesson.blocks.filter((block) => (OFFERABLE_BLOCK_TYPES as readonly string[]).includes(block.type)) as never}

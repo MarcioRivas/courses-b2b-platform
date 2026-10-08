@@ -134,7 +134,7 @@ export const contentMessages = {
       "No se puede eliminar: el curso está publicado con inscripciones activas o ya tiene progreso registrado. Archivá el curso u ocultá el contenido en su lugar.",
     cycleDetected: "Esa dependencia generaría un ciclo entre módulos.",
     selfDependency: "Un módulo no puede depender de sí mismo.",
-    dependencyCourseMismatch: "El módulo requerido debe pertenecer al mismo curso.",
+    dependencyCourseMismatch: "El módulo requerido debe pertenecer al misma edición.",
     orderedListMismatch: "El orden enviado no coincide con los elementos actuales.",
     signedUrlFailed: "No se pudo generar el enlace del archivo.",
   },

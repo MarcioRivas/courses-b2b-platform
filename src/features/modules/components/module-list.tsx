@@ -18,14 +18,14 @@ export interface ModuleRowItem {
 }
 
 interface ModuleListProps {
-  courseId: string
+  offeringId: string
   basePath: string
   modules: ModuleRowItem[]
   canEdit: boolean
 }
 
 /** Ordered module rows: number · title (link) · 1-line description · counters · dependency chips · actions. */
-export function ModuleList({ courseId, basePath, modules, canEdit }: ModuleListProps) {
+export function ModuleList({ offeringId, basePath, modules, canEdit }: ModuleListProps) {
   const [isPending, startTransition] = useTransition()
   const labels = contentMessages.builder
   const moduleTitles = Object.fromEntries(modules.map((m) => [m.id, m.title]))
@@ -38,7 +38,7 @@ export function ModuleList({ courseId, basePath, modules, canEdit }: ModuleListP
     ;[orderedIds[index], orderedIds[target]] = [orderedIds[target] as string, orderedIds[index] as string]
 
     startTransition(async () => {
-      const result = await reorderModules({ courseId, orderedIds })
+      const result = await reorderModules({ offeringId, orderedIds })
       if (!result.ok) toast.error(result.message)
     })
   }
@@ -79,7 +79,7 @@ export function ModuleList({ courseId, basePath, modules, canEdit }: ModuleListP
           {canEdit && (
             <div className="shrink-0 pl-11 sm:pl-0">
               <ModuleRowActions
-                courseId={courseId}
+                offeringId={offeringId}
                 module={module}
                 otherModules={modules.filter((m) => m.id !== module.id).map((m) => ({ id: m.id, title: m.title }))}
                 onMove={(direction) => move(index, direction)}

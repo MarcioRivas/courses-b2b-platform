@@ -34,7 +34,7 @@ describe("offering professors catalog", () => {
     const names = [
       "is_offering_professor",
       "is_professor_of_any_edition",
-      "can_edit_course_content",
+      "can_edit_offering",
       "search_assignable_professors",
       "freeze_offering_identity",
     ]
