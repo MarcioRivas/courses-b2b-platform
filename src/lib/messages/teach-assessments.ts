@@ -87,6 +87,17 @@ export const teachAssessmentMessages = {
     deleteDescription: "Esta acción no se puede deshacer.",
     deleted: "Evaluación eliminada.",
     questionsSectionTitle: "Preguntas",
+    task: {
+      instructionsLabel: "Consigna",
+      instructionsPlaceholder: "Explicá qué tienen que hacer y entregar los estudiantes…",
+      instructionsHint: "Los estudiantes ven este texto tal cual, con sus saltos de línea.",
+      maxFilesLabel: "Cantidad máxima de archivos",
+      filesHint: "Pueden subir PDF, imágenes (JPG, PNG, WEBP) o documentos de Office. Máximo 20 MB por archivo.",
+      deadlineLabel: "Fecha límite",
+      deadlineHint: "Hasta esta fecha los estudiantes pueden entregar y reemplazar su entrega. La corrección se habilita después.",
+      allowLateLabel: "Permitir entregas fuera de plazo",
+      allowLateHint: "Quien no entregó a tiempo puede entregar después de la fecha límite; la entrega queda marcada como fuera de plazo.",
+    },
     questionPicker: {
       title: "Preguntas fijas",
       description: "Elegí preguntas de los bancos disponibles y asigná los puntos de cada una.",
@@ -141,6 +152,10 @@ export const teachAssessmentMessages = {
     publishedKindLocked: "No se puede cambiar el tipo una vez publicada la evaluación.",
     kindReferencedLocked: "No se puede cambiar el tipo: un bloque o dependencia ya la usa.",
     publishedWindowLocked: 'Para modificar la ventana de un examen publicado usá "Extender ventana".',
+    taskRequiresInstructions: "Escribí la consigna de la tarea antes de publicarla.",
+    taskRequiresMaxFiles: "Indicá cuántos archivos pueden subir los estudiantes.",
+    taskRequiresDeadline: "Las tareas requieren una fecha límite.",
+    TASK_HAS_NO_QUESTIONS: "Las tareas no llevan preguntas: los estudiantes entregan archivos.",
     // Domain codes shared across Phase 5 agents (assessment-design.md §53).
     ASSESSMENT_NOT_AVAILABLE: "La evaluación todavía no está disponible.",
     ASSESSMENT_EXPIRED: "El plazo de la evaluación ya venció.",

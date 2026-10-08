@@ -17,6 +17,8 @@ export const learnAssessmentMessages = {
   preflight: {
     startAction: "Comenzar",
     continueAction: "Continuar",
+    openTaskAction: "Ver tarea",
+    viewSubmissionAction: "Ver entrega",
     questionCountLabel: (count: number) => (count === 1 ? "1 pregunta" : `${count} preguntas`),
     questionCountUnknown: "Cantidad de preguntas variable",
     durationLabel: (minutes: number) => `${minutes} min`,
@@ -28,7 +30,6 @@ export const learnAssessmentMessages = {
       max === null ? `${used} intentos usados (ilimitados)` : `${used} de ${max} intentos usados`,
     rulesTitle: "Antes de empezar",
     rulesQuiz: "Podés responder las veces que quieras hasta aprobar. Tus respuestas se guardan automáticamente.",
-    rulesTask: "Tenés un único intento. Respondé con cuidado: al enviar no vas a poder cambiar tus respuestas.",
     rulesExam:
       "Tenés un único intento y tiempo límite. El cronómetro corre aunque cierres la pestaña — no lo abras hasta estar listo/a.",
     inProgressNotice: "Ya tenés un intento en curso. Podés continuarlo desde donde quedó.",

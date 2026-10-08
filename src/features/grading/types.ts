@@ -10,6 +10,8 @@ export interface PendingAttemptListItem {
   status: AttemptStatus
   submittedAt: string | null
   attemptNumber: number
+  /** TASK only: handed in after the deadline (late submissions allowed). */
+  submittedLate: boolean
   studentName: string
   assessmentId: string
   assessmentTitle: string

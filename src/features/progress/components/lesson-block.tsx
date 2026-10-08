@@ -21,8 +21,9 @@ function isOfferable(type: string): type is OfferableBlockType {
 /**
  * QUIZ/TASK card: no manual toggle at all (D33) — `complete_content_block`
  * rejects those types server-side, and their `content_progress` row is
- * written by `finalize_attempt` once the linked assessment is passed/handed
- * in. Typed on the raw DB enum, not `OfferableBlockType`, because that union
+ * written by `finalize_attempt` once a QUIZ is passed, or by `submit_task`
+ * once a TASK is handed in (a TASK stays reachable after that, to see or
+ * replace the entrega and its grade). Typed on the raw DB enum, not `OfferableBlockType`, because that union
  * only ever covers the five non-assessment block types (Phase 5 adds
  * `assessment_id`, not a new content-block schema variant).
  */
@@ -30,6 +31,7 @@ function AssessmentBlockCard({ enrollmentId, block }: LessonBlockProps) {
   if (!block.assessmentId || !block.assessment) {
     return null
   }
+  const isTask = block.assessment.kind === "TASK"
 
   return (
     <div className="flex flex-col gap-2 rounded-md border bg-muted/40 p-3">
@@ -37,13 +39,23 @@ function AssessmentBlockCard({ enrollmentId, block }: LessonBlockProps) {
         <Badge variant="outline">{learnAssessmentMessages.kind[block.assessment.kind]}</Badge>
         <span className="font-medium">{block.assessment.title}</span>
       </div>
-      {block.completed ? (
+      {block.completed && (
         <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <CheckIcon className="size-4" /> {learnMessages.lesson.markedComplete}
         </span>
-      ) : (
-        <Button size="sm" className="self-start" render={<Link href={`/learn/assessments/${block.assessmentId}/start?enrollment=${enrollmentId}`} />}>
-          {learnAssessmentMessages.preflight.startAction}
+      )}
+      {(!block.completed || isTask) && (
+        <Button
+          size="sm"
+          variant={block.completed ? "outline" : "default"}
+          className="self-start"
+          render={<Link href={`/learn/assessments/${block.assessmentId}/start?enrollment=${enrollmentId}`} />}
+        >
+          {isTask
+            ? block.completed
+              ? learnAssessmentMessages.preflight.viewSubmissionAction
+              : learnAssessmentMessages.preflight.openTaskAction
+            : learnAssessmentMessages.preflight.startAction}
         </Button>
       )}
     </div>

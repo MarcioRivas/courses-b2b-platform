@@ -188,9 +188,12 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
       courseId: course.courseId,
       organizationId: org,
       title: `Sec Evaluación ${org.slice(0, 8)}`,
-      kind: "TASK",
+      kind: "EXAM",
       multipleChoice: 1,
       openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(assessment.bankId)
 

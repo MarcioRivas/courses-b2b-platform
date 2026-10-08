@@ -10,6 +10,9 @@ import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { createAssessmentSchema, assessmentKindDefaults, type CreateAssessmentInput } from "../schemas/assessment-schemas"
 
+/** A new TASK needs a deadline from birth (DB check); a week out is a sane default the professor edits. */
+const DEFAULT_TASK_DEADLINE_MS = 7 * 24 * 60 * 60 * 1000
+
 /**
  * Creates the assessment shell (title + kind) with kind defaults (B3, D12).
  * Full configuration (questions, window, passing score) happens on the
@@ -40,6 +43,9 @@ export async function createAssessment(input: CreateAssessmentInput): Promise<Ac
       title: parsed.data.title,
       passing_score: settings?.defaultPassingScore ?? 60,
       max_attempts: defaults.maxAttempts,
+      max_files: defaults.maxFiles,
+      available_until:
+        parsed.data.kind === "TASK" ? new Date(Date.now() + DEFAULT_TASK_DEADLINE_MS).toISOString() : null,
       created_by: ctx.user.id,
     })
     .select("id")

@@ -73,9 +73,13 @@ export async function updateAssessment(input: UpdateAssessmentInput): Promise<Ac
   const settings = await getOrgSettings(ctx.organizationId)
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
 
-  const maxAttempts = kind === "QUIZ" ? null : parsed.data.maxAttempts ? Number(parsed.data.maxAttempts) : null
+  const isTask = kind === "TASK"
+  // A TASK is one submission, untimed: attempts are fixed at 1 and the
+  // duration is always cleared (the DB check `assessments_task_shape_check`
+  // would refuse anything else).
+  const maxAttempts = kind === "QUIZ" ? null : isTask ? 1 : parsed.data.maxAttempts ? Number(parsed.data.maxAttempts) : null
   const durationSeconds =
-    kind === "QUIZ" ? null : parsed.data.durationMinutes ? Number(parsed.data.durationMinutes) * 60 : null
+    kind === "QUIZ" || isTask ? null : parsed.data.durationMinutes ? Number(parsed.data.durationMinutes) * 60 : null
   const availableFrom = kind === "QUIZ" || !parsed.data.availableFrom ? null : localDateTimeToUtcIso(parsed.data.availableFrom, timeZone)
   const availableUntil = kind === "QUIZ" || !parsed.data.availableUntil ? null : localDateTimeToUtcIso(parsed.data.availableUntil, timeZone)
 
@@ -101,11 +105,25 @@ export async function updateAssessment(input: UpdateAssessmentInput): Promise<Ac
       duration_seconds: durationSeconds,
       available_from: availableFrom,
       available_until: availableUntil,
+      instructions: isTask ? parsed.data.instructions || null : null,
+      max_files: isTask ? Number(parsed.data.maxFiles) : null,
+      allow_late_submissions: isTask ? parsed.data.allowLateSubmissions : false,
+      ...(isTask ? { question_bank_id: null, random_question_count: null } : {}),
     })
     .eq("id", existing.id)
 
   if (error) {
     return { ok: false, ...toActionError(error) }
+  }
+
+  // Switching a draft into TASK drops its question configuration: a TASK has
+  // no questions (the `assessment_questions_task_guard` trigger refuses new
+  // ones). Done after the update so a failed update leaves the draft intact.
+  if (isTask && existing.kind !== "TASK") {
+    const { error: clearError } = await supabase.from("assessment_questions").delete().eq("assessment_id", existing.id)
+    if (clearError) {
+      return { ok: false, ...toActionError(clearError) }
+    }
   }
 
   await logAudit({

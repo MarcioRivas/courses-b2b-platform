@@ -2,7 +2,7 @@
 
 import type { Control } from "react-hook-form"
 import { Input } from "@/components/ui/input"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import type { UpdateAssessmentInput } from "../schemas/assessment-schemas"
 
@@ -15,11 +15,13 @@ interface WindowFieldsProps {
 
 /**
  * Duration + availability window (5B step 3): hidden entirely for QUIZ
- * (D12 — untimed, no window), optional for TASK, required for EXAM (the
- * schema's `superRefine` enforces that; this only controls visibility).
+ * (D12 — untimed, no window); TASK has no duration and a required deadline;
+ * EXAM requires everything (the schema's `superRefine` enforces that; this
+ * only controls visibility and labels).
  */
 export function WindowFields({ control, kind, disabled }: WindowFieldsProps) {
   const labels = teachAssessmentMessages.assessments
+  const isTask = kind === "TASK"
 
   if (kind === "QUIZ") {
     return null
@@ -27,19 +29,21 @@ export function WindowFields({ control, kind, disabled }: WindowFieldsProps) {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <FormField
-        control={control}
-        name="durationMinutes"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{labels.durationLabel}</FormLabel>
-            <FormControl>
-              <Input type="number" min="1" disabled={disabled} {...field} value={field.value ?? ""} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {!isTask && (
+        <FormField
+          control={control}
+          name="durationMinutes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{labels.durationLabel}</FormLabel>
+              <FormControl>
+                <Input type="number" min="1" disabled={disabled} {...field} value={field.value ?? ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
       <FormField
         control={control}
         name="availableFrom"
@@ -58,10 +62,11 @@ export function WindowFields({ control, kind, disabled }: WindowFieldsProps) {
         name="availableUntil"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{labels.windowUntilLabel}</FormLabel>
+            <FormLabel>{isTask ? labels.task.deadlineLabel : labels.windowUntilLabel}</FormLabel>
             <FormControl>
               <Input type="datetime-local" disabled={disabled} {...field} />
             </FormControl>
+            {isTask && <FormDescription>{labels.task.deadlineHint}</FormDescription>}
             <FormMessage />
           </FormItem>
         )}

@@ -229,6 +229,48 @@ async function enrollGroup(courseId: string, offeringId: string, organizationId:
   return rows.length
 }
 
+/** A published TASK linked from the course's first lesson, so the file-submission flow can be tried right away. */
+async function seedDemoTask(courseId: string): Promise<void> {
+  const { data: task, error } = await admin
+    .from("assessments")
+    .insert({
+      organization_id: ORG_A,
+      course_id: courseId,
+      kind: "TASK",
+      status: "PUBLISHED",
+      title: "Plan semanal de entrenamiento",
+      instructions:
+        "Armá un microciclo de una semana para tu categoría.\nIncluí objetivos, cargas y días de descanso, y subilo en PDF o en una planilla.",
+      max_files: 2,
+      max_attempts: 1,
+      passing_score: 60,
+      allow_late_submissions: true,
+      available_until: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+    })
+    .select("id")
+    .single()
+  if (error || !task) throw error ?? new Error("task not created")
+
+  const { data: lesson } = await admin
+    .from("lessons")
+    .select("id, modules!inner(course_id, position)")
+    .eq("modules.course_id", courseId)
+    .order("position", { ascending: true })
+    .limit(1)
+    .single()
+  if (!lesson) throw new Error("lesson not found")
+
+  const { error: blockError } = await admin.from("lesson_content_blocks").insert({
+    lesson_id: lesson.id,
+    type: "TASK",
+    position: 99,
+    data: {},
+    is_required: true,
+    assessment_id: task.id,
+  })
+  if (blockError) throw blockError
+}
+
 async function main(): Promise<void> {
   const physicalId = await createCourse(
     ORG_A,
@@ -238,6 +280,9 @@ async function main(): Promise<void> {
     PHYSICAL_COURSE
   )
   console.log("seeded PUBLISHED course 'Preparación Física Base' (3 módulos, 4 lecciones, 6 bloques)")
+
+  await seedDemoTask(physicalId)
+  console.log("seeded PUBLISHED task 'Plan semanal de entrenamiento' (hasta 2 archivos, fecha límite en 14 días)")
 
   const professorId = await findUserIdByEmail("prof@club-a.test")
   await admin.from("course_professors").insert({ course_id: physicalId, user_id: professorId })

@@ -80,9 +80,12 @@ describe("grade_open_answer", () => {
       courseId: course.courseId,
       organizationId: ORG_A,
       title: "Evaluación abierta",
-      kind: "TASK",
+      kind: "EXAM",
       openEnded: 1,
       multipleChoice: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(fixture.bankId)
 
@@ -122,8 +125,11 @@ describe("grade_open_answer", () => {
       courseId: course.courseId,
       organizationId: ORG_A,
       title: "Evaluación máximo",
-      kind: "TASK",
+      kind: "EXAM",
       openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(fixture.bankId)
 
@@ -148,8 +154,11 @@ describe("grade_open_answer", () => {
       courseId: course.courseId,
       organizationId: ORG_A,
       title: "Evaluación ajena",
-      kind: "TASK",
+      kind: "EXAM",
       openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(fixture.bankId)
 
@@ -187,8 +196,11 @@ describe("grade_open_answer", () => {
       courseId: course.courseId,
       organizationId: ORG_A,
       title: "Evaluación en curso",
-      kind: "TASK",
+      kind: "EXAM",
       openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(fixture.bankId)
 

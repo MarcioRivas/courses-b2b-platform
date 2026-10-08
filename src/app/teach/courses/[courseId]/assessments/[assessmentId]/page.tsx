@@ -81,14 +81,17 @@ export default async function AssessmentDetailPage({ params }: AssessmentDetailP
         isReferenced={isReferenced}
       />
 
-      <QuestionPicker
-        assessmentId={assessment.id}
-        availableQuestions={questions}
-        banks={banks}
-        initialFixed={assessment.fixedQuestions}
-        initialRandomBankId={assessment.questionBankId}
-        initialRandomCount={assessment.randomQuestionCount}
-      />
+      {/* A TASK has an instruction and a file submission, never questions. */}
+      {assessment.kind !== "TASK" && (
+        <QuestionPicker
+          assessmentId={assessment.id}
+          availableQuestions={questions}
+          banks={banks}
+          initialFixed={assessment.fixedQuestions}
+          initialRandomBankId={assessment.questionBankId}
+          initialRandomCount={assessment.randomQuestionCount}
+        />
+      )}
     </div>
   )
 }

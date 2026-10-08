@@ -15,6 +15,7 @@ import { updateAssessment } from "../actions/update-assessment"
 import { updateAssessmentSchema, type UpdateAssessmentInput } from "../schemas/assessment-schemas"
 import { utcIsoToLocalDateTimeInput } from "../lib/local-datetime"
 import { WindowFields } from "./window-fields"
+import { TaskFields } from "./task-fields"
 import type { AssessmentDetail } from "../types"
 
 interface AssessmentFormProps {
@@ -45,6 +46,10 @@ export function AssessmentForm({ assessment, timeZone, isPublished, isReferenced
       durationMinutes: assessment.durationSeconds ? String(Math.round(assessment.durationSeconds / 60)) : "",
       availableFrom: utcIsoToLocalDateTimeInput(assessment.availableFrom, timeZone),
       availableUntil: utcIsoToLocalDateTimeInput(assessment.availableUntil, timeZone),
+      instructions: assessment.instructions ?? "",
+      // Pre-filled with 1 so switching a draft to TASK starts from a valid value.
+      maxFiles: String(assessment.maxFiles ?? 1),
+      allowLateSubmissions: assessment.allowLateSubmissions,
     },
   })
 
@@ -137,7 +142,7 @@ export function AssessmentForm({ assessment, timeZone, isPublished, isReferenced
                   <Input
                     type="number"
                     min="1"
-                    disabled={kind === "QUIZ"}
+                    disabled={kind === "QUIZ" || kind === "TASK"}
                     placeholder={labels.unlimitedAttempts}
                     {...field}
                     value={field.value ?? ""}
@@ -148,6 +153,8 @@ export function AssessmentForm({ assessment, timeZone, isPublished, isReferenced
             )}
           />
         </div>
+
+        {kind === "TASK" && <TaskFields control={form.control} />}
 
         <WindowFields control={form.control} kind={kind} disabled={windowLocked} />
         {windowLocked && <p className="text-xs text-muted-foreground">{labels.windowLockedHint}</p>}

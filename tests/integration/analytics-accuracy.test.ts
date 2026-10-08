@@ -177,8 +177,11 @@ beforeAll(async () => {
     courseId,
     organizationId: ORG_A,
     title: "Tarea analítica",
-    kind: "TASK",
+    kind: "EXAM",
     openEnded: 1,
+    durationSeconds: 3600,
+    availableFrom: new Date().toISOString(),
+    availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
   bankIds.push(openFixture.bankId)
   openAssessmentId = openFixture.assessmentId
@@ -297,8 +300,11 @@ describe("assessment_score_distribution", () => {
       courseId: fracCourse.courseId,
       organizationId: ORG_A,
       title: "Tarea fracción",
-      kind: "TASK",
+      kind: "EXAM",
       openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(fracFixture.bankId)
 
@@ -337,8 +343,11 @@ describe("assessment_score_distribution", () => {
       courseId: outCourse.courseId,
       organizationId: ORG_A,
       title: "Tarea sin rango",
-      kind: "TASK",
+      kind: "EXAM",
       openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(outFixture.bankId)
 

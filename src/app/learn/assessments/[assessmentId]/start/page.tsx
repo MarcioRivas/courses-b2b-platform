@@ -13,6 +13,8 @@ import { learnAssessmentMessages } from "@/lib/messages/learn-assessments"
 import { AttemptError } from "@/features/attempts/components/attempt-error"
 import { StartAttemptButton } from "@/features/attempts/components/start-attempt-button"
 import type { AttemptErrorCode } from "@/features/attempts/lib/errors"
+import { getMyTaskSubmission } from "@/features/task-submissions/queries/get-my-task-submission"
+import { TaskSubmissionView } from "@/features/task-submissions/components/task-submission-view"
 
 interface PageProps {
   params: Promise<{ assessmentId: string }>
@@ -48,6 +50,42 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
   }
 
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
+  const moduleState = assessment.moduleId
+    ? unlockStates.find((state) => state.moduleId === assessment.moduleId)
+    : undefined
+  const moduleLocked = moduleState !== undefined && moduleState.state !== "AVAILABLE" && moduleState.state !== "COMPLETED"
+
+  // A TASK is a file submission, not a timed attempt: its own screen, no "Comenzar".
+  if (assessment.kind === "TASK" && assessment.availableUntil && assessment.maxFiles) {
+    const submission = await getMyTaskSubmission(assessmentId, enrollmentId)
+    const blockedMessage = enrollment.closed
+      ? learnAssessmentMessages.errors.ASSESSMENT_NOT_AVAILABLE
+      : moduleLocked
+        ? learnAssessmentMessages.errors.MODULE_LOCKED
+        : null
+
+    return (
+      <>
+        <PageHeader title={assessment.title} description={assessment.description ?? undefined} />
+        <TaskSubmissionView
+          settings={{
+            assessmentId,
+            title: assessment.title,
+            instructions: assessment.instructions,
+            maxFiles: assessment.maxFiles,
+            availableFrom: assessment.availableFrom,
+            availableUntil: assessment.availableUntil,
+            allowLateSubmissions: assessment.allowLateSubmissions,
+          }}
+          submission={submission}
+          enrollmentId={enrollmentId}
+          timeZone={timeZone}
+          blockedMessage={blockedMessage}
+        />
+      </>
+    )
+  }
+
   const attempts = await listMyAttempts(enrollmentId)
   const own = attempts.find((row) => row.assessmentId === assessmentId)
   const attemptsUsed = own?.attemptsUsed ?? 0
@@ -60,10 +98,6 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
     (assessment.availableFrom !== null && now < new Date(assessment.availableFrom)) ||
     (assessment.availableUntil !== null && now > new Date(assessment.availableUntil))
   const limitReached = !inProgress && maxAttempts !== null && attemptsUsed >= maxAttempts
-  const moduleState = assessment.moduleId
-    ? unlockStates.find((state) => state.moduleId === assessment.moduleId)
-    : undefined
-  const moduleLocked = moduleState !== undefined && moduleState.state !== "AVAILABLE" && moduleState.state !== "COMPLETED"
 
   let blockedCode: AttemptErrorCode | null = null
   if (enrollment.closed) {
@@ -125,9 +159,7 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
 
         <div className="rounded-md bg-muted p-3 text-sm">
           <p className="mb-1 font-medium">{copy.rulesTitle}</p>
-          <p>
-            {assessment.kind === "QUIZ" ? copy.rulesQuiz : assessment.kind === "TASK" ? copy.rulesTask : copy.rulesExam}
-          </p>
+          <p>{assessment.kind === "QUIZ" ? copy.rulesQuiz : copy.rulesExam}</p>
         </div>
 
         {inProgress && <p className="text-sm text-muted-foreground">{copy.inProgressNotice}</p>}

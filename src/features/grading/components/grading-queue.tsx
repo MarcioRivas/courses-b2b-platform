@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { buildListHref, type SearchParams } from "@/lib/search-params"
 import { formatDateTimeInTimeZone } from "@/lib/dates/format-in-time-zone"
 import { teachGradingMessages } from "@/lib/messages/teach-grading"
+import { taskSubmissionMessages } from "@/lib/messages/task-submissions"
 import { PENDING_ATTEMPTS_PAGE_SIZE } from "../queries/list-pending-attempts"
 import type { GradingStatusGroup, PendingAttemptListItem } from "../types"
 
@@ -40,9 +41,12 @@ export function GradingQueue({ items, total, page, statusGroup, timeZone, search
       key: "status",
       header: teachGradingMessages.queue.statusHeader,
       cell: (item) => (
-        <Badge variant={item.status === "GRADED" ? "success" : "warning"}>
-          {teachGradingMessages.status[item.status]}
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant={item.status === "GRADED" ? "success" : "warning"}>
+            {teachGradingMessages.status[item.status]}
+          </Badge>
+          {item.submittedLate && <Badge variant="outline">{taskSubmissionMessages.status.LATE}</Badge>}
+        </div>
       ),
     },
     {

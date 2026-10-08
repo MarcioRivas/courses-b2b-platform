@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { getAttempt } from "@/features/attempts/queries/get-attempt"
 import { AttemptPlayer } from "@/features/attempts/components/attempt-player"
 import { AttemptResult } from "@/features/attempts/components/attempt-result"
+import { getAssessmentPreflight } from "@/features/attempts/queries/get-assessment-preflight"
 
 interface PageProps {
   params: Promise<{ attemptId: string }>
@@ -21,6 +22,12 @@ export default async function AttemptPage({ params }: PageProps) {
   const snapshot = await getAttempt(attemptId)
   if (!snapshot) {
     notFound()
+  }
+
+  // TASK submissions have no question snapshot; their screen is the task page.
+  const assessment = await getAssessmentPreflight(snapshot.header.assessmentId)
+  if (assessment?.kind === "TASK") {
+    redirect(`/learn/assessments/${snapshot.header.assessmentId}/start?enrollment=${snapshot.header.enrollmentId}`)
   }
 
   if (snapshot.header.status !== "IN_PROGRESS") {

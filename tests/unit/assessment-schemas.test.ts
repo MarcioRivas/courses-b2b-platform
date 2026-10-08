@@ -9,18 +9,23 @@ describe("assessmentKindDefaults", () => {
   it("QUIZ is unlimited attempts, untimed, no window (B3, D12)", () => {
     expect(assessmentKindDefaults("QUIZ")).toEqual({
       maxAttempts: null,
+      maxFiles: null,
       durationMinutes: null,
       availableFrom: "",
       availableUntil: "",
     })
   })
 
-  it("TASK defaults to a single attempt", () => {
-    expect(assessmentKindDefaults("TASK").maxAttempts).toBe(1)
+  it("TASK defaults to a single attempt, single file", () => {
+    const defaults = assessmentKindDefaults("TASK")
+    expect(defaults.maxAttempts).toBe(1)
+    expect(defaults.maxFiles).toBe(1)
   })
 
-  it("EXAM defaults to a single attempt", () => {
-    expect(assessmentKindDefaults("EXAM").maxAttempts).toBe(1)
+  it("EXAM defaults to a single attempt, no files", () => {
+    const defaults = assessmentKindDefaults("EXAM")
+    expect(defaults.maxAttempts).toBe(1)
+    expect(defaults.maxFiles).toBeNull()
   })
 })
 
@@ -30,6 +35,10 @@ const baseUpdate = {
   description: "",
   passingScore: "60",
   maxAttempts: "",
+  kind: "QUIZ",
+  instructions: "",
+  maxFiles: "",
+  allowLateSubmissions: false,
 }
 
 describe("updateAssessmentSchema", () => {
@@ -72,15 +81,49 @@ describe("updateAssessmentSchema", () => {
     const result = updateAssessmentSchema.safeParse({
       ...baseUpdate,
       kind: "TASK",
+      maxFiles: "1",
       availableFrom: "2026-10-01T11:00",
       availableUntil: "2026-10-01T09:00",
     })
     expect(result.success).toBe(false)
   })
 
-  it("accepts a TASK with an optional window left empty", () => {
-    const result = updateAssessmentSchema.safeParse({ ...baseUpdate, kind: "TASK" })
+  it("accepts a TASK with required deadline and file limit", () => {
+    const result = updateAssessmentSchema.safeParse({
+      ...baseUpdate,
+      kind: "TASK",
+      maxFiles: "1",
+      availableUntil: "2026-10-15T23:59",
+    })
     expect(result.success).toBe(true)
+  })
+
+  it("rejects a TASK without a deadline", () => {
+    const result = updateAssessmentSchema.safeParse({
+      ...baseUpdate,
+      kind: "TASK",
+      maxFiles: "1",
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it("rejects a TASK without maxFiles", () => {
+    const result = updateAssessmentSchema.safeParse({
+      ...baseUpdate,
+      kind: "TASK",
+      availableUntil: "2026-10-15T23:59",
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it("rejects a TASK with invalid file count", () => {
+    const result = updateAssessmentSchema.safeParse({
+      ...baseUpdate,
+      kind: "TASK",
+      maxFiles: "11",
+      availableUntil: "2026-10-15T23:59",
+    })
+    expect(result.success).toBe(false)
   })
 })
 

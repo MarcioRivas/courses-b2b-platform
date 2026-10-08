@@ -2,6 +2,7 @@ import { z } from "zod"
 
 const titleSchema = z.string().trim().min(2, "Ingresá al menos 2 caracteres.").max(150, "Máximo 150 caracteres.")
 const descriptionSchema = z.string().trim().max(2000, "Máximo 2000 caracteres.").optional().or(z.literal(""))
+const instructionsSchema = z.string().trim().max(10000, "Máximo 10000 caracteres.").optional().or(z.literal(""))
 const kindSchema = z.enum(["QUIZ", "TASK", "EXAM"])
 /** `<input type="datetime-local">` value, empty string means unset. */
 const optionalDateTimeLocal = z
@@ -19,20 +20,22 @@ export type CreateAssessmentInput = z.infer<typeof createAssessmentSchema>
 
 /**
  * Kind defaults (B3, D12) applied when creating an assessment or switching
- * kind: QUIZ is always unlimited/untimed/no-window; TASK gets one attempt
- * with an optional window; EXAM gets one attempt and requires the window +
- * duration to be filled in by the professor (enforced by `updateAssessmentSchema`).
+ * kind: QUIZ is always unlimited/untimed/no-window; TASK is a single file
+ * submission (one file by default) that requires a deadline; EXAM gets one
+ * attempt and requires the window + duration to be filled in by the professor
+ * (enforced by `updateAssessmentSchema`).
  */
 export function assessmentKindDefaults(kind: z.infer<typeof kindSchema>): {
   maxAttempts: number | null
+  maxFiles: number | null
   durationMinutes: number | null
   availableFrom: string
   availableUntil: string
 } {
   if (kind === "QUIZ") {
-    return { maxAttempts: null, durationMinutes: null, availableFrom: "", availableUntil: "" }
+    return { maxAttempts: null, maxFiles: null, durationMinutes: null, availableFrom: "", availableUntil: "" }
   }
-  return { maxAttempts: 1, durationMinutes: null, availableFrom: "", availableUntil: "" }
+  return { maxAttempts: 1, maxFiles: kind === "TASK" ? 1 : null, durationMinutes: null, availableFrom: "", availableUntil: "" }
 }
 
 /**
@@ -65,6 +68,11 @@ const baseUpdateFields = {
   durationMinutes: optionalPositiveIntString,
   availableFrom: optionalDateTimeLocal,
   availableUntil: optionalDateTimeLocal,
+  // TASK only: the instruction text, how many files a student may upload
+  // (string-typed for the same resolver reason as above) and late submissions.
+  instructions: instructionsSchema,
+  maxFiles: optionalPositiveIntString,
+  allowLateSubmissions: z.boolean(),
 }
 
 export const updateAssessmentSchema = z
@@ -72,6 +80,15 @@ export const updateAssessmentSchema = z
   .superRefine((data, ctx) => {
     if (data.kind === "QUIZ") {
       return
+    }
+    if (data.kind === "TASK") {
+      const maxFiles = Number(data.maxFiles)
+      if (!data.maxFiles || maxFiles < 1 || maxFiles > 10) {
+        ctx.addIssue({ code: "custom", path: ["maxFiles"], message: "Elegí entre 1 y 10 archivos." })
+      }
+      if (!data.availableUntil) {
+        ctx.addIssue({ code: "custom", path: ["availableUntil"], message: "Las tareas requieren una fecha límite." })
+      }
     }
     if (data.kind === "EXAM") {
       if (!data.durationMinutes) {

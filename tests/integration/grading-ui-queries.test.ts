@@ -42,8 +42,11 @@ async function makeGradableCourse(title: string, professorId: string) {
     courseId: course.courseId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
-    kind: "TASK",
+    kind: "EXAM",
     openEnded: 1,
+    durationSeconds: 3600,
+    availableFrom: new Date().toISOString(),
+    availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
   bankIds.push(fixture.bankId)
 

@@ -25,6 +25,9 @@ export interface PendingAttemptsFilters {
  * select/filter/order/range. SUBMITTED and AUTO_SUBMITTED both still need
  * manual grading whenever the assessment has an OPEN_ENDED question —
  * `finalize_attempt` only reaches GRADED once every open answer is scored.
+ * A TASK submission only enters the pending queue once its deadline has
+ * passed: `grade_task_submission` refuses it before that, and students may
+ * still replace it.
  */
 export function buildPendingAttemptsQuery(
   supabase: SupabaseClient<Database>,
@@ -37,9 +40,9 @@ export function buildPendingAttemptsQuery(
   let query = supabase
     .from("assessment_attempts")
     .select(
-      `id, status, submitted_at, attempt_number,
+      `id, status, submitted_at, attempt_number, submitted_late,
        profiles(first_name, last_name),
-       assessments!inner(id, title, kind, course_id, courses(id, title))`,
+       assessments!inner(id, title, kind, course_id, available_until, courses(id, title))`,
       { count: "exact" }
     )
     .in("status", statuses)
@@ -49,6 +52,11 @@ export function buildPendingAttemptsQuery(
     .order("id", { ascending: true })
     .range(from, to)
 
+  if (filters.statusGroup === "PENDING") {
+    query = query.or(`kind.neq.TASK,available_until.lte.${new Date().toISOString()}`, {
+      referencedTable: "assessments",
+    })
+  }
   if (filters.courseId) {
     query = query.eq("assessments.course_id", filters.courseId)
   }

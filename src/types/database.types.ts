@@ -153,6 +153,7 @@ export type Database = {
           started_at: string
           status: Database["public"]["Enums"]["attempt_status"]
           submitted_at: string | null
+          submitted_late: boolean
           total_score: number
           updated_at: string
           user_id: string
@@ -179,6 +180,7 @@ export type Database = {
           started_at?: string
           status?: Database["public"]["Enums"]["attempt_status"]
           submitted_at?: string | null
+          submitted_late?: boolean
           total_score?: number
           updated_at?: string
           user_id: string
@@ -205,6 +207,7 @@ export type Database = {
           started_at?: string
           status?: Database["public"]["Enums"]["attempt_status"]
           submitted_at?: string | null
+          submitted_late?: boolean
           total_score?: number
           updated_at?: string
           user_id?: string
@@ -379,8 +382,60 @@ export type Database = {
           },
         ]
       }
+      assessment_submission_files: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string
+          organization_id: string
+          position: number
+          size_bytes: number
+          storage_path: string
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type: string
+          organization_id: string
+          position: number
+          size_bytes: number
+          storage_path: string
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string
+          organization_id?: string
+          position?: number
+          size_bytes?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_submission_files_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_submission_files_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessments: {
         Row: {
+          allow_late_submissions: boolean
           available_from: string | null
           available_until: string | null
           course_id: string
@@ -389,8 +444,10 @@ export type Database = {
           description: string | null
           duration_seconds: number | null
           id: string
+          instructions: string | null
           kind: Database["public"]["Enums"]["assessment_kind"]
           max_attempts: number | null
+          max_files: number | null
           module_id: string | null
           organization_id: string
           passing_score: number | null
@@ -401,6 +458,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_late_submissions?: boolean
           available_from?: string | null
           available_until?: string | null
           course_id: string
@@ -409,8 +467,10 @@ export type Database = {
           description?: string | null
           duration_seconds?: number | null
           id?: string
+          instructions?: string | null
           kind: Database["public"]["Enums"]["assessment_kind"]
           max_attempts?: number | null
+          max_files?: number | null
           module_id?: string | null
           organization_id: string
           passing_score?: number | null
@@ -421,6 +481,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_late_submissions?: boolean
           available_from?: string | null
           available_until?: string | null
           course_id?: string
@@ -429,8 +490,10 @@ export type Database = {
           description?: string | null
           duration_seconds?: number | null
           id?: string
+          instructions?: string | null
           kind?: Database["public"]["Enums"]["assessment_kind"]
           max_attempts?: number | null
+          max_files?: number | null
           module_id?: string | null
           organization_id?: string
           passing_score?: number | null
@@ -1606,6 +1669,7 @@ export type Database = {
           started_at: string
           status: Database["public"]["Enums"]["attempt_status"]
           submitted_at: string | null
+          submitted_late: boolean
           total_score: number
           updated_at: string
           user_id: string
@@ -1748,6 +1812,20 @@ export type Database = {
           total_score: number
         }[]
       }
+      grade_task_submission: {
+        Args: {
+          p_attempt: string
+          p_feedback?: string
+          p_score: number
+          p_submitted_at?: string
+        }
+        Returns: {
+          passed: boolean
+          score_label: string
+          score_percent: number
+          status: Database["public"]["Enums"]["attempt_status"]
+        }[]
+      }
       heartbeat: {
         Args: { p_attempt: string; p_force?: boolean; p_session: string }
         Returns: {
@@ -1830,6 +1908,20 @@ export type Database = {
           source: Database["public"]["Enums"]["enrollment_source"]
           status: Database["public"]["Enums"]["enrollment_status"]
           total_blocks: number
+        }[]
+      }
+      my_task_submission: {
+        Args: { p_assessment: string; p_enrollment: string }
+        Returns: {
+          attempt_id: string
+          feedback: string
+          files: Json
+          passed: boolean
+          score_label: string
+          score_percent: number
+          status: Database["public"]["Enums"]["attempt_status"]
+          submitted_at: string
+          submitted_late: boolean
         }[]
       }
       org_assessment_stats: {
@@ -2025,12 +2117,46 @@ export type Database = {
           total_score: number
         }[]
       }
+      submit_task: {
+        Args: { p_assessment: string; p_enrollment: string; p_files: Json }
+        Returns: {
+          attempt_id: string
+          removed_paths: string[]
+        }[]
+      }
       sync_group_offerings: { Args: { p_group: string }; Returns: undefined }
       sync_offering_enrollments: {
         Args: { p_offering: string }
         Returns: number
       }
       sync_offering_roster: { Args: { p_offering: string }; Returns: number }
+      task_file_for_download: {
+        Args: { p_file: string }
+        Returns: {
+          filename: string
+          storage_path: string
+        }[]
+      }
+      task_file_mime_for_name: { Args: { p_name: string }; Returns: string }
+      task_submission_check: {
+        Args: { p_assessment: string; p_enrollment: string }
+        Returns: {
+          attempt_id: string
+          course_id: string
+          is_late: boolean
+          max_files: number
+          organization_id: string
+        }[]
+      }
+      task_submission_slot: {
+        Args: { p_assessment: string; p_enrollment: string }
+        Returns: {
+          course_id: string
+          is_late: boolean
+          max_files: number
+          organization_id: string
+        }[]
+      }
       update_my_profile: {
         Args: {
           p_dni: string

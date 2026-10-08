@@ -9,7 +9,7 @@ export async function getAssessment(assessmentId: string): Promise<AssessmentDet
     .select(
       `id, organization_id, course_id, module_id, kind, status, title, description,
        question_bank_id, random_question_count, duration_seconds, available_from, available_until,
-       passing_score, max_attempts,
+       passing_score, max_attempts, instructions, max_files, allow_late_submissions,
        assessment_questions ( id, question_id, position, points, questions ( prompt, type ) )`
     )
     .eq("id", assessmentId)
@@ -35,6 +35,9 @@ export async function getAssessment(assessmentId: string): Promise<AssessmentDet
     availableUntil: data.available_until,
     passingScore: data.passing_score,
     maxAttempts: data.max_attempts,
+    instructions: data.instructions,
+    maxFiles: data.max_files,
+    allowLateSubmissions: data.allow_late_submissions,
     fixedQuestions: [...(data.assessment_questions ?? [])]
       .sort((a, b) => a.position - b.position)
       .map((row) => ({

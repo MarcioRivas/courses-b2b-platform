@@ -13,6 +13,10 @@ export interface AssessmentPreflight {
   availableUntil: string | null
   maxAttempts: number | null
   randomQuestionCount: number | null
+  /** TASK only. */
+  instructions: string | null
+  maxFiles: number | null
+  allowLateSubmissions: boolean
 }
 
 /**
@@ -27,7 +31,7 @@ export async function getAssessmentPreflight(assessmentId: string): Promise<Asse
   const { data, error } = await supabase
     .from("assessments")
     .select(
-      "id, course_id, module_id, title, description, kind, duration_seconds, available_from, available_until, max_attempts, random_question_count"
+      "id, course_id, module_id, title, description, kind, duration_seconds, available_from, available_until, max_attempts, random_question_count, instructions, max_files, allow_late_submissions"
     )
     .eq("id", assessmentId)
     .maybeSingle()
@@ -48,5 +52,8 @@ export async function getAssessmentPreflight(assessmentId: string): Promise<Asse
     availableUntil: data.available_until,
     maxAttempts: data.max_attempts,
     randomQuestionCount: data.random_question_count,
+    instructions: data.instructions,
+    maxFiles: data.max_files,
+    allowLateSubmissions: data.allow_late_submissions,
   }
 }

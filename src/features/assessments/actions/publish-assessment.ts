@@ -14,6 +14,7 @@ import { publishAssessmentSchema, type PublishAssessmentInput } from "../schemas
  * Publish-time validation (5B step 4): at least one question source, a
  * sane window, and — for a random config — the bank still has enough
  * active questions (it may have shrunk since `setAssessmentQuestions` ran).
+ * A TASK has no questions; it needs an instruction, a file limit and a deadline.
  */
 export async function publishAssessment(input: PublishAssessmentInput): Promise<ActionResult<void>> {
   const parsed = publishAssessmentSchema.safeParse(input)
@@ -27,7 +28,7 @@ export async function publishAssessment(input: PublishAssessmentInput): Promise<
   const { data: assessment } = await supabase
     .from("assessments")
     .select(
-      "id, course_id, organization_id, kind, duration_seconds, available_from, available_until, question_bank_id, random_question_count, assessment_questions(question_id)"
+      "id, course_id, organization_id, kind, instructions, max_files, duration_seconds, available_from, available_until, question_bank_id, random_question_count, assessment_questions(question_id)"
     )
     .eq("id", parsed.data.assessmentId)
     .maybeSingle()
@@ -37,6 +38,14 @@ export async function publishAssessment(input: PublishAssessmentInput): Promise<
   }
   if (!(await canEditCourse(assessment.course_id))) {
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
+  }
+
+  if (assessment.kind === "TASK") {
+    const taskError = taskPublishError(assessment)
+    if (taskError) {
+      return { ok: false, code: "VALIDATION", message: taskError }
+    }
+    return markPublished(supabase, assessment)
   }
 
   const fixedQuestionIds = (assessment.assessment_questions ?? []).map((row) => row.question_id)
@@ -89,6 +98,30 @@ export async function publishAssessment(input: PublishAssessmentInput): Promise<
     }
   }
 
+  return markPublished(supabase, assessment)
+}
+
+function taskPublishError(assessment: {
+  instructions: string | null
+  max_files: number | null
+  available_until: string | null
+}): string | null {
+  if (!assessment.instructions?.trim()) {
+    return teachAssessmentMessages.errors.taskRequiresInstructions
+  }
+  if (!assessment.max_files) {
+    return teachAssessmentMessages.errors.taskRequiresMaxFiles
+  }
+  if (!assessment.available_until) {
+    return teachAssessmentMessages.errors.taskRequiresDeadline
+  }
+  return null
+}
+
+async function markPublished(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  assessment: { id: string; course_id: string; organization_id: string }
+): Promise<ActionResult<void>> {
   const { error } = await supabase.from("assessments").update({ status: "PUBLISHED" }).eq("id", assessment.id)
   if (error) {
     return { ok: false, ...toActionError(error) }

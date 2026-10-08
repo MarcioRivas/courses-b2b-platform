@@ -39,6 +39,7 @@ export async function listPendingAttempts(
         status: row.status,
         submittedAt: row.submitted_at,
         attemptNumber: row.attempt_number,
+        submittedLate: row.submitted_late,
         studentName: row.profiles ? `${row.profiles.first_name} ${row.profiles.last_name}`.trim() : "—",
         assessmentId: assessment.id,
         assessmentTitle: assessment.title,

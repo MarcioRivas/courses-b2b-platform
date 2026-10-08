@@ -40,9 +40,12 @@ async function openAttempt(student: TestUser, title: string, openEnded = 1) {
     courseId: course.courseId,
     organizationId: ORG_A,
     title: `${title} — evaluación`,
-    kind: "TASK",
+    kind: "EXAM",
     multipleChoice: 1,
     openEnded,
+    durationSeconds: 3600,
+    availableFrom: new Date().toISOString(),
+    availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
   bankIds.push(fixture.bankId)
 

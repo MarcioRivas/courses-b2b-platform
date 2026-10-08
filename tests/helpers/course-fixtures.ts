@@ -165,7 +165,13 @@ export interface AssessmentSpec {
   maxAttempts?: number | null
   moduleId?: string | null
   status?: Database["public"]["Enums"]["assessment_status"]
+  /** TASK only (defaults: 1 file, a deadline a week out, an instruction text, no late submissions). */
+  maxFiles?: number
+  instructions?: string
+  allowLateSubmissions?: boolean
 }
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export interface AssessmentFixture {
   assessmentId: string
@@ -176,10 +182,16 @@ export interface AssessmentFixture {
 
 /**
  * Builds a bank + questions + a PUBLISHED assessment with a fixed question
- * list. Service role throughout: these suites exercise the attempt RPCs, not
+ * list. A TASK gets no questions (the DB refuses them) and the TASK-only
+ * columns its shape check requires. Service role throughout: these suites exercise the attempt RPCs, not
  * the authoring write paths.
  */
 export async function makeAssessmentFixture(spec: AssessmentSpec): Promise<AssessmentFixture> {
+  const isTask = spec.kind === "TASK"
+  if (isTask && ((spec.multipleChoice ?? 0) > 0 || (spec.openEnded ?? 0) > 0)) {
+    throw new Error("A TASK has no questions; use QUIZ or EXAM for question fixtures")
+  }
+
   const { data: bank, error: bankError } = await supabaseAdmin
     .from("question_banks")
     .insert({ organization_id: spec.organizationId, course_id: spec.courseId, name: `${spec.title} — banco` })
@@ -245,9 +257,13 @@ export async function makeAssessmentFixture(spec: AssessmentSpec): Promise<Asses
       title: spec.title,
       duration_seconds: spec.durationSeconds ?? null,
       available_from: spec.availableFrom ?? null,
-      available_until: spec.availableUntil ?? null,
+      available_until:
+        spec.availableUntil ?? (isTask ? new Date(Date.now() + WEEK_MS).toISOString() : null),
       passing_score: spec.passingScore ?? null,
-      max_attempts: spec.maxAttempts ?? null,
+      max_attempts: isTask ? 1 : (spec.maxAttempts ?? null),
+      max_files: isTask ? (spec.maxFiles ?? 1) : null,
+      instructions: isTask ? (spec.instructions ?? "Subí tu trabajo en PDF.") : null,
+      allow_late_submissions: isTask ? (spec.allowLateSubmissions ?? false) : false,
     })
     .select("id")
     .single()

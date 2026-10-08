@@ -37,6 +37,10 @@ export interface AssessmentDetail {
   availableUntil: string | null
   passingScore: number | null
   maxAttempts: number | null
+  /** TASK only: the instruction text, the per-submission file limit and late-submission switch. */
+  instructions: string | null
+  maxFiles: number | null
+  allowLateSubmissions: boolean
   fixedQuestions: AssessmentFixedQuestion[]
 }
 
