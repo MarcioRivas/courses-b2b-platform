@@ -50,10 +50,23 @@ function isPostgresErrorLike(err: unknown): err is PostgresErrorLike {
   return typeof err === "object" && err !== null && ("code" in err || "message" in err)
 }
 
+/** Business rules raised by DB triggers with a recognisable token in the message. */
+const DB_RULE_MARKERS = [
+  "QUESTION_IN_USE_ELSEWHERE",
+  "CROSS_EDITION_LINK",
+  "ACCESS_TYPE_LOCKED",
+  "OFFERING_KIND_MISMATCH",
+] as const
+
 /** Maps unknown errors (RPC/PostgREST/auth) to a safe `ActionResult` error shape. */
 export function toActionError(err: unknown): { code: ActionErrorCode; message: string } {
   if (err instanceof AppError) {
     return { code: err.code, message: err.message }
+  }
+
+  if (isPostgresErrorLike(err) && err.message) {
+    const marker = DB_RULE_MARKERS.find((m) => err.message?.includes(m))
+    if (marker) return { code: "CONFLICT", message: messages.errors[marker] }
   }
 
   if (isPostgresErrorLike(err) && err.code) {

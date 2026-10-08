@@ -202,6 +202,10 @@ begin
     raise exception 'Offering not found' using errcode = 'no_data_found';
   end if;
 
+  if v_tgt.status = 'CANCELLED' then
+    raise exception 'TARGET_CANCELLED' using errcode = 'restrict_violation';
+  end if;
+
   if v_src.course_id <> v_tgt.course_id then
     raise exception 'COPY_DIFFERENT_COURSE' using errcode = 'invalid_parameter_value';
   end if;
@@ -314,14 +318,17 @@ begin
   -- Same-edition invariants.
   if exists (
     select 1
-    from lesson_content_blocks b
-    where b.assessment_id is not null
-      and offering_id_of_block(b.id) = p_target
+    from modules tm
+    join lessons tl on tl.module_id = tm.id
+    join lesson_content_blocks b on b.lesson_id = tl.id
+    where tm.offering_id = p_target
+      and b.assessment_id is not null
       and offering_id_of_assessment(b.assessment_id) is distinct from p_target
   ) or exists (
     select 1
-    from module_dependencies d
-    where offering_id_of_module(d.module_id) = p_target
+    from modules tm
+    join module_dependencies d on d.module_id = tm.id
+    where tm.offering_id = p_target
       and (
         offering_id_of_module(d.depends_on_module_id) is distinct from p_target and d.depends_on_module_id is not null
         or offering_id_of_assessment(d.assessment_id) is distinct from p_target and d.assessment_id is not null
@@ -339,12 +346,12 @@ revoke execute on function copy_edition_content(uuid, uuid) from public, anon, a
 -- ---------------------------------------------------------------------------
 -- 4. Backfill
 -- ---------------------------------------------------------------------------
--- 4.1 FREE courses with no edition get their OPEN edition.
+-- 4.1 FREE courses with no OPEN edition get one.
 insert into course_offerings (course_id, organization_id, kind, name)
 select c.id, c.organization_id, 'OPEN', c.title
 from courses c
 where c.access_type = 'FREE'
-  and not exists (select 1 from course_offerings o where o.course_id = c.id);
+  and not exists (select 1 from course_offerings o where o.course_id = c.id and o.kind = 'OPEN');
 
 do $$
 declare
@@ -452,6 +459,13 @@ language plpgsql
 set search_path = public, pg_temp
 as $$
 begin
+  -- A block never moves to a lesson of another edition (progress and
+  -- checkpoints follow the block).
+  if tg_op = 'UPDATE' and new.lesson_id is distinct from old.lesson_id
+     and offering_id_of_lesson(new.lesson_id) is distinct from offering_id_of_lesson(old.lesson_id) then
+    raise exception 'CROSS_EDITION_LINK' using errcode = 'invalid_parameter_value';
+  end if;
+
   -- A missing lesson / evaluation is the foreign keys' business, not ours.
   if new.assessment_id is not null
      and offering_id_of_lesson(new.lesson_id) <> offering_id_of_assessment(new.assessment_id) then
@@ -525,6 +539,67 @@ $$;
 create trigger assert_assessment_edition_stable
   before insert or update on assessments
   for each row execute function assert_assessment_edition_stable();
+
+-- A lesson never moves to a module of another edition.
+create function assert_lesson_edition_stable()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if new.module_id is distinct from old.module_id
+     and offering_id_of_module(new.module_id) is distinct from offering_id_of_module(old.module_id) then
+    raise exception 'CROSS_EDITION_LINK' using errcode = 'invalid_parameter_value';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger assert_lesson_edition_stable
+  before update on lessons
+  for each row execute function assert_lesson_edition_stable();
+
+-- assessments.organization_id always comes from the edition (never client-set).
+create function set_assessment_organization()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  select o.organization_id into new.organization_id
+  from course_offerings o where o.id = new.offering_id;
+  return new;
+end;
+$$;
+
+-- Named so it fires before assert_assessment_edition_stable (alphabetical order).
+create trigger assert_assessment_a_organization
+  before insert or update on assessments
+  for each row execute function set_assessment_organization();
+
+-- A FREE course only has its OPEN edition. (A PRIVATE course may also carry an
+-- OPEN edition: test fixtures and legacy data rely on it, so only FREE is enforced.)
+create function assert_offering_kind_matches_access_type()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_access course_access;
+begin
+  select c.access_type into v_access from courses c where c.id = new.course_id;
+  if v_access = 'FREE' and new.kind <> 'OPEN' then
+    raise exception 'OFFERING_KIND_MISMATCH' using errcode = 'invalid_parameter_value';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger assert_offering_kind_matches_access_type
+  before insert on course_offerings
+  for each row execute function assert_offering_kind_matches_access_type();
 
 -- ---------------------------------------------------------------------------
 -- 7. Policies
@@ -2885,7 +2960,8 @@ begin
     on conflict do nothing;
   end if;
 
-  -- FREE: the OPEN edition has at least one block. PRIVATE: some edition does.
+  -- FREE: the OPEN edition must be ACTIVE and have at least one block.
+  -- PRIVATE: some edition has one.
   select exists (
     select 1
     from lesson_content_blocks b
@@ -2893,7 +2969,7 @@ begin
     join modules m on m.id = l.module_id
     join course_offerings o on o.id = m.offering_id
     where o.course_id = p_course
-      and (v_course.access_type <> 'FREE' or o.kind = 'OPEN')
+      and (v_course.access_type <> 'FREE' or (o.kind = 'OPEN' and o.status = 'ACTIVE'))
   ) into v_complete;
 
   if not v_complete then
@@ -2930,6 +3006,7 @@ as $$
 declare
   v_question uuid;
   v_bank uuid;
+  v_old_bank uuid;
 begin
   if auth.uid() is null then
     return coalesce(new, old);
@@ -2938,6 +3015,9 @@ begin
   if tg_table_name = 'questions' then
     v_question := coalesce(new.id, old.id);
     v_bank := coalesce(new.question_bank_id, old.question_bank_id);
+    if tg_op = 'UPDATE' then
+      v_old_bank := old.question_bank_id;
+    end if;
   else
     v_question := coalesce(new.question_id, old.question_id);
     select q.question_bank_id into v_bank from questions q where q.id = v_question;
@@ -2957,7 +3037,8 @@ begin
           select 1 from assessment_questions aq
           where aq.assessment_id = a.id and aq.question_id = v_question
         )
-        or (a.random_question_count is not null and a.question_bank_id = v_bank)
+        or (a.random_question_count is not null
+            and a.question_bank_id in (v_bank, coalesce(v_old_bank, v_bank)))
       )
       and coalesce((select can_edit_offering(a.offering_id)), false) is not true
   ) then
@@ -2969,7 +3050,7 @@ end;
 $$;
 
 create trigger assert_question_not_in_use_elsewhere
-  before update or delete on questions
+  before insert or update or delete on questions
   for each row execute function assert_question_not_in_use_elsewhere();
 
 create trigger assert_question_not_in_use_elsewhere
@@ -3071,6 +3152,9 @@ revoke execute on function assert_module_edition_stable() from public, anon, aut
 revoke execute on function assert_assessment_edition_stable() from public, anon, authenticated;
 revoke execute on function assert_course_access_type_unlocked() from public, anon, authenticated;
 revoke execute on function assert_question_not_in_use_elsewhere() from public, anon, authenticated;
+revoke execute on function assert_lesson_edition_stable() from public, anon, authenticated;
+revoke execute on function set_assessment_organization() from public, anon, authenticated;
+revoke execute on function assert_offering_kind_matches_access_type() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 15. Verification (raise on violation)

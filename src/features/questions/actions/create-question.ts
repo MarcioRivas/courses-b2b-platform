@@ -36,6 +36,8 @@ export async function createQuestion(input: CreateQuestionInput): Promise<Action
       type: question.type,
       prompt: question.prompt,
       default_points: question.defaultPoints,
+      // Inactive until its options exist: a half-created question never joins a live pool.
+      is_active: false,
       created_by: ctx.user.id,
     })
     .select("id")
@@ -61,6 +63,15 @@ export async function createQuestion(input: CreateQuestionInput): Promise<Action
       await supabase.from("questions").delete().eq("id", inserted.id)
       return { ok: false, ...toActionError(optionsError) }
     }
+  }
+
+  const { error: activateError } = await supabase
+    .from("questions")
+    .update({ is_active: true })
+    .eq("id", inserted.id)
+  if (activateError) {
+    await supabase.from("questions").delete().eq("id", inserted.id)
+    return { ok: false, ...toActionError(activateError) }
   }
 
   await logAudit({

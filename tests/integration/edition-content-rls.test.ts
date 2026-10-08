@@ -227,7 +227,9 @@ describe("student_can_view_offering mirrors every guard", () => {
       .insert({ course_id: free.data!.id, organization_id: ORG_A, kind: "GROUP", group_id: group.data!.id, name: "Grupo" })
       .select("id")
       .single()
-    expect(await visibleTo(insider.client, grouped.data!.id)).toBe(false)
+    // A GROUP edition of a FREE course can no longer exist (trigger), so it can never leak the course.
+    expect(grouped.error?.message).toContain("OFFERING_KIND_MISMATCH")
+    expect(grouped.data).toBeNull()
   })
 })
 

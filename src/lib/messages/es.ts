@@ -125,5 +125,10 @@ export const messages = {
     LOCKED: "El recurso está bloqueado.",
     SAVE_FAILED: "No se pudo guardar. Intentá de nuevo.",
     INTERNAL: "Ocurrió un error inesperado. Intentá de nuevo.",
+    QUESTION_IN_USE_ELSEWHERE:
+      "Este banco lo usa una evaluación publicada de otra edición. No podés modificar sus preguntas.",
+    CROSS_EDITION_LINK: "No se puede vincular contenido de ediciones distintas.",
+    ACCESS_TYPE_LOCKED: "El tipo de acceso no se puede cambiar una vez que el curso tiene ediciones.",
+    OFFERING_KIND_MISMATCH: "El tipo de edición no corresponde al tipo de acceso del curso.",
   },
 } as const
