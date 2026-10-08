@@ -126,6 +126,10 @@ export const auditActionLabels: Record<string, string> = {
   "assessment.auto_submitted": "Intento de evaluación auto-entregado",
   "assessment.graded": "Intento de evaluación corregido",
   "assessment.feedback_saved": "Comentario de evaluación guardado",
+  "assessment.task_submitted": "Tarea entregada",
+  "assessment.task_resubmitted": "Entrega de tarea reemplazada",
+  "assessment.task_graded": "Tarea corregida",
+  "video_checkpoints.saved": "Preguntas del video guardadas",
   "attempt.finalize_failed": "Falló el cierre automático del intento",
 }
 

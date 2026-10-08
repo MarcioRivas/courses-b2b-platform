@@ -1635,6 +1635,249 @@ export type Database = {
           },
         ]
       }
+      video_checkpoint_attempt_answers: {
+        Row: {
+          attempt_id: string
+          is_correct: boolean
+          option_id: string | null
+          question_id: string
+        }
+        Insert: {
+          attempt_id: string
+          is_correct: boolean
+          option_id?: string | null
+          question_id: string
+        }
+        Update: {
+          attempt_id?: string
+          is_correct?: boolean
+          option_id?: string | null
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_checkpoint_attempt_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoint_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_checkpoint_attempt_answers_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoint_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_checkpoint_attempt_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoint_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_checkpoint_attempts: {
+        Row: {
+          attempt_number: number
+          checkpoint_id: string
+          correct: number
+          created_at: string
+          enrollment_id: string
+          id: string
+          organization_id: string
+          passed: boolean
+          total: number
+        }
+        Insert: {
+          attempt_number: number
+          checkpoint_id: string
+          correct: number
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          organization_id: string
+          passed: boolean
+          total: number
+        }
+        Update: {
+          attempt_number?: number
+          checkpoint_id?: string
+          correct?: number
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          organization_id?: string
+          passed?: boolean
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_checkpoint_attempts_checkpoint_id_fkey"
+            columns: ["checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_checkpoint_attempts_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "course_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_checkpoint_attempts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_checkpoint_options: {
+        Row: {
+          id: string
+          is_correct: boolean
+          label: string
+          position: number
+          question_id: string
+        }
+        Insert: {
+          id?: string
+          is_correct?: boolean
+          label: string
+          position: number
+          question_id: string
+        }
+        Update: {
+          id?: string
+          is_correct?: boolean
+          label?: string
+          position?: number
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_checkpoint_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoint_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_checkpoint_progress: {
+        Row: {
+          attempts: number
+          checkpoint_id: string
+          enrollment_id: string
+          passed_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          checkpoint_id: string
+          enrollment_id: string
+          passed_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          checkpoint_id?: string
+          enrollment_id?: string
+          passed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_checkpoint_progress_checkpoint_id_fkey"
+            columns: ["checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_checkpoint_progress_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "course_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_checkpoint_questions: {
+        Row: {
+          checkpoint_id: string
+          id: string
+          position: number
+          prompt: string
+        }
+        Insert: {
+          checkpoint_id: string
+          id?: string
+          position: number
+          prompt: string
+        }
+        Update: {
+          checkpoint_id?: string
+          id?: string
+          position?: number
+          prompt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_checkpoint_questions_checkpoint_id_fkey"
+            columns: ["checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "video_checkpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_checkpoints: {
+        Row: {
+          at_seconds: number
+          block_id: string
+          created_at: string
+          id: string
+          min_correct: number
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          at_seconds: number
+          block_id: string
+          created_at?: string
+          id?: string
+          min_correct: number
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          at_seconds?: number
+          block_id?: string
+          created_at?: string
+          id?: string
+          min_correct?: number
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_checkpoints_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_content_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_checkpoints_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1643,6 +1886,15 @@ export type Database = {
       add_group_members: {
         Args: { p_group: string; p_user_ids: string[] }
         Returns: number
+      }
+      answer_video_checkpoint: {
+        Args: { p_answers: Json; p_checkpoint: string; p_enrollment: string }
+        Returns: {
+          correct: number
+          min_correct: number
+          passed: boolean
+          total: number
+        }[]
       }
       archive_course: { Args: { p_course: string }; Returns: undefined }
       assert_attempt_owner: {
@@ -1725,6 +1977,10 @@ export type Database = {
       can_view_block: { Args: { p_block: string }; Returns: boolean }
       can_view_enrollment: { Args: { p_enrollment: string }; Returns: boolean }
       can_write_course_file: { Args: { p_name: string }; Returns: boolean }
+      checkpoint_enrollment_check: {
+        Args: { p_enrollment: string; p_lesson: string }
+        Returns: string
+      }
       complete_content_block: {
         Args: { p_block: string; p_completed: boolean; p_enrollment: string }
         Returns: {
@@ -2066,6 +2322,10 @@ export type Database = {
           status: Database["public"]["Enums"]["attempt_status"]
         }[]
       }
+      save_video_checkpoints: {
+        Args: { p_block: string; p_checkpoints: Json }
+        Returns: undefined
+      }
       self_enroll_free_course: { Args: { p_course: string }; Returns: string }
       set_assessment_questions: {
         Args: { p_assessment: string; p_items: Json }
@@ -2173,6 +2433,15 @@ export type Database = {
       user_org_role: {
         Args: { p_org: string }
         Returns: Database["public"]["Enums"]["membership_role"]
+      }
+      video_checkpoint_course: {
+        Args: { p_checkpoint: string }
+        Returns: string
+      }
+      video_checkpoint_stats: { Args: { p_block: string }; Returns: Json }
+      video_checkpoints_for_lesson: {
+        Args: { p_enrollment: string; p_lesson: string }
+        Returns: Json
       }
     }
     Enums: {

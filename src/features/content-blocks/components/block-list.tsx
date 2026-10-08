@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { EmptyState } from "@/components/shared/empty-state"
 import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
+import { videoCheckpointMessages } from "@/lib/messages/video-checkpoints"
 import type { Json } from "@/types/database.types"
 import { reorderBlocks } from "../actions/reorder-blocks"
 import { deleteBlock } from "../actions/delete-block"
@@ -21,6 +22,7 @@ export interface BlockListItem {
   type: OfferableBlockType
   data: Json
   isRequired: boolean
+  checkpointCount?: number
 }
 
 interface BlockListProps {
@@ -93,6 +95,9 @@ export function BlockList({ organizationId, courseId, lessonId, blocks, canEdit 
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <Badge variant="outline">{labels.typePicker[block.type]}</Badge>
                   {block.isRequired && <Badge variant="secondary">{labels.isRequiredLabel}</Badge>}
+                  {(block.checkpointCount ?? 0) > 0 && (
+                    <Badge variant="brand">{videoCheckpointMessages.editor.builderBadge(block.checkpointCount ?? 0)}</Badge>
+                  )}
                 </div>
                 {canEdit && (
                   <div className="flex shrink-0 items-center gap-1">

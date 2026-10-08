@@ -8,10 +8,18 @@ import { BlockRenderer } from "@/features/content-blocks/components/block-render
 import { OFFERABLE_BLOCK_TYPES, type OfferableBlockType } from "@/features/content-blocks/schemas/content-block-schemas"
 import type { StudentBlock } from "@/features/enrollments/queries/get-enrollment-course-tree"
 import { CompletionToggle } from "./completion-toggle"
+import { InteractiveVideoBlock } from "@/features/video-checkpoints/components/interactive-video-block"
+import type { StudentCheckpoint } from "@/features/video-checkpoints/types"
 
 interface LessonBlockProps {
   enrollmentId: string
   block: StudentBlock
+}
+
+interface LessonBlockListItemProps extends LessonBlockProps {
+  lessonId: string
+  /** In-video checkpoints of this block (YOUTUBE_VIDEO only). */
+  checkpoints: StudentCheckpoint[]
 }
 
 function isOfferable(type: string): type is OfferableBlockType {
@@ -62,7 +70,7 @@ function AssessmentBlockCard({ enrollmentId, block }: LessonBlockProps) {
   )
 }
 
-export function LessonBlock({ enrollmentId, block }: LessonBlockProps) {
+export function LessonBlock({ enrollmentId, lessonId, block, checkpoints }: LessonBlockListItemProps) {
   const isAssessment = block.type === "QUIZ" || block.type === "TASK"
 
   if (!isAssessment && !isOfferable(block.type)) {
@@ -79,6 +87,19 @@ export function LessonBlock({ enrollmentId, block }: LessonBlockProps) {
 
       {isAssessment ? (
         <AssessmentBlockCard enrollmentId={enrollmentId} block={block} />
+      ) : block.type === "YOUTUBE_VIDEO" ? (
+        // Every video uses the API player: it completes itself when it ends
+        // and enforces in-video checkpoints when there are any.
+        <InteractiveVideoBlock
+          enrollmentId={enrollmentId}
+          lessonId={lessonId}
+          blockId={block.id}
+          videoId={(block.data as { videoId: string }).videoId}
+          title={(block.data as { title?: string }).title}
+          isRequired={block.isRequired}
+          initialCompleted={block.completed}
+          initialCheckpoints={checkpoints}
+        />
       ) : (
         <>
           <BlockRenderer block={{ id: block.id, type: block.type, data: block.data }} />

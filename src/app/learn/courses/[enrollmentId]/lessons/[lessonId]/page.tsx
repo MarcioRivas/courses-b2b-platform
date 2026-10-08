@@ -10,6 +10,8 @@ import { getUnlockState } from "@/features/progress/queries/get-unlock-state"
 import { moduleStateLabel } from "@/features/progress/unlock-labels"
 import { LessonBlock } from "@/features/progress/components/lesson-block"
 import { LessonNav } from "@/features/progress/components/lesson-nav"
+import { createClient } from "@/lib/supabase/server"
+import { fetchLessonCheckpoints } from "@/features/video-checkpoints/queries/fetch-lesson-checkpoints"
 
 interface PageProps {
   params: Promise<{ enrollmentId: string; lessonId: string }>
@@ -48,6 +50,14 @@ export default async function StudentLessonPage({ params }: PageProps) {
     redirect(`/learn/courses/${enrollment.id}`)
   }
 
+  // In-video checkpoints for every video of this lesson (answer key never included).
+  // A failure must not silently drop the gate (videos would play freely and
+  // then refuse completion): let the error boundary handle it.
+  const lessonCheckpoints = await fetchLessonCheckpoints(await createClient(), enrollment.id, lesson.id)
+  if (!lessonCheckpoints) {
+    throw new Error("Could not load the lesson's video checkpoints")
+  }
+
   const index = courseModule.lessons.findIndex((candidate) => candidate.id === lessonId)
   const previousLessonId = index > 0 ? (courseModule.lessons[index - 1]?.id ?? null) : null
   const nextLessonId = courseModule.lessons[index + 1]?.id ?? null
@@ -78,7 +88,13 @@ export default async function StudentLessonPage({ params }: PageProps) {
       ) : (
         <ul className="flex flex-col gap-4">
           {lesson.blocks.map((block) => (
-            <LessonBlock key={block.id} enrollmentId={enrollment.id} block={block} />
+            <LessonBlock
+              key={block.id}
+              enrollmentId={enrollment.id}
+              lessonId={lesson.id}
+              block={block}
+              checkpoints={lessonCheckpoints[block.id] ?? []}
+            />
           ))}
         </ul>
       )}

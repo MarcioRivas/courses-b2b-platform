@@ -17,6 +17,8 @@ export interface CourseTreeBlock {
   position: number
   data: Json
   isRequired: boolean
+  /** YOUTUBE_VIDEO only: in-video checkpoints (0 for other types; RLS shows them to editors only). */
+  checkpointCount: number
 }
 
 export interface CourseTreeLesson {
@@ -70,7 +72,7 @@ export async function getCourseTree(courseId: string): Promise<CourseTree | null
     .select(
       `id, title, description, position,
        lessons ( id, title, description, position,
-         lesson_content_blocks ( id, type, position, data, is_required ) ),
+         lesson_content_blocks ( id, type, position, data, is_required, video_checkpoints ( count ) ) ),
        module_dependencies!module_dependencies_module_id_fkey ( id, condition, depends_on_module_id, assessment_id, min_score )`
     )
     .eq("course_id", courseId)
@@ -101,6 +103,7 @@ export async function getCourseTree(courseId: string): Promise<CourseTree | null
           position: block.position,
           data: block.data,
           isRequired: block.is_required,
+          checkpointCount: block.video_checkpoints?.[0]?.count ?? 0,
         })),
       })),
       dependencies: (module.module_dependencies ?? []).map((dependency) => ({

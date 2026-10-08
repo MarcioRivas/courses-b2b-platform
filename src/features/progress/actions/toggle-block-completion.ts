@@ -6,6 +6,7 @@ import { requireOrgRole } from "@/lib/auth/require-role"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { learnMessages } from "@/lib/messages/learn"
+import { videoCheckpointMessages } from "@/lib/messages/video-checkpoints"
 import {
   toggleBlockCompletionSchema,
   type ToggleBlockCompletionInput,
@@ -21,7 +22,8 @@ export interface ProgressSnapshot {
  * Marks (or unmarks) one content block for the caller's enrollment.
  *
  * Every rule lives in `complete_content_block`: ownership, ACTIVE membership,
- * the module being open, and QUIZ/TASK blocks being off-limits (D33). This
+ * the module being open, QUIZ/TASK blocks being off-limits (D33), and a video
+ * with unpassed checkpoints refusing completion (CHECKPOINTS_PENDING). This
  * action adds no guard of its own beyond the role gate — deleting the client's
  * disabled state must still end in a server rejection, which the phase's
  * integration suite asserts.
@@ -49,6 +51,9 @@ export async function toggleBlockCompletion(
     }
     if (error.message.includes("INVALID_BLOCK_TYPE")) {
       return { ok: false, code: "VALIDATION", message: learnMessages.errors.invalidBlockType }
+    }
+    if (error.message.includes("CHECKPOINTS_PENDING")) {
+      return { ok: false, code: "CONFLICT", message: videoCheckpointMessages.errors.CHECKPOINTS_PENDING }
     }
     if (error.message.includes("ENROLLMENT_CANCELLED")) {
       return { ok: false, code: "FORBIDDEN", message: learnMessages.errors.enrollmentCancelled }

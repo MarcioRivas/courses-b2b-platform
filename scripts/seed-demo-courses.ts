@@ -271,6 +271,43 @@ async function seedDemoTask(courseId: string): Promise<void> {
   if (blockError) throw blockError
 }
 
+/** Two checkpoints on the course's first video, so the in-video quiz flow can be tried right away. */
+async function seedDemoVideoCheckpoints(courseId: string): Promise<void> {
+  const { data: block } = await admin
+    .from("lesson_content_blocks")
+    .select("id, lessons!inner(modules!inner(course_id))")
+    .eq("type", "YOUTUBE_VIDEO")
+    .eq("lessons.modules.course_id", courseId)
+    .limit(1)
+    .single()
+  if (!block) throw new Error("demo video block not found")
+
+  const checkpoints = [
+    { at: 20, question: "¿Cuál es el objetivo principal de la preparación física?", options: ["Mejorar el rendimiento y prevenir lesiones", "Solo ganar masa muscular", "Reemplazar el entrenamiento técnico"] },
+    { at: 45, question: "¿Qué conviene hacer antes de una sesión intensa?", options: ["Una entrada en calor progresiva", "Estiramientos estáticos largos", "Nada, empezar directo"] },
+  ]
+
+  for (const checkpoint of checkpoints) {
+    const { data: cp, error } = await admin
+      .from("video_checkpoints")
+      .insert({ organization_id: ORG_A, block_id: block.id, at_seconds: checkpoint.at, min_correct: 1 })
+      .select("id")
+      .single()
+    if (error || !cp) throw error ?? new Error("checkpoint not created")
+
+    const { data: question } = await admin
+      .from("video_checkpoint_questions")
+      .insert({ checkpoint_id: cp.id, prompt: checkpoint.question, position: 1 })
+      .select("id")
+      .single()
+    if (!question) throw new Error("checkpoint question not created")
+
+    await admin.from("video_checkpoint_options").insert(
+      checkpoint.options.map((label, index) => ({ question_id: question.id, label, is_correct: index === 0, position: index + 1 }))
+    )
+  }
+}
+
 async function main(): Promise<void> {
   const physicalId = await createCourse(
     ORG_A,
@@ -282,6 +319,8 @@ async function main(): Promise<void> {
   console.log("seeded PUBLISHED course 'Preparación Física Base' (3 módulos, 4 lecciones, 6 bloques)")
 
   await seedDemoTask(physicalId)
+  await seedDemoVideoCheckpoints(physicalId)
+  console.log("seeded 2 in-video checkpoints (0:20, 0:45) on the course's first video")
   console.log("seeded PUBLISHED task 'Plan semanal de entrenamiento' (hasta 2 archivos, fecha límite en 14 días)")
 
   const professorId = await findUserIdByEmail("prof@club-a.test")

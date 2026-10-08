@@ -18,12 +18,14 @@ import { PdfEditor } from "../editors/pdf-editor"
 import { ImageEditor } from "../editors/image-editor"
 import { LinkEditor } from "../editors/link-editor"
 import { AssessmentBlockEditor } from "../editors/assessment-block-editor"
+import { VideoCheckpointsSection } from "@/features/video-checkpoints/components/video-checkpoints-section"
+import { videoCheckpointMessages } from "@/lib/messages/video-checkpoints"
 
 interface BlockEditorPanelProps {
   organizationId: string
   courseId: string
   lessonId: string
-  existingBlock?: { id: string; type: OfferableBlockType; data: unknown; isRequired: boolean }
+  existingBlock?: { id: string; type: OfferableBlockType; data: unknown; isRequired: boolean; checkpointCount?: number }
   onSaved: () => void
   onCancel: () => void
 }
@@ -37,6 +39,9 @@ export function BlockEditorPanel({ organizationId, courseId, lessonId, existingB
   const [isRequired, setIsRequired] = useState(existingBlock?.isRequired ?? true)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
+  const savedVideoId = (existingBlock?.data as { videoId?: string } | undefined)?.videoId
+  const videoChanged =
+    type === "YOUTUBE_VIDEO" && (existingBlock?.checkpointCount ?? 0) > 0 && data.videoId !== savedVideoId
 
   if (!type) {
     return (
@@ -83,6 +88,7 @@ export function BlockEditorPanel({ organizationId, courseId, lessonId, existingB
       {type === "YOUTUBE_VIDEO" && (
         <YoutubeEditor value={data as never} onChange={setData} errors={fieldErrors} />
       )}
+      {videoChanged && <p className="rounded-md bg-warning-soft p-2 text-sm text-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-300">{videoCheckpointMessages.editor.videoChangedWarning}</p>}
       {type === "RICH_TEXT" && <RichTextEditor value={data as never} onChange={setData} errors={fieldErrors} />}
       {type === "PDF" && (
         <PdfEditor organizationId={organizationId} courseId={courseId} value={data as never} onChange={setData} errors={fieldErrors} />
@@ -110,6 +116,11 @@ export function BlockEditorPanel({ organizationId, courseId, lessonId, existingB
           {isPending ? messages.common.loading : messages.common.save}
         </Button>
       </div>
+
+      {/* Checkpoints save on their own and need the block's id (and its saved video). */}
+      {type === "YOUTUBE_VIDEO" && (
+        <VideoCheckpointsSection blockId={existingBlock?.id} videoId={savedVideoId ?? ""} />
+      )}
     </div>
   )
 }
