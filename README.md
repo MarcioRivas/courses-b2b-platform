@@ -62,7 +62,7 @@ From `pnpm seed:demo` (optional):
 
 | Course | Org | Status | Notes |
 |---|---|---|---|
-| Preparación Física Base | Club Atlético Demo | Published | 3 modules, 4 lessons. Includes published Tarea "Plan semanal de entrenamiento" (up to 2 files, deadline 14 days from seed, late submissions allowed). `prof@club-a.test` assigned. Edition **Cohorte 2026** for Grupo Principal (90 days), so the three `alum*@club-a.test` are enrolled. |
+| Preparación Física Base | Club Atlético Demo | Published | 3 modules, 4 lessons. Includes: published Tarea "Plan semanal de entrenamiento" (up to 2 files, deadline 14 days from seed, late submissions allowed); the video in lesson "Qué es la preparación física" has 2 in-video questions (at 0:20 and 0:45). `prof@club-a.test` assigned. Edition **Cohorte 2026** for Grupo Principal (90 days), so the three `alum*@club-a.test` are enrolled. |
 | Nutrición Deportiva | Club Atlético Demo | Draft, empty | Use it to check that publishing a course without content is refused. |
 | Reglamento y Arbitraje | Federación Demo | Published | Use it to check tenant isolation. No professor or edition. |
 
@@ -105,6 +105,7 @@ Only courses the professor is assigned to are visible. After `pnpm seed:demo`, `
 | Courses | `/teach/courses` | Assigned courses |
 | Course content | `/teach/courses/[id]/content` → module → lesson | Same content builder as the admin, limited to assigned courses |
 | Assessments (Quiz/Exam) | `/teach/courses/[id]/assessments`, `.../new`, `.../[assessmentId]` | Create and edit question-based assessments, pick questions, publish, extend the time window for students, delete |
+| Preguntas en el video | `/teach/courses/[id]/content/[moduleId]/[lessonId]` → edit a YouTube block | Pause the preview and "Agregar pregunta en este momento" (up to 20 per video, 1–5 multiple-choice questions each, minimum correct answers); "Estadísticas" tab: how many students reached each point, pass and first-try rates, wrong answers per question and option |
 | Tareas (File Submissions) | `/teach/courses/[id]/assessments/new` (kind=TASK) | Create a Tarea: write instructions, set max files (1–10), set deadline, allow late submissions; publish |
 | Question banks | `/teach/banks`, `/teach/banks/[bankId]` | Create and edit banks; create and edit questions; activate/deactivate questions |
 | Grading | `/teach/grading`, `/teach/grading/[attemptId]` | Queue of submitted attempts (Tareas hidden until deadline passes); grade open answers + Tarea submissions (0–100 + feedback); leave feedback |
@@ -119,6 +120,7 @@ After `pnpm seed:demo`, the `alum*@club-a.test` students are enrolled in **Prepa
 | Catalog | `/learn/catalog` | Browse open courses and self-enroll |
 | Course | `/learn/courses/[enrollmentId]` | Modules and lessons; prerequisite and schedule locks |
 | Lesson | `/learn/courses/[enrollmentId]/lessons/[lessonId]` | View content blocks; mark blocks complete (drives progress) |
+| Videos | `/learn/courses/[enrollmentId]/lessons/[lessonId]` | Every required video completes itself when it ends. With in-video questions, the video pauses and hides, a full-screen quiz opens, and on failure the student picks "Volver a ver el fragmento" or "Reintentar"; skipping ahead past a pending question is undone |
 | Quiz / Exam attempt | `/learn/assessments/[assessmentId]/start` | Assessment rules, then start an attempt |
 | Quiz / Exam player | `/learn/attempts/[attemptId]` | Answer questions (autosave, timer, offline banner), submit; see the score with its scale label, retry if allowed, return to the course |
 | Tarea | `/learn/assessments/[assessmentId]/start?enrollment=…` (from the lesson's "Ver tarea" button) | Read the consigna, upload PDF/image/Office files (≤20 MB each), replace until the deadline; status "Entregada"; marked "Fuera de plazo" if submitted late |
