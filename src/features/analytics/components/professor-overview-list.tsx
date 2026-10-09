@@ -5,13 +5,13 @@ import { formatPercent } from "../lib/format-percent"
 import type { ProfessorOverviewRow } from "../types"
 
 /**
- * `/teach` overview: the professor's own courses only, via
+ * `/teach` overview: one row per edition the professor teaches, via
  * `professor_overview_stats` (no `p_org` — B12, never org-wide numbers).
  */
-export function ProfessorOverviewList({ courses }: { courses: ProfessorOverviewRow[] }) {
+export function ProfessorOverviewList({ offerings }: { offerings: ProfessorOverviewRow[] }) {
   const m = analyticsMessages.professor
 
-  if (courses.length === 0) {
+  if (offerings.length === 0) {
     return (
       <div className="rounded-2xl border bg-card p-5 text-sm text-muted-foreground shadow-card">
         <p className="font-medium text-foreground">{m.emptyTitle}</p>
@@ -21,22 +21,27 @@ export function ProfessorOverviewList({ courses }: { courses: ProfessorOverviewR
   }
 
   const attemptsByStatus = [
-    { label: analyticsMessages.attemptStatus.IN_PROGRESS, value: sum(courses, "attemptsInProgress") },
-    { label: analyticsMessages.attemptStatus.SUBMITTED, value: sum(courses, "attemptsSubmitted") },
-    { label: analyticsMessages.attemptStatus.AUTO_SUBMITTED, value: sum(courses, "attemptsAutoSubmitted") },
-    { label: analyticsMessages.attemptStatus.GRADED, value: sum(courses, "attemptsGraded") },
+    { label: analyticsMessages.attemptStatus.IN_PROGRESS, value: sum(offerings, "attemptsInProgress") },
+    { label: analyticsMessages.attemptStatus.SUBMITTED, value: sum(offerings, "attemptsSubmitted") },
+    { label: analyticsMessages.attemptStatus.AUTO_SUBMITTED, value: sum(offerings, "attemptsAutoSubmitted") },
+    { label: analyticsMessages.attemptStatus.GRADED, value: sum(offerings, "attemptsGraded") },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <StatsTable
-        items={courses}
-        getRowKey={(course) => course.courseId}
-        titleColumn={{ key: "title", header: m.tableTitleHeader, cell: (course) => course.courseTitle }}
+        items={offerings}
+        getRowKey={(offering) => offering.offeringId}
+        titleColumn={{ key: "title", header: m.tableTitleHeader, cell: (offering) => offering.offeringName }}
         columns={[
-          { key: "enrolled", header: m.enrolled, cell: (course) => course.enrolledCount },
-          { key: "avgProgress", header: m.avgProgress, cell: (course) => formatPercent(course.avgProgressPercent) },
-          { key: "pending", header: m.pendingGrading, cell: (course) => course.pendingGradingCount },
+          { key: "course", header: m.course, cell: (offering) => offering.courseTitle },
+          { key: "enrolled", header: m.enrolled, cell: (offering) => offering.enrolledCount },
+          {
+            key: "avgProgress",
+            header: m.avgProgress,
+            cell: (offering) => formatPercent(offering.avgProgressPercent),
+          },
+          { key: "pending", header: m.pendingGrading, cell: (offering) => offering.pendingGradingCount },
         ]}
         emptyTitle={m.emptyTitle}
       />
@@ -50,6 +55,6 @@ export function ProfessorOverviewList({ courses }: { courses: ProfessorOverviewR
 
 type AttemptCountKey = "attemptsInProgress" | "attemptsSubmitted" | "attemptsAutoSubmitted" | "attemptsGraded"
 
-function sum(courses: ProfessorOverviewRow[], key: AttemptCountKey): number {
-  return courses.reduce((total, course) => total + course[key], 0)
+function sum(offerings: ProfessorOverviewRow[], key: AttemptCountKey): number {
+  return offerings.reduce((total, offering) => total + offering[key], 0)
 }

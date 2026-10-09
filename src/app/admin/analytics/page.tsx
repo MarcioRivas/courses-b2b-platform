@@ -6,11 +6,13 @@ import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
 import { getOrgOverview } from "@/features/analytics/queries/get-org-overview"
 import { getCourseStats } from "@/features/analytics/queries/get-course-stats"
+import { getOfferingStats } from "@/features/analytics/queries/get-offering-stats"
 import { getProfessorStats } from "@/features/analytics/queries/get-professor-stats"
 import { getAssessmentStats } from "@/features/analytics/queries/get-assessment-stats"
 import { getScoreDistribution } from "@/features/analytics/queries/get-score-distribution"
 import { AdminStudentsSection } from "@/features/analytics/components/admin-students-section"
 import { AdminCoursesSection } from "@/features/analytics/components/admin-courses-section"
+import { AdminOfferingsSection } from "@/features/analytics/components/admin-offerings-section"
 import { AdminProfessorsSection } from "@/features/analytics/components/admin-professors-section"
 import { AdminAssessmentsSection } from "@/features/analytics/components/admin-assessments-section"
 import { analyticsMessages } from "@/lib/messages/analytics"
@@ -24,18 +26,21 @@ interface AdminAnalyticsPageProps {
 /**
  * Org admin dashboard (§38): students, courses, professors, assessments —
  * boring, correct numbers, no BI (D34). `?assessment=<uuid>` selects the
- * score distribution chart for one assessment.
+ * score distribution chart for one assessment; `?course=<uuid>` filters the
+ * "Por edición" table.
  */
 export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
   const ctx = await requireOrgRole(["ADMIN"])
   const sp = await searchParams
   const selectedAssessmentId = z.guid().safeParse(firstParam(sp.assessment)).data ?? null
+  const selectedCourseId = z.guid().safeParse(firstParam(sp.course)).data ?? null
 
-  let overview, courses, professors, assessments, distribution, settings
+  let overview, courses, offerings, professors, assessments, distribution, settings
   try {
-    ;[overview, courses, professors, assessments, distribution, settings] = await Promise.all([
+    ;[overview, courses, offerings, professors, assessments, distribution, settings] = await Promise.all([
       getOrgOverview(ctx.organizationId),
       getCourseStats(ctx.organizationId),
+      getOfferingStats(ctx.organizationId, selectedCourseId),
       getProfessorStats(ctx.organizationId),
       getAssessmentStats(ctx.organizationId),
       selectedAssessmentId ? getScoreDistribution(selectedAssessmentId) : Promise.resolve(null),
@@ -59,6 +64,10 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
         <>
           <AdminStudentsSection overview={overview} />
           <AdminCoursesSection overview={overview} courses={courses} timeZone={timeZone} />
+          <AdminOfferingsSection
+            offerings={offerings}
+            courses={courses.map((course) => ({ id: course.courseId, title: course.courseTitle }))}
+          />
           <AdminProfessorsSection overview={overview} professors={professors} timeZone={timeZone} />
         </>
       )}

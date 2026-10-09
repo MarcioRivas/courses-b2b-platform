@@ -24,12 +24,13 @@ afterAll(async () => {
 })
 
 describe("org-scoped functions reject a foreign org id", () => {
-  it("org A's admin cannot read org B's overview/course/professor/assessment stats", async () => {
+  it("org A's admin cannot read org B's overview/course/edition/professor/assessment stats", async () => {
     const adminA = await member("iso-admin-a", ORG_A, "ADMIN")
 
     const calls = await Promise.all([
       adminA.client.rpc("org_overview_stats", { p_org: ORG_B }),
       adminA.client.rpc("org_course_stats", { p_org: ORG_B }),
+      adminA.client.rpc("org_offering_stats", { p_org: ORG_B }),
       adminA.client.rpc("org_professor_stats", { p_org: ORG_B }),
       adminA.client.rpc("org_assessment_stats", { p_org: ORG_B }),
     ])
@@ -45,6 +46,7 @@ describe("org-scoped functions reject a foreign org id", () => {
     const calls = await Promise.all([
       student.client.rpc("org_overview_stats", { p_org: ORG_A }),
       student.client.rpc("org_course_stats", { p_org: ORG_A }),
+      student.client.rpc("org_offering_stats", { p_org: ORG_A }),
       student.client.rpc("org_professor_stats", { p_org: ORG_A }),
       student.client.rpc("org_assessment_stats", { p_org: ORG_A }),
     ])
@@ -54,7 +56,7 @@ describe("org-scoped functions reject a foreign org id", () => {
     }
   })
 
-  // A professor is not an org admin: the four `org_*` functions must refuse
+  // A professor is not an org admin: the five `org_*` functions must refuse
   // them too, even for their own org (only `professor_overview_stats`, with
   // no `p_org`, is theirs to call — B12).
   it("a professor is refused every org_* function, even for their own org", async () => {
@@ -63,6 +65,7 @@ describe("org-scoped functions reject a foreign org id", () => {
     const calls = await Promise.all([
       professor.client.rpc("org_overview_stats", { p_org: ORG_A }),
       professor.client.rpc("org_course_stats", { p_org: ORG_A }),
+      professor.client.rpc("org_offering_stats", { p_org: ORG_A }),
       professor.client.rpc("org_professor_stats", { p_org: ORG_A }),
       professor.client.rpc("org_assessment_stats", { p_org: ORG_A }),
     ])
@@ -73,11 +76,31 @@ describe("org-scoped functions reject a foreign org id", () => {
   })
 })
 
+describe("org_offering_stats never widens to another org's course", () => {
+  it("org A's admin filtering by an org B course gets no rows", async () => {
+    const adminA = await member("iso-offering-admin", ORG_A, "ADMIN")
+    const course = await makeCourseFixture({
+      organizationId: ORG_B,
+      title: "Curso ajeno ediciones",
+      modules: [{ title: "Módulo único", requiredBlocks: 1 }],
+    })
+    courseIds.push(course.courseId)
+
+    const { data, error } = await adminA.client.rpc("org_offering_stats", {
+      p_org: ORG_A,
+      p_course: course.courseId,
+    })
+    expect(error).toBeNull()
+    expect(data).toEqual([])
+  })
+})
+
 describe("anon cannot execute any analytics RPC", () => {
-  it("has_function_privilege('anon', ..., 'EXECUTE') is false for all 7 functions", () => {
+  it("has_function_privilege('anon', ..., 'EXECUTE') is false for all 8 functions", () => {
     const signatures = [
       "org_overview_stats(uuid)",
       "org_course_stats(uuid)",
+      "org_offering_stats(uuid, uuid)",
       "org_professor_stats(uuid)",
       "org_assessment_stats(uuid)",
       "assessment_score_distribution(uuid)",

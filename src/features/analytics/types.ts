@@ -89,8 +89,23 @@ export interface PlatformTotals {
   attempts: number
 }
 
-/** `professor_overview_stats` RPC — one row per course the professor is assigned to (B12). */
+/** `org_offering_stats` RPC — one row per edition, optionally filtered by course. */
+export interface OfferingStatsRow {
+  offeringId: string
+  offeringName: string
+  courseId: string
+  courseTitle: string
+  groupName: string | null
+  enrolledCount: number
+  avgProgressPercent: number
+  attemptsCount: number
+  pendingGradingCount: number
+}
+
+/** `professor_overview_stats` RPC — one row per edition the professor teaches (B12). */
 export interface ProfessorOverviewRow {
+  offeringId: string
+  offeringName: string
   courseId: string
   courseTitle: string
   enrolledCount: number

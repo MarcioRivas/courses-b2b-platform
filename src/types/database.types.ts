@@ -2268,6 +2268,23 @@ export type Database = {
           status: Database["public"]["Enums"]["course_status"]
         }[]
       }
+      org_offering_stats: {
+        Args: { p_course?: string; p_org: string }
+        Returns: {
+          attempts_count: number
+          avg_progress_percent: number
+          course_id: string
+          course_title: string
+          enrolled_count: number
+          group_id: string
+          group_name: string
+          offering_id: string
+          offering_kind: Database["public"]["Enums"]["offering_kind"]
+          offering_name: string
+          offering_status: Database["public"]["Enums"]["offering_status"]
+          pending_grading_count: number
+        }[]
+      }
       org_overview_stats: {
         Args: { p_org: string }
         Returns: {
@@ -2324,6 +2341,8 @@ export type Database = {
           course_id: string
           course_title: string
           enrolled_count: number
+          offering_id: string
+          offering_name: string
           pending_grading_count: number
         }[]
       }

@@ -84,16 +84,16 @@ Users are sent to one home page based on their role. Opening another role's area
 | Area | Route | What you can do |
 |---|---|---|
 | Dashboard | `/admin` | Org stats |
-| Members | `/admin/members`, `/admin/members/[userId]` | View members; change role (Admin/Professor/Student); activate/deactivate |
+| Members | `/admin/members`, `/admin/members/[userId]` | View members; change role (Admin/Professor/Student); activate/deactivate; edit profile data (first/last name, phone, DNI) |
 | Groups | `/admin/groups`, `/admin/groups/[groupId]` | Create, edit and delete groups; add/remove members |
 | Courses | `/admin/courses`, `/admin/courses/new` | Create, edit, publish, archive and delete courses |
 | Edition content | Cursos › curso › Ediciones › edición › **Contenido** (`/admin/courses/[id]/offerings/[offeringId]/content` → module → lesson) | Content belongs to each **edition**, not to the course. Drill-down builder: modules (with prerequisite dependencies), lessons, content blocks (text, YouTube video with in-video questions, external link, file); reorder everything |
 | Edition evaluations | Cursos › curso › Ediciones › edición › **Evaluaciones** (`.../offerings/[offeringId]/assessments`) | Quizzes, exams and Tareas of that edition only; the edition's content blocks can only point to its own evaluations |
 | Editions (Ediciones) | `/admin/courses/[id]/offerings`, `.../offerings/[offeringId]` | Create a GROUP edition (**Nueva edición**: name, group, dates, and content either **empty** or **copied from another edition** of the course; copied evaluations arrive as DRAFT, professors/students/schedules are not copied; FREE courses have a single OPEN edition and the tab goes straight to it), set dates and per-module schedule, change status, sync enrollments with the group roster. The list shows group, dates, status, students and professors |
 | Edition professors | `.../offerings/[offeringId]/professors` | Professors belong to an **edition**: see the assigned ones ("Quitar"), or search by name or email (max 3 results) and "Asignar" |
-| Analytics | `/admin/analytics` | Org, course, professor and assessment stats; score distribution |
+| Analytics | `/admin/analytics` | Org, course, professor and assessment stats; score distribution; **Por edición** table (one row per edition, filter by course with `?course=`). Each edition's Detalle tab has its own stats card |
 | Audit | `/admin/audit` | Org audit log with filters |
-| Registration links | `/admin/links` | Create links (role, label, expiry), enable/disable, revoke |
+| Registration links | `/admin/links` | Create links (role, label, expiry, max uses; empty = unlimited), enable/disable, revoke |
 | Settings | `/admin/settings`, `/admin/settings/score-scale` | Timezone and default passing score; edit score scale ranges |
 
 ### Professor — `prof@club-a.test`, `prof@fed-b.test`
@@ -102,7 +102,7 @@ Only the **editions** the professor is assigned to are visible (students, attemp
 
 | Area | Route | What you can do |
 |---|---|---|
-| Dashboard | `/teach` | Stats for the professor's courses |
+| Dashboard | `/teach` | Stats per edition you teach (one row per edition) |
 | Courses | `/teach/courses` | Courses where you teach an edition, with the edition names |
 | Edition content | `/teach/courses/[id]/editions/[offeringId]/content` → module → lesson | Same content builder as the admin, limited to the edition you teach |
 | Assessments (Quiz/Exam) | `/teach/courses/[id]/editions/[offeringId]/assessments`, `.../new`, `.../[assessmentId]` | Create and edit question-based assessments, pick questions, publish, extend the time window for students, delete |

@@ -17,6 +17,8 @@ import { OfferingTabs } from "@/features/offerings/components/offering-tabs"
 import { OfferingForm } from "@/features/offerings/components/offering-form"
 import { ModuleScheduleEditor } from "@/features/offerings/components/module-schedule-editor"
 import { EnrollmentSummary } from "@/features/offerings/components/enrollment-summary"
+import { getOfferingStats } from "@/features/analytics/queries/get-offering-stats"
+import { OfferingStatsCard } from "@/features/analytics/components/offering-stats-card"
 import { OfferingStatusControl } from "./_components/offering-status-control"
 
 interface OfferingDetailPageProps {
@@ -39,12 +41,15 @@ export default async function OfferingDetailPage({ params, searchParams }: Offer
     return notFound()
   }
 
-  const [settings, schedule, groups] = await Promise.all([
+  const [settings, schedule, groups, courseOfferingStats] = await Promise.all([
     getOrgSettings(ctx.organizationId),
     getOfferingSchedule(offeringId),
     listOrgGroups(ctx.organizationId),
+    // The stats card is optional: a failing stats query must not take down the Detalle tab.
+    getOfferingStats(ctx.organizationId, courseId).catch(() => []),
   ])
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
+  const offeringStats = courseOfferingStats.find((row) => row.offeringId === offering.id) ?? null
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,6 +103,8 @@ export default async function OfferingDetailPage({ params, searchParams }: Offer
         enrolledCount={offering.enrolledCount}
         showSync={offering.kind === "GROUP"}
       />
+
+      {offeringStats && <OfferingStatsCard stats={offeringStats} />}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium">{offeringMessages.schedule.title}</h2>

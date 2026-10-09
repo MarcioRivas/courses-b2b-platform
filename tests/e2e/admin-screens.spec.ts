@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test"
 import { loginViaOtp, expectRouteRenders } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
+import { deleteCourses, makeCourseFixture } from "../helpers/course-fixtures"
 
 const ORG_B = "22222222-2222-2222-2222-222222222222"
 const ORG_B_NAME = "Federación Demo"
@@ -129,6 +130,29 @@ test("analytics page displays all four sections for org admin (Phase 6)", async 
   await expect(page.getByRole("heading", { name: "Cursos", level: 2 })).toBeVisible()
   await expect(page.getByRole("heading", { name: "Profesores", level: 2 })).toBeVisible()
   await expect(page.getByRole("heading", { name: "Evaluaciones", level: 2 })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Por edición", level: 2 })).toBeVisible()
+})
+
+test("statistics per edition: the course filter narrows the table, and the edition shows its own stats (B4)", async () => {
+  const title = `Curso estadísticas E2E ${Date.now()}`
+  const course = await makeCourseFixture({
+    organizationId: ORG_B,
+    title,
+    modules: [{ title: "Módulo único", requiredBlocks: 1 }],
+  })
+
+  try {
+    await page.goto("/admin/analytics")
+    await page.getByRole("combobox", { name: "Curso" }).click()
+    await page.getByRole("option", { name: title }).click()
+    await page.waitForURL(`**/admin/analytics?course=${course.courseId}`)
+    await expect(page.getByRole("cell", { name: `${title} — edición`, exact: true })).toBeVisible()
+
+    await page.goto(`/admin/courses/${course.courseId}/offerings/${course.offeringId}`)
+    await expect(page.getByRole("heading", { name: "Estadísticas de la edición" })).toBeVisible()
+  } finally {
+    await deleteCourses([course.courseId])
+  }
 })
 
 test("admin dashboard still displays count cards", async () => {

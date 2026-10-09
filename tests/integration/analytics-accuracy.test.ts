@@ -27,6 +27,7 @@ interface ScoreRange {
 const cleanup: string[] = []
 const courseIds: string[] = []
 const bankIds: string[] = []
+const groupIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 let admin: TestUser
@@ -42,6 +43,8 @@ let baseline: Record<string, number>
 
 afterAll(async () => {
   await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  // Groups go last: an edition's `group_id` restricts their deletion.
+  if (groupIds.length > 0) await supabaseAdmin.from("groups").delete().in("id", groupIds)
 })
 
 function rangeFor(percent: number): ScoreRange | undefined {
@@ -372,10 +375,11 @@ describe("assessment_score_distribution", () => {
 })
 
 describe("professor_overview_stats", () => {
-  it("shows only the professor's own course with the same numbers as org_professor_stats/org_course_stats", async () => {
+  it("shows only the professor's own edition with the same numbers as org_professor_stats/org_course_stats", async () => {
     const { data } = await professor.client.rpc("professor_overview_stats")
     expect(data).toHaveLength(1)
     const row = data![0]!
+    expect(row.offering_id).toBe(offeringId)
     expect(row.course_id).toBe(courseId)
     expect(row.enrolled_count).toBe(2)
     expect(Number(row.avg_progress_percent)).toBe(75)
@@ -384,5 +388,134 @@ describe("professor_overview_stats", () => {
     expect(row.attempts_auto_submitted).toBe(0)
     expect(row.attempts_graded).toBe(3)
     expect(row.pending_grading_count).toBe(1)
+  })
+})
+
+// B4: statistics per edition. A course with two editions, built so that the
+// enrollment-weighted course average (100+40+10)/3 = 50 differs from the
+// average of the edition averages (70+10)/2 = 40.
+describe("per-edition stats (two editions of one course)", () => {
+  let twoCourseId: string
+  let editionA: string
+  let editionB: string
+  let groupName: string
+  let profA: TestUser
+  let profB: TestUser
+
+  beforeAll(async () => {
+    const course = await makeCourseFixture({
+      organizationId: ORG_A,
+      title: "Curso dos ediciones",
+      modules: [{ title: "Módulo único", requiredBlocks: 2 }],
+    })
+    courseIds.push(course.courseId)
+    twoCourseId = course.courseId
+    editionA = course.offeringId
+
+    groupName = `Grupo estadísticas ${Date.now()}`
+    const { data: group } = await supabaseAdmin
+      .from("groups")
+      .insert({ organization_id: ORG_A, name: groupName })
+      .select("id")
+      .single()
+    groupIds.push(group!.id)
+    const { data: offering } = await supabaseAdmin
+      .from("course_offerings")
+      .insert({
+        course_id: twoCourseId,
+        organization_id: ORG_A,
+        kind: "GROUP",
+        group_id: group!.id,
+        name: "Edición B",
+      })
+      .select("id")
+      .single()
+    editionB = offering!.id
+
+    profA = await member("acc-two-prof-a", ORG_A, "PROFESSOR")
+    profB = await member("acc-two-prof-b", ORG_A, "PROFESSOR")
+    await assignOfferingProfessor(editionA, profA.id)
+    await assignOfferingProfessor(editionB, profB.id)
+
+    const progress: { enrollmentId: string; percent: number; cancelled?: boolean }[] = []
+    const enroll = async (name: string, edition: string, percent: number, cancelled = false) => {
+      const student = await member(name, ORG_A, "STUDENT")
+      const enrollmentId = await enrollStudent({ ...course, offeringId: edition }, ORG_A, student.id)
+      progress.push({ enrollmentId, percent, cancelled })
+      return { student, enrollmentId }
+    }
+    const a1 = await enroll("acc-two-a1", editionA, 100)
+    await enroll("acc-two-a2", editionA, 40)
+    await enroll("acc-two-b1", editionB, 10)
+    // CANCELLED never counts, in either edition or the course.
+    await enroll("acc-two-b2", editionB, 90, true)
+
+    const exam = await makeAssessmentFixture({
+      offeringId: editionA,
+      organizationId: ORG_A,
+      title: "Examen edición A",
+      kind: "EXAM",
+      openEnded: 1,
+      durationSeconds: 3600,
+      availableFrom: new Date().toISOString(),
+      availableUntil: new Date(Date.now() + 3600000).toISOString(),
+    })
+    bankIds.push(exam.bankId)
+    await submitOpenAttempt(a1.student, a1.enrollmentId, exam.assessmentId)
+
+    // Set progress last: submitting an attempt recalculates the enrollment's progress.
+    for (const row of progress) {
+      await supabaseAdmin
+        .from("course_enrollments")
+        .update({ progress_percent: row.percent, ...(row.cancelled ? { status: "CANCELLED" as const } : {}) })
+        .eq("id", row.enrollmentId)
+    }
+  }, 60000)
+
+  it("org_offering_stats returns one row per edition of the filtered course", async () => {
+    const { data, error } = await admin.client.rpc("org_offering_stats", { p_org: ORG_A, p_course: twoCourseId })
+    expect(error).toBeNull()
+    expect((data ?? []).map((r) => r.offering_id)).toEqual([editionA, editionB])
+
+    const [rowA, rowB] = data!
+    expect(rowA).toMatchObject({ course_id: twoCourseId, group_id: null, enrolled_count: 2, attempts_count: 1 })
+    expect(Number(rowA!.avg_progress_percent)).toBe(70)
+    expect(rowA!.pending_grading_count).toBe(1)
+    expect(rowB).toMatchObject({ offering_name: "Edición B", group_name: groupName, enrolled_count: 1 })
+    expect(Number(rowB!.avg_progress_percent)).toBe(10)
+    expect(rowB!.attempts_count).toBe(0)
+    expect(rowB!.pending_grading_count).toBe(0)
+  })
+
+  it("without a course filter it still includes both editions", async () => {
+    const { data } = await admin.client.rpc("org_offering_stats", { p_org: ORG_A })
+    const ids = (data ?? []).map((r) => r.offering_id)
+    expect(ids).toEqual(expect.arrayContaining([editionA, editionB, offeringId]))
+  })
+
+  it("per-edition counts sum to the course counts; the course average is enrollment-weighted", async () => {
+    const [{ data: editions }, { data: courses }] = await Promise.all([
+      admin.client.rpc("org_offering_stats", { p_org: ORG_A, p_course: twoCourseId }),
+      admin.client.rpc("org_course_stats", { p_org: ORG_A }),
+    ])
+    const course = (courses ?? []).find((r) => r.course_id === twoCourseId)!
+    const enrolledSum = (editions ?? []).reduce((total, r) => total + Number(r.enrolled_count), 0)
+
+    expect(course.offerings_count).toBe(2)
+    expect(course.enrolled_count).toBe(enrolledSum)
+    expect(course.enrolled_count).toBe(3)
+    expect(Number(course.avg_progress_percent)).toBe(50)
+  })
+
+  it("each professor sees only their own edition's row", async () => {
+    const [{ data: rowsA }, { data: rowsB }] = await Promise.all([
+      profA.client.rpc("professor_overview_stats"),
+      profB.client.rpc("professor_overview_stats"),
+    ])
+    expect((rowsA ?? []).map((r) => r.offering_id)).toEqual([editionA])
+    expect(rowsA![0]).toMatchObject({ course_id: twoCourseId, enrolled_count: 2, pending_grading_count: 1 })
+    expect((rowsB ?? []).map((r) => r.offering_id)).toEqual([editionB])
+    expect(rowsB![0]).toMatchObject({ offering_name: "Edición B", enrolled_count: 1, pending_grading_count: 0 })
+    expect(Number(rowsB![0]!.avg_progress_percent)).toBe(10)
   })
 })

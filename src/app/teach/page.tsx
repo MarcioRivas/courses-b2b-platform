@@ -8,14 +8,14 @@ import { messages } from "@/lib/messages/es"
 import { analyticsMessages } from "@/lib/messages/analytics"
 import type { ProfessorOverviewRow } from "@/features/analytics/types"
 
-/** Professor overview (`professor_overview_stats`, B12) — own courses only, never org-wide numbers. */
+/** Professor overview (`professor_overview_stats`, B12) — own editions only, never org-wide numbers. */
 export default async function TeachPage() {
   const ctx = await requireOrgRole(["PROFESSOR"])
   const description = `${messages.home.greeting}, ${ctx.profile.firstName} ${ctx.profile.lastName} · ${messages.home.professor} · ${analyticsMessages.professor.pageDescriptionSuffix}`
 
-  let courses: ProfessorOverviewRow[]
+  let offerings: ProfessorOverviewRow[]
   try {
-    courses = await getProfessorOverview()
+    offerings = await getProfessorOverview()
   } catch {
     return (
       <div className="flex flex-col gap-6">
@@ -28,7 +28,7 @@ export default async function TeachPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader icon={PresentationIcon} title={ctx.organizationName} description={description} />
-      <ProfessorOverviewList courses={courses} />
+      <ProfessorOverviewList offerings={offerings} />
     </div>
   )
 }
