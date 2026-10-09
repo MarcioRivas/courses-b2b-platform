@@ -18,13 +18,16 @@ export interface ModuleRowActionsProps {
   canMoveUp?: boolean
   canMoveDown?: boolean
   isPending?: boolean
-  /** Edit/dependencies as text buttons (header) instead of icon buttons (rows). */
+  /**
+   * Rows show reorder + dependencies only: edit and delete live on the module's
+   * own page (header), so people open the module before changing it.
+   */
   variant?: "row" | "header"
   /** Navigate here after a successful delete (module page header, back to the course page). */
   redirectTo?: string
 }
 
-/** up/down · edit · dependencies · delete — shared by module rows and the module page header. */
+/** Rows: up/down · dependencies. Header: edit · dependencies · delete. */
 export function ModuleRowActions({
   offeringId,
   module,
@@ -52,18 +55,14 @@ export function ModuleRowActions({
           </Button>
         </>
       )}
-      <ModuleForm
-        mode="edit"
-        offeringId={offeringId}
-        module={module}
-        trigger={
-          isHeader ? (
-            <Button variant="outline" size="sm"><PencilIcon className={iconSize} /> {messages.common.edit}</Button>
-          ) : (
-            <Button variant="ghost" size="icon-sm" title={messages.common.edit} aria-label={messages.common.edit}><PencilIcon className={iconSize} /></Button>
-          )
-        }
-      />
+      {isHeader && (
+        <ModuleForm
+          mode="edit"
+          offeringId={offeringId}
+          module={module}
+          trigger={<Button variant="outline" size="sm"><PencilIcon className={iconSize} /> {messages.common.edit}</Button>}
+        />
+      )}
       <DependencyEditor
         offeringId={offeringId}
         moduleId={module.id}
@@ -77,21 +76,23 @@ export function ModuleRowActions({
           )
         }
       />
-      <ConfirmDialog
-        trigger={
-          <Button variant="ghost" size={isHeader ? "sm" : "icon-sm"} className={isHeader ? "text-destructive hover:text-destructive" : undefined} title={messages.common.delete} aria-label={messages.common.delete}>
-            <TrashIcon className={iconSize} />{isHeader && ` ${messages.common.delete}`}
-          </Button>
-        }
-        title={labels.deleteTitle}
-        description={labels.deleteDescription}
-        confirmLabel={messages.common.delete}
-        destructive
-        successMessage={labels.deleted}
-        action={deleteModule}
-        input={{ moduleId: module.id }}
-        redirectTo={redirectTo}
-      />
+      {isHeader && (
+        <ConfirmDialog
+          trigger={
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+              <TrashIcon className={iconSize} /> {messages.common.delete}
+            </Button>
+          }
+          title={labels.deleteTitle}
+          description={labels.deleteDescription}
+          confirmLabel={messages.common.delete}
+          destructive
+          successMessage={labels.deleted}
+          action={deleteModule}
+          input={{ moduleId: module.id }}
+          redirectTo={redirectTo}
+        />
+      )}
     </div>
   )
 }
