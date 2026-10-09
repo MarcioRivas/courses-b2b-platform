@@ -35,9 +35,8 @@ export const videoCheckpointMessages = {
     quizDescription: "Respondé para seguir mirando el video.",
     submit: "Responder",
     submitting: "Enviando…",
-    passed: "¡Bien! Podés seguir mirando.",
-    failed: (correct: number, total: number, needed: number) =>
-      `Acertaste ${correct} de ${total} (necesitás ${needed}).`,
+    passed: "Correcto",
+    failed: "Incorrecto",
     rewatch: "Volver a ver el fragmento",
     retry: "Reintentar",
     completed: "Video completado",

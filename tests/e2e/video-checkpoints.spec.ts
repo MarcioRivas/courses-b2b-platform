@@ -97,9 +97,11 @@ test("student: the video stops at a checkpoint, the quiz blocks it, rewatch and 
   await page.keyboard.press("Escape")
   await expect(dialog).toBeVisible()
 
+  // Nothing selected yet: "Responder" stays disabled.
+  await expect(dialog.getByRole("button", { name: "Responder" })).toBeDisabled()
   await dialog.getByLabel("Incorrecta", { exact: true }).check()
   await dialog.getByRole("button", { name: "Responder" }).click()
-  await expect(dialog.getByText("Acertaste 0 de 1 (necesitás 1).")).toBeVisible()
+  await expect(dialog.getByText("Incorrecto", { exact: true })).toBeVisible()
 
   // Rewatch: the dialog closes, the segment replays and the quiz comes back.
   await dialog.getByRole("button", { name: "Volver a ver el fragmento" }).click()
@@ -108,7 +110,7 @@ test("student: the video stops at a checkpoint, the quiz blocks it, rewatch and 
 
   await page.getByRole("dialog").getByLabel("Correcta", { exact: true }).check()
   await page.getByRole("dialog").getByRole("button", { name: "Responder" }).click()
-  await expect(page.getByText("¡Bien! Podés seguir mirando.")).toBeVisible()
+  await expect(page.getByText("Correcto", { exact: true })).toBeVisible()
 
   await expect(page.getByText("Video completado").first()).toBeVisible({ timeout: 10_000 })
   await expect.poll(() => isCompleted(lesson.enrollmentId, lesson.blockId)).toBe(true)
@@ -137,7 +139,7 @@ test("student: a video that cannot be embedded lets them answer the questions, t
   await page.getByRole("button", { name: "Responder las preguntas del video" }).click()
   await page.getByRole("dialog").getByLabel("Correcta", { exact: true }).check()
   await page.getByRole("dialog").getByRole("button", { name: "Responder" }).click()
-  await expect(page.getByText("¡Bien! Podés seguir mirando.")).toBeVisible()
+  await expect(page.getByText("Correcto", { exact: true })).toBeVisible()
 
   await page.getByRole("button", { name: "Marcar como completado" }).click()
   await expect.poll(() => isCompleted(lesson.enrollmentId, lesson.blockId)).toBe(true)
