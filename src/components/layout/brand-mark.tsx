@@ -13,6 +13,8 @@ interface BrandMarkProps {
   tone?: BrandMarkTone
   /** Accessible name for the link (defaults to the visible app name). */
   ariaLabel?: string
+  /** Tile only (collapsed sidebar); the app name stays as the accessible name. */
+  iconOnly?: boolean
   className?: string
 }
 
@@ -34,11 +36,18 @@ const TONE: Record<BrandMarkTone, { tile: string; text: string }> = {
 }
 
 /** Gradient tile + app name. Server-safe; shared by app shell, auth and landing. */
-export function BrandMark({ href = "/", size = "md", tone = "default", ariaLabel, className }: BrandMarkProps) {
+export function BrandMark({
+  href = "/",
+  size = "md",
+  tone = "default",
+  ariaLabel,
+  iconOnly = false,
+  className,
+}: BrandMarkProps) {
   return (
     <Link
       href={href}
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? (iconOnly ? APP_NAME : undefined)}
       className={cn(
         "flex items-center gap-2 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         TONE[tone].text,
@@ -51,7 +60,7 @@ export function BrandMark({ href = "/", size = "md", tone = "default", ariaLabel
       >
         <GraduationCapIcon />
       </span>
-      <span className={cn("font-heading font-semibold tracking-tight", TEXT[size])}>{APP_NAME}</span>
+      {!iconOnly && <span className={cn("font-heading font-semibold tracking-tight", TEXT[size])}>{APP_NAME}</span>}
     </Link>
   )
 }

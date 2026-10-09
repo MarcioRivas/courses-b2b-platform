@@ -91,6 +91,9 @@ export const messages = {
     professor: "Panel",
     student: "Mi aprendizaje",
     openMenu: "Abrir menú",
+    closeMenu: "Cerrar menú",
+    collapseSidebar: "Contraer menú",
+    expandSidebar: "Expandir menú",
   },
   home: {
     greeting: "Hola",
