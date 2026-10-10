@@ -185,3 +185,27 @@ test("professor: adds a checkpoint from the preview, saves it, and sees statisti
   await expect(page.getByText("Aprobaron 100% (0% al primer intento)")).toBeVisible()
   await expect(page.getByText("Respuestas incorrectas: 50%")).toBeVisible()
 })
+
+// Regression: an enter animation that stayed filled on the lesson block made it
+// the containing block for the player's `position: fixed` full screen, which
+// then shrank to the block. Full screen must cover the whole viewport.
+test("student: the video's full screen covers the whole viewport", async ({ page }) => {
+  const lesson = await videoLesson("fullscreen", [])
+  await useFakeYoutube(page)
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await openAsStudent(page, lesson.student, lesson.url)
+
+  await page.getByRole("button", { name: "Pantalla completa" }).click()
+  const exit = page.getByRole("button", { name: "Salir de pantalla completa" })
+  await expect(exit).toBeVisible()
+  const overlay = page.locator("div.fixed.inset-0", { has: exit })
+  await expect
+    .poll(async () => {
+      const box = await overlay.boundingBox()
+      return box ? [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)] : null
+    })
+    .toEqual([0, 0, 1280, 800])
+
+  await exit.click()
+  await expect(page.getByRole("button", { name: "Pantalla completa" })).toBeVisible()
+})
