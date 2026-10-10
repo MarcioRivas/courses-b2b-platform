@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils"
 import { learnMessages } from "@/lib/messages/learn"
 import { toggleBlockCompletion } from "../actions/toggle-block-completion"
 
+const ICON = "absolute inset-0 size-4 transition-[opacity,scale,filter] duration-180 ease-out-quint"
+const ICON_HIDDEN = "scale-90 opacity-0 blur-[2px]"
+
 interface CompletionToggleProps {
   enrollmentId: string
   blockId: string
@@ -53,15 +56,16 @@ export function CompletionToggle({ enrollmentId, blockId, initialCompleted }: Co
       disabled={isPending}
       onClick={toggle}
       className={cn(
-        "inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60",
-        completed ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted"
+        "inline-flex items-center gap-2 self-start rounded-md border px-3 py-1.5 text-sm font-medium transition-[background-color,border-color,color,scale] duration-150 ease-out-quint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.97] disabled:opacity-60",
+        completed ? "border-success/40 bg-success-soft text-success" : "hover:bg-muted"
       )}
     >
-      {completed ? (
-        <CheckIcon className="size-4" aria-hidden />
-      ) : (
-        <CircleIcon className="size-4" aria-hidden />
-      )}
+      {/* Both icons stay mounted and cross-fade (opacity + scale + blur), so the
+          change reads even at a glance. Collapsed under reduced motion. */}
+      <span className="relative size-4" aria-hidden>
+        <CircleIcon className={cn(ICON, completed && ICON_HIDDEN)} />
+        <CheckIcon className={cn(ICON, "stroke-3", !completed && ICON_HIDDEN)} />
+      </span>
       {completed ? learnMessages.lesson.markedComplete : learnMessages.lesson.markComplete}
     </button>
   )

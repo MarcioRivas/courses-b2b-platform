@@ -152,8 +152,13 @@ test("assessment full flow: student quiz → score; exam → save → reload →
     // Wait for the questions to render
     await expect(studentPage.locator("text=/respondidas/")).toBeVisible()
 
-    // Answer MC: click first option
+    // Answer MC: click first option. The whole option row is the label, and the
+    // chosen row is highlighted (border + tint) while the others stay plain.
     await studentPage.getByRole("radio").nth(0).click()
+    const optionRows = studentPage.locator("label:has([role=radio])")
+    const rowBorder = (index: number) =>
+      optionRows.nth(index).evaluate((element) => getComputedStyle(element).borderColor)
+    await expect.poll(async () => (await rowBorder(0)) !== (await rowBorder(1))).toBe(true)
 
     // Answer open-ended: fill textarea
     const textarea = studentPage.locator('textarea').first()

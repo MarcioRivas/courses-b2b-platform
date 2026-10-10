@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { DirectionalTransition } from "@/components/motion/directional-transition"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { EmptyState } from "@/components/shared/empty-state"
 import { ErrorState } from "@/components/shared/error-state"
@@ -45,35 +46,37 @@ export default async function StudentCoursePage({ params }: PageProps) {
   const closedReason = unlockStates[0]?.reason ?? learnMessages.errors.courseUnavailable
 
   return (
-    <>
-      <CourseProgressHeader enrollment={enrollment} timeZone={timeZone} />
+    <DirectionalTransition>
+      <div>
+        <CourseProgressHeader enrollment={enrollment} timeZone={timeZone} />
 
-      <h2 className="mb-3 text-base font-semibold tracking-tight">
-        {learnMessages.course.modulesTitle}
-      </h2>
+        <h2 className="mb-3 text-base font-semibold tracking-tight">
+          {learnMessages.course.modulesTitle}
+        </h2>
 
-      {enrollment.closed ? (
-        // `modules` comes back empty here — RLS hides an unpublished course's
-        // content — so the server's own explanation is shown instead of an
-        // empty list or the bare 404 this used to render (§53).
-        <ErrorState title={learnMessages.errors.courseUnavailable} description={closedReason} />
-      ) : modules.length === 0 ? (
-        <EmptyState title={learnMessages.course.emptyModules} />
-      ) : (
-        <ModuleList
-          enrollmentId={enrollment.id}
-          modules={modules}
-          unlockStates={new Map(unlockStates.map((state) => [state.moduleId, state]))}
-          summaries={summaries}
-          timeZone={timeZone}
-        />
-      )}
+        {enrollment.closed ? (
+          // `modules` comes back empty here — RLS hides an unpublished course's
+          // content — so the server's own explanation is shown instead of an
+          // empty list or the bare 404 this used to render (§53).
+          <ErrorState title={learnMessages.errors.courseUnavailable} description={closedReason} />
+        ) : modules.length === 0 ? (
+          <EmptyState title={learnMessages.course.emptyModules} />
+        ) : (
+          <ModuleList
+            enrollmentId={enrollment.id}
+            modules={modules}
+            unlockStates={new Map(unlockStates.map((state) => [state.moduleId, state]))}
+            summaries={summaries}
+            timeZone={timeZone}
+          />
+        )}
 
-      {!enrollment.closed && (
-        <div className="mt-8">
-          <CourseAssessmentsSection enrollmentId={enrollment.id} timeZone={timeZone} />
-        </div>
-      )}
-    </>
+        {!enrollment.closed && (
+          <div className="mt-8">
+            <CourseAssessmentsSection enrollmentId={enrollment.id} timeZone={timeZone} />
+          </div>
+        )}
+      </div>
+    </DirectionalTransition>
   )
 }

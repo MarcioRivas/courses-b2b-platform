@@ -2,6 +2,8 @@ import Link from "next/link"
 import { CheckCircle2Icon, CircleIcon } from "lucide-react"
 import { learnMessages } from "@/lib/messages/learn"
 import type { StudentLesson } from "@/features/enrollments/queries/get-enrollment-course-tree"
+import { NAV_FORWARD } from "@/components/motion/directional-transition"
+import { isLessonComplete } from "../lib/lesson-completion"
 
 interface LessonListProps {
   enrollmentId: string
@@ -17,14 +19,14 @@ export function LessonList({ enrollmentId, lessons }: LessonListProps) {
   return (
     <ul className="flex flex-col gap-1">
       {lessons.map((lesson) => {
-        const required = lesson.blocks.filter((block) => block.isRequired)
-        const done = required.length > 0 && required.every((block) => block.completed)
+        const done = isLessonComplete(lesson)
 
         return (
           <li key={lesson.id}>
             <Link
               href={`/learn/courses/${enrollmentId}/lessons/${lesson.id}`}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              transitionTypes={NAV_FORWARD}
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-muted active:bg-muted/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               {done ? (
                 <CheckCircle2Icon className="size-4 shrink-0 text-primary" aria-hidden />

@@ -49,7 +49,7 @@ export function AttemptTimer({ remainingMs, warningLevel }: AttemptTimerProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium tabular-nums",
+        "flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium tabular-nums transition-colors duration-200 ease-out-quint",
         warningLevel === "1min" || warningLevel === "expired"
           ? "border-destructive/40 bg-destructive/10 text-red-700 dark:text-red-400"
           : warningLevel === "5min"

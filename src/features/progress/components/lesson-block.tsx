@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { CSSProperties } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CheckIcon } from "lucide-react"
@@ -18,6 +19,8 @@ interface LessonBlockProps {
 
 interface LessonBlockListItemProps extends LessonBlockProps {
   lessonId: string
+  /** Position in the lesson, drives the one-time stagger on arrival (capped in CSS). */
+  index: number
   /** In-video checkpoints of this block (YOUTUBE_VIDEO only). */
   checkpoints: StudentCheckpoint[]
 }
@@ -70,7 +73,7 @@ function AssessmentBlockCard({ enrollmentId, block }: LessonBlockProps) {
   )
 }
 
-export function LessonBlock({ enrollmentId, lessonId, block, checkpoints }: LessonBlockListItemProps) {
+export function LessonBlock({ enrollmentId, lessonId, index, block, checkpoints }: LessonBlockListItemProps) {
   const isAssessment = block.type === "QUIZ" || block.type === "TASK"
 
   if (!isAssessment && !isOfferable(block.type)) {
@@ -78,7 +81,10 @@ export function LessonBlock({ enrollmentId, lessonId, block, checkpoints }: Less
   }
 
   return (
-    <li className="flex flex-col gap-3 rounded-lg border bg-card p-4">
+    <li
+      className="stagger-item flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card"
+      style={{ "--stagger-index": index } as CSSProperties}
+    >
       {!block.isRequired && (
         <Badge variant="outline" className="self-start">
           {learnMessages.lesson.optionalBlock}

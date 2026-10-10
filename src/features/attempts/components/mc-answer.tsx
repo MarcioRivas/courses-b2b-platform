@@ -26,12 +26,16 @@ export function McAnswer({ questionId, promptId, options, value, disabled, onCha
       {options.map((option, index) => {
         const inputId = `${questionId}-option-${index}`
         return (
-          <div key={option.id} className="flex items-center gap-2">
+          // The whole row is the label: a bigger target, and the chosen answer reads
+          // at a glance (border + tint, 150ms) — kept quiet, this is exam UI.
+          <Label
+            key={option.id}
+            htmlFor={inputId}
+            className="flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 leading-snug font-normal transition-[background-color,border-color] duration-150 ease-out-quint hover:bg-muted/60 has-[[data-checked]]:border-primary has-[[data-checked]]:bg-primary/5 has-disabled:cursor-default has-disabled:hover:bg-transparent"
+          >
             <RadioGroupItem id={inputId} value={option.id} />
-            <Label htmlFor={inputId} className="font-normal">
-              {option.label}
-            </Label>
-          </div>
+            <span>{option.label}</span>
+          </Label>
         )
       })}
     </RadioGroup>

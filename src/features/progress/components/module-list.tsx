@@ -6,6 +6,7 @@ import type { ModuleUnlockState } from "../queries/get-unlock-state"
 import type { ModuleSummary } from "../queries/get-module-summary"
 import { moduleStateLabel } from "../unlock-labels"
 import { ModuleStateChip } from "./module-state-chip"
+import { ModuleStateIcon } from "./module-state-icon"
 import { LessonList } from "./lesson-list"
 
 interface ModuleListProps {
@@ -37,20 +38,30 @@ export function ModuleList({
         return (
           <li
             key={module.id}
-            className={cn("rounded-2xl border bg-card p-5 shadow-card", state === "COMPLETED" && "bg-success-soft/60")}
+            data-state={state}
+            className={cn(
+              "rounded-2xl border p-5 transition-shadow duration-200 ease-out-quint",
+              openable ? "bg-card shadow-card hover:shadow-md" : "bg-muted/40 text-muted-foreground",
+              state === "COMPLETED" && "bg-success-soft/60"
+            )}
             aria-disabled={openable ? undefined : true}
           >
-            <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <h3 className="font-heading font-semibold leading-tight">{module.title}</h3>
-                {module.description && (
-                  <p className="mt-0.5 text-sm text-muted-foreground">{module.description}</p>
-                )}
+            <div className="mb-2 flex items-start gap-3">
+              <ModuleStateIcon state={state} />
+              <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h3 className={cn("font-heading font-semibold leading-tight", openable && "text-foreground")}>
+                    {module.title}
+                  </h3>
+                  {module.description && (
+                    <p className="mt-0.5 text-sm text-muted-foreground">{module.description}</p>
+                  )}
+                </div>
+                <ModuleStateChip state={state} reason={reason} />
               </div>
-              <ModuleStateChip state={state} reason={reason} />
             </div>
 
-            <p className="mb-3 text-xs text-muted-foreground">
+            <p className="mb-3 pl-12 text-xs text-muted-foreground">
               {reason}
               {state === "UPCOMING" && unlock?.availableFrom
                 ? ` ${learnMessages.course.availableFromPrefix} ${formatDateTimeInTimeZone(unlock.availableFrom, timeZone)}.`
@@ -63,7 +74,11 @@ export function ModuleList({
                 : ""}
             </p>
 
-            {openable && <LessonList enrollmentId={enrollmentId} lessons={module.lessons} />}
+            {openable && (
+              <div className="pl-10">
+                <LessonList enrollmentId={enrollmentId} lessons={module.lessons} />
+              </div>
+            )}
           </li>
         )
       })}

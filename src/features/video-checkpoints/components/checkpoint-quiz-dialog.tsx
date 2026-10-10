@@ -47,7 +47,9 @@ export function CheckpointQuizDialog({
     <Dialog open={checkpoint !== null} onOpenChange={() => {}}>
       <DialogContent
         showCloseButton={false}
-        className="top-0 left-0 h-dvh w-screen max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-none sm:max-w-none"
+        // No zoom on a full-screen surface (vestibular trigger): it rises in calmly
+        // and closes instantly, the student's focus is already back on the video.
+        className="top-0 left-0 h-dvh w-screen max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-none data-open:animate-rise-in data-closed:animate-none! sm:max-w-none"
       >
         {checkpoint && (
           <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 self-center py-6">
@@ -80,7 +82,7 @@ export function CheckpointQuizDialog({
 
             <div aria-live="polite">
               {failed && (
-                <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                <p className="animate-rise-in rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                   {copy.failed}
                 </p>
               )}

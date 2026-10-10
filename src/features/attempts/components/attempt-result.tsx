@@ -46,7 +46,7 @@ export async function AttemptResult({ snapshot }: AttemptResultProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
+      <Card className="animate-rise-in">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle>{copy.title}</CardTitle>
@@ -64,6 +64,14 @@ export async function AttemptResult({ snapshot }: AttemptResultProps) {
               >
                 {formatScorePercent(scorePercent)}
               </p>
+              {scorePercent !== null && (
+                <div aria-hidden className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={cn("h-full w-full origin-left animate-fill-in rounded-full", passed ? "bg-primary" : "bg-muted-foreground/40")}
+                    style={{ transform: `scaleX(${Math.max(0, Math.min(100, scorePercent)) / 100})` }}
+                  />
+                </div>
+              )}
               {scoreLabel && (
                 <p className="text-sm text-muted-foreground">
                   {scoreLabel} — {passed ? copy.passed : copy.notPassed}

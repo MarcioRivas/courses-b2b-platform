@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { DirectionalTransition } from "@/components/motion/directional-transition"
 import { GraduationCapIcon } from "lucide-react"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
@@ -20,42 +21,44 @@ export default async function LearnPage() {
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
 
   return (
-    <>
-      <PageHeader
-        icon={GraduationCapIcon}
-        title={learnMessages.dashboard.title}
-        description={learnMessages.dashboard.description}
-      >
-        <Link
-          href="/learn/catalog"
-          className="text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    <DirectionalTransition>
+      <div>
+        <PageHeader
+          icon={GraduationCapIcon}
+          title={learnMessages.dashboard.title}
+          description={learnMessages.dashboard.description}
         >
-          {learnMessages.dashboard.browseCatalog}
-        </Link>
-      </PageHeader>
+          <Link
+            href="/learn/catalog"
+            className="text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {learnMessages.dashboard.browseCatalog}
+          </Link>
+        </PageHeader>
 
-      <div className="flex flex-col gap-8">
-        <PendingResultsStrip
-          activeEnrollments={[...buckets.assigned.active, ...buckets.free.active].map((enrollment) => ({
-            id: enrollment.id,
-            courseTitle: enrollment.courseTitle,
-          }))}
-        />
-        <EnrollmentSection
-          title={learnMessages.dashboard.assignedTitle}
-          active={buckets.assigned.active}
-          finished={buckets.assigned.finished}
-          emptyMessage={learnMessages.dashboard.emptyAssigned}
-          timeZone={timeZone}
-        />
-        <EnrollmentSection
-          title={learnMessages.dashboard.freeTitle}
-          active={buckets.free.active}
-          finished={buckets.free.finished}
-          emptyMessage={learnMessages.dashboard.emptyFree}
-          timeZone={timeZone}
-        />
+        <div className="flex flex-col gap-8">
+          <PendingResultsStrip
+            activeEnrollments={[...buckets.assigned.active, ...buckets.free.active].map((enrollment) => ({
+              id: enrollment.id,
+              courseTitle: enrollment.courseTitle,
+            }))}
+          />
+          <EnrollmentSection
+            title={learnMessages.dashboard.assignedTitle}
+            active={buckets.assigned.active}
+            finished={buckets.assigned.finished}
+            emptyMessage={learnMessages.dashboard.emptyAssigned}
+            timeZone={timeZone}
+          />
+          <EnrollmentSection
+            title={learnMessages.dashboard.freeTitle}
+            active={buckets.free.active}
+            finished={buckets.free.finished}
+            emptyMessage={learnMessages.dashboard.emptyFree}
+            timeZone={timeZone}
+          />
+        </div>
       </div>
-    </>
+    </DirectionalTransition>
   )
 }

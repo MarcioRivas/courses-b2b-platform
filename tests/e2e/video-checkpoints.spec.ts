@@ -94,6 +94,8 @@ test("student: the video stops at a checkpoint, the quiz blocks it, rewatch and 
   const dialog = page.getByRole("dialog")
   await expect(dialog.getByText("Pregunta del minuto 0:05")).toBeVisible()
   await expect(page.getByTestId("fake-yt")).toBeHidden()
+  // Full-screen quiz rises in, never zooms (vestibular trigger).
+  expect(await dialog.evaluate((element) => getComputedStyle(element).animationName)).toBe("rise-in")
   await page.keyboard.press("Escape")
   await expect(dialog).toBeVisible()
 

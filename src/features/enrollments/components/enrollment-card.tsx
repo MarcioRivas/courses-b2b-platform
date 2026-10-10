@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { formatDateInTimeZone } from "@/lib/dates/format-in-time-zone"
 import { learnMessages } from "@/lib/messages/learn"
+import { NAV_FORWARD } from "@/components/motion/directional-transition"
 import type { StudentEnrollment } from "../types"
 import { ProgressBar } from "./progress-bar"
 
@@ -20,7 +21,8 @@ export function EnrollmentCard({ enrollment, timeZone }: EnrollmentCardProps) {
   return (
     <Link
       href={`/learn/courses/${enrollment.id}`}
-      className="flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      transitionTypes={NAV_FORWARD}
+      className="flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-card transition duration-200 ease-out-quint hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <div className="flex flex-col gap-0.5">
         <h3 className="font-heading font-semibold leading-tight">{enrollment.courseTitle}</h3>
