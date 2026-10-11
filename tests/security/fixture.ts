@@ -64,6 +64,9 @@ export interface SecurityFixture {
   linkA: { id: string; token: string }
   linkB: { id: string; token: string }
   auditLogA: number
+  /** Direct-message conversation studentA ↔ profA (org A) and one message in it. */
+  conversationA: string
+  messageA: string
   cleanup: () => Promise<void>
 }
 
@@ -194,7 +197,9 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
       multipleChoice: 1,
       openEnded: 1,
       durationSeconds: 3600,
-      availableFrom: new Date().toISOString(),
+      // A minute in the past: "now" on the host can be a few ms ahead of the
+      // DB container's now(), which made start_attempt see a not-yet-open window.
+      availableFrom: new Date(Date.now() - 60_000).toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
     bankIds.push(assessment.bankId)
@@ -342,6 +347,17 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     .single()
   if (spareGroupError || !spareGroup) throw spareGroupError ?? new Error("spare group not created")
 
+  // Through the RPCs, as a real student would: they derive the org and pair.
+  const { data: conversationA, error: conversationError } = await studentA.client.rpc("start_conversation", {
+    p_user: profA.id,
+  })
+  if (conversationError || !conversationA) throw conversationError ?? new Error("conversation not created")
+  const { data: sent, error: sendError } = await studentA.client.rpc("send_message", {
+    p_conversation: conversationA,
+    p_body: "Sec mensaje",
+  })
+  if (sendError || !sent?.[0]) throw sendError ?? new Error("message not sent")
+
   return {
     orgA,
     orgB,
@@ -381,6 +397,8 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     linkA: sideA.link,
     linkB: sideB.link,
     auditLogA: auditLog.id,
+    conversationA,
+    messageA: sent[0].id,
     cleanup: async () => {
       for (const id of userIds) await deleteUser(id)
       if (courseIds.length > 0) await supabaseAdmin.from("courses").delete().in("id", courseIds)

@@ -625,6 +625,61 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          organization_id: string
+          user_a: string
+          user_a_last_read_at: string | null
+          user_b: string
+          user_b_last_read_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          organization_id: string
+          user_a: string
+          user_a_last_read_at?: string | null
+          user_b: string
+          user_b_last_read_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          organization_id?: string
+          user_a?: string
+          user_a_last_read_at?: string | null
+          user_b?: string
+          user_b_last_read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_user_a_fkey"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_user_b_fkey"
+            columns: ["user_b"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null
@@ -1008,6 +1063,55 @@ export type Database = {
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2154,6 +2258,14 @@ export type Database = {
           status: Database["public"]["Enums"]["attempt_status"]
         }[]
       }
+      is_active_member_of: {
+        Args: { p_org: string; p_user: string }
+        Returns: boolean
+      }
+      is_conversation_participant: {
+        Args: { p_conversation: string }
+        Returns: boolean
+      }
       is_enrolled_in_course: { Args: { p_course: string }; Returns: boolean }
       is_offering_professor: { Args: { p_offering: string }; Returns: boolean }
       is_org_admin: { Args: { p_org: string }; Returns: boolean }
@@ -2203,6 +2315,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_conversation_read: {
+        Args: { p_conversation: string; p_up_to?: string }
+        Returns: undefined
+      }
       module_unlock_state: {
         Args: { p_enrollment: string }
         Returns: {
@@ -2211,6 +2327,22 @@ export type Database = {
           module_id: string
           reason: string
           state: string
+        }[]
+      }
+      my_active_org: { Args: never; Returns: string }
+      my_conversations: {
+        Args: { p_conversation?: string }
+        Returns: {
+          conversation_id: string
+          last_message_at: string
+          last_message_body: string
+          last_message_sender_id: string
+          other_first_name: string
+          other_is_active: boolean
+          other_last_name: string
+          other_role: Database["public"]["Enums"]["membership_role"]
+          other_user_id: string
+          unread_count: number
         }[]
       }
       my_enrollment_summaries: {
@@ -2247,6 +2379,7 @@ export type Database = {
           submitted_late: boolean
         }[]
       }
+      my_unread_message_count: { Args: never; Returns: number }
       normalize_dni: { Args: { p_dni: string }; Returns: string }
       offering_id_of_assessment: {
         Args: { p_assessment: string }
@@ -2435,7 +2568,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      search_messageable_members: {
+        Args: { p_q: string }
+        Returns: {
+          first_name: string
+          last_name: string
+          role: Database["public"]["Enums"]["membership_role"]
+          user_id: string
+        }[]
+      }
       self_enroll_free_course: { Args: { p_course: string }; Returns: string }
+      send_message: {
+        Args: { p_body: string; p_client_id?: string; p_conversation: string }
+        Returns: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }[]
+      }
       set_assessment_questions: {
         Args: { p_assessment: string; p_items: Json }
         Returns: undefined
@@ -2519,6 +2671,7 @@ export type Database = {
         Args: { p_assessment: string; p_enrollment: string }
         Returns: string
       }
+      start_conversation: { Args: { p_user: string }; Returns: string }
       student_attempt_view: {
         Args: { p_attempt: string }
         Returns: {

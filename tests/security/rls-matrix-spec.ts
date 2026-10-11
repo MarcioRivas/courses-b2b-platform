@@ -4,10 +4,11 @@ import { coursesSpec } from "./rls-matrix-spec-courses"
 import { contentSpec } from "./rls-matrix-spec-content"
 import { assessmentsSpec } from "./rls-matrix-spec-assessments"
 import { progressSpec } from "./rls-matrix-spec-progress"
+import { messagingSpec } from "./rls-matrix-spec-messaging"
 
 /** All public tables × {select, insert, update, delete} × 7 roles, combined. */
 export function fullMatrixSpec(): MatrixCase[] {
-  return [...tenancySpec(), ...coursesSpec(), ...contentSpec(), ...assessmentsSpec(), ...progressSpec()]
+  return [...tenancySpec(), ...coursesSpec(), ...contentSpec(), ...assessmentsSpec(), ...progressSpec(), ...messagingSpec()]
 }
 
 /**
@@ -30,4 +31,6 @@ export const NO_WRITE_POLICY_TABLES = [
   "audit_logs",
   "video_checkpoint_attempts",
   "video_checkpoint_attempt_answers",
+  "conversations",
+  "messages",
 ] as const

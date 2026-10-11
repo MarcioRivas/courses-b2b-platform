@@ -1,0 +1,66 @@
+/** Copy for direct messaging between members of the same organization. */
+export const messagingMessages = {
+  panel: {
+    title: "Chats",
+    searchLabel: "Buscar miembros de tu organización",
+    searchPlaceholder: "Buscar personas",
+    all: "Todos",
+    unread: "No leídos",
+    loading: "Cargando conversaciones…",
+    noUnread: "No tenés mensajes sin leer.",
+    emptyHint: "Buscá a cualquier miembro de tu organización para escribirle.",
+  },
+  dock: {
+    minimized: "Chats minimizados",
+    window: (name: string) => `Chat con ${name}`,
+    open: (name: string) => `Abrir chat con ${name}`,
+    minimize: (name: string) => `Minimizar chat con ${name}`,
+    close: (name: string) => `Cerrar chat con ${name}`,
+  },
+  inbox: {
+    emptyTitle: "Todavía no tenés conversaciones.",
+    you: "Vos:",
+    unread: (count: number) => (count === 1 ? "1 mensaje sin leer" : `${count} mensajes sin leer`),
+  },
+  thread: {
+    empty: "Todavía no hay mensajes. Escribí el primero.",
+    loadOlder: "Cargar mensajes anteriores",
+    loadingOlder: "Cargando…",
+    today: "Hoy",
+    yesterday: "Ayer",
+    inactive: "Este miembro ya no está activo en la organización. No podés enviarle mensajes.",
+    failed: "No se envió.",
+    retry: "Reintentar",
+    sending: "Enviando…",
+  },
+  composer: {
+    label: "Escribí un mensaje",
+    placeholder: "Escribí un mensaje…",
+    send: "Enviar",
+    hint: "Enter para enviar, Shift+Enter para una línea nueva.",
+    remaining: (count: number) => `Quedan ${count} caracteres`,
+  },
+  search: {
+    noResults: "No encontramos miembros con ese nombre.",
+    searching: "Buscando…",
+  },
+  roles: {
+    ADMIN: "Administrador",
+    PROFESSOR: "Profesor",
+    STUDENT: "Alumno",
+  },
+  formerMember: "Ex miembro",
+  validation: {
+    empty: "El mensaje no puede estar vacío.",
+    tooLong: "El mensaje es demasiado largo.",
+  },
+  errors: {
+    FORBIDDEN: "No tenés acceso a esta conversación.",
+    NOT_FOUND: "No encontramos a ese miembro en tu organización.",
+    SELF_CONVERSATION: "No podés enviarte mensajes a vos mismo.",
+    MEMBER_INACTIVE: "Este miembro ya no está activo en la organización.",
+    INVALID_BODY: "El mensaje debe tener entre 1 y 4000 caracteres.",
+    RATE_LIMITED: "Estás enviando mensajes muy rápido. Esperá un momento.",
+    UNKNOWN: "No se pudo completar la acción. Intentá de nuevo.",
+  },
+} as const

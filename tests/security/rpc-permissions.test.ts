@@ -408,3 +408,53 @@ describe("staff transcript RPCs: edition-scoped, org-scoped, anon denied", () =>
     }
   })
 })
+
+describe("direct messaging RPCs: org-scoped, participant-only, anon denied", () => {
+  it("internal helpers are not executable by authenticated or anon", () => {
+    for (const role of ["authenticated", "anon"]) {
+      for (const fn of ["my_active_org()", "is_active_member_of(uuid,uuid)"]) {
+        expect(psqlBool(`select has_function_privilege('${role}','${fn}','execute');`)).toBe(false)
+      }
+    }
+  })
+
+  it("anon is denied every messaging RPC", async () => {
+    const anon = anonClient()
+    const calls = [
+      anon.rpc("start_conversation", { p_user: fx.users.profA.id }),
+      anon.rpc("send_message", { p_conversation: fx.conversationA, p_body: "anon" }),
+      anon.rpc("mark_conversation_read", { p_conversation: fx.conversationA }),
+      anon.rpc("my_conversations", {}),
+      anon.rpc("my_unread_message_count"),
+      anon.rpc("search_messageable_members", { p_q: "Sec" }),
+    ]
+    for (const r of await Promise.all(calls)) {
+      expect(r.error).not.toBeNull()
+    }
+  })
+
+  it("the org admin cannot post into or read a conversation of two of its members", async () => {
+    const post = await fx.users.adminA.client.rpc("send_message", { p_conversation: fx.conversationA, p_body: "admin" })
+    expect(post.error?.code).toBe("42501")
+    const read = await fx.users.adminA.client.rpc("my_conversations", { p_conversation: fx.conversationA })
+    expect(read.data ?? []).toHaveLength(0)
+  })
+
+  it("a user of the other org cannot start a chat with, or read, org A members", async () => {
+    const start = await fx.users.studentB.client.rpc("start_conversation", { p_user: fx.users.studentA.id })
+    expect(start.error?.message).toContain("NOT_FOUND")
+    const post = await fx.users.studentB.client.rpc("send_message", { p_conversation: fx.conversationA, p_body: "x" })
+    expect(post.error?.code).toBe("42501")
+    const search = await fx.users.studentB.client.rpc("search_messageable_members", { p_q: "Sec" })
+    const ids = (search.data ?? []).map((row) => row.user_id)
+    expect(ids).not.toContain(fx.users.studentA.id)
+    expect(ids).not.toContain(fx.users.profA.id)
+  })
+
+  it("the platform admin is not an org member and gets nothing", async () => {
+    const inbox = await fx.users.superAdmin.client.rpc("my_conversations", {})
+    expect(inbox.error?.code).toBe("42501")
+    const start = await fx.users.superAdmin.client.rpc("start_conversation", { p_user: fx.users.studentA.id })
+    expect(start.error?.code).toBe("42501")
+  })
+})
