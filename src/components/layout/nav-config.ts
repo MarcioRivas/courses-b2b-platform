@@ -20,6 +20,7 @@ import { courseMessages } from "@/lib/messages/admin-courses"
 import { learnMessages } from "@/lib/messages/learn"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { analyticsMessages } from "@/lib/messages/analytics"
+import { studentTranscriptMessages } from "@/lib/messages/student-transcript"
 import { auditMessages } from "@/lib/messages/audit"
 import type { Database } from "@/types/database.types"
 
@@ -74,6 +75,7 @@ export const NAV_SECTIONS: Record<AppRole, NavSection[]> = {
         { label: courseMessages.nav.courses, href: "/teach/courses", icon: BookOpenIcon },
         { label: teachAssessmentMessages.nav.banks, href: "/teach/banks", icon: LibraryIcon },
         { label: teachAssessmentMessages.nav.grading, href: "/teach/grading", icon: ClipboardCheckIcon },
+        { label: studentTranscriptMessages.nav, href: "/teach/students", icon: UsersIcon },
       ],
     },
   ],

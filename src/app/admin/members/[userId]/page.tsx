@@ -9,6 +9,10 @@ import { MemberStatusToggle } from "@/features/users/components/member-status-to
 import { Badge } from "@/components/ui/badge"
 import { messages } from "@/lib/messages/es"
 import { adminMembersMessages } from "@/lib/messages/admin-members"
+import { studentTranscriptMessages } from "@/lib/messages/student-transcript"
+import { StudentTranscript } from "@/features/transcript/components/student-transcript"
+import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
+import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 
 interface AdminMemberDetailPageProps {
   params: Promise<{ userId: string }>
@@ -23,6 +27,7 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
     notFound()
   }
 
+  const settings = await getOrgSettings(ctx.organizationId)
   const fullName = `${member.firstName} ${member.lastName}`.trim()
   const isSelf = member.userId === ctx.user.id
   // The RPC refuses org admins editing ADMIN members (profiles are global); only platform admins may.
@@ -107,6 +112,15 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold">{studentTranscriptMessages.title}</h2>
+        <StudentTranscript
+          userId={member.userId}
+          area="admin"
+          timeZone={settings?.timezone ?? DEFAULT_TIME_ZONE}
+        />
       </section>
     </div>
   )
