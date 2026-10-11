@@ -1,4 +1,7 @@
+import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { studentTranscriptMessages } from "@/lib/messages/student-transcript"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { PageHeader } from "@/components/shared/page-header"
 import { getAttemptForGrading } from "@/features/grading/queries/get-attempt-for-grading"
@@ -6,6 +9,7 @@ import { GradingPanel } from "@/features/grading/components/grading-panel"
 import { teachGradingMessages } from "@/lib/messages/teach-grading"
 import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
+import { listScoreRanges } from "@/features/organizations/queries/list-score-ranges"
 import { getTaskSubmissionForGrading } from "@/features/task-submissions/queries/get-task-submission-for-grading"
 import { TaskGradingPanel } from "@/features/task-submissions/components/task-grading-panel"
 
@@ -24,10 +28,11 @@ export default async function TeachGradingAttemptPage({ params }: TeachGradingAt
   }
 
   // A TASK is graded as a whole (files + one 0..100 score), not per question.
-  const [taskSubmission, settings] =
-    attempt.assessmentKind === "TASK"
-      ? await Promise.all([getTaskSubmissionForGrading(attemptId), getOrgSettings(ctx.organizationId)])
-      : [null, null]
+  const [taskSubmission, settings, scoreRanges] = await Promise.all([
+    attempt.assessmentKind === "TASK" ? getTaskSubmissionForGrading(attemptId) : null,
+    attempt.assessmentKind === "TASK" ? getOrgSettings(ctx.organizationId) : null,
+    listScoreRanges(ctx.organizationId),
+  ])
 
   if (attempt.assessmentKind === "TASK" && !taskSubmission) {
     return notFound()
@@ -41,11 +46,23 @@ export default async function TeachGradingAttemptPage({ params }: TeachGradingAt
           { label: teachGradingMessages.queue.title, href: "/teach/grading" },
           { label: `${attempt.studentName} · ${attempt.assessmentTitle}` },
         ]}
-      />
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          render={<Link href={`/teach/students/${attempt.studentUserId}`} />}
+        >
+          {studentTranscriptMessages.students.viewAction}
+        </Button>
+      </PageHeader>
       {taskSubmission ? (
-        <TaskGradingPanel submission={taskSubmission} timeZone={settings?.timezone ?? DEFAULT_TIME_ZONE} />
+        <TaskGradingPanel
+          submission={taskSubmission}
+          timeZone={settings?.timezone ?? DEFAULT_TIME_ZONE}
+          scoreRanges={scoreRanges}
+        />
       ) : (
-        <GradingPanel attempt={attempt} />
+        <GradingPanel attempt={attempt} scoreRanges={scoreRanges} />
       )}
     </div>
   )

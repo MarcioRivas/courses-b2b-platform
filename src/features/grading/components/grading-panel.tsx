@@ -1,78 +1,123 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { messages } from "@/lib/messages/es"
 import { teachGradingMessages } from "@/lib/messages/teach-grading"
-import { saveAttemptFeedback } from "../actions/save-attempt-feedback"
-import { saveAttemptFeedbackSchema } from "../schemas/grading-schemas"
+import { resolveScoreLabel, type ScoreRangeForLabel } from "@/features/organizations/score-label"
+import { saveAttemptGrades } from "../actions/save-attempt-grades"
+import { computeAttemptScore } from "../lib/compute-attempt-score"
 import { ScoreSummary } from "./score-summary"
-import { AnswerGrader, type GradeTotals } from "./answer-grader"
+import { AnswerGrader, type AnswerGradeValue } from "./answer-grader"
+import { GradePreviewDialog } from "./grade-preview-dialog"
+import { useUnsavedChangesGuard } from "./use-unsaved-changes-guard"
 import type { AttemptForGrading } from "../types"
 
 interface GradingPanelProps {
   attempt: AttemptForGrading
+  scoreRanges: ScoreRangeForLabel[]
 }
 
-/** Per-attempt review screen (D15): every open answer + the overall feedback box. */
-export function GradingPanel({ attempt: initialAttempt }: GradingPanelProps) {
-  const [attempt, setAttempt] = useState(initialAttempt)
-  const [feedback, setFeedback] = useState(initialAttempt.overallFeedback ?? "")
-  const [isSavingFeedback, setIsSavingFeedback] = useState(false)
+/** Per-attempt review (D15): all open answers + overall feedback, ONE "Guardar" that previews then persists in a single transaction. */
+export function GradingPanel({ attempt, scoreRanges }: GradingPanelProps) {
+  const router = useRouter()
+  const [values, setValues] = useState<Record<string, AnswerGradeValue>>(() =>
+    Object.fromEntries(
+      attempt.questions
+        .filter((q) => q.type === "OPEN_ENDED")
+        .map((q) => [q.attemptQuestionId, { points: q.pointsAwarded === null ? "" : String(q.pointsAwarded), feedback: q.feedback ?? "" }])
+    )
+  )
+  const [feedback, setFeedback] = useState(attempt.overallFeedback ?? "")
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
+  const [dirty, setDirty] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  useUnsavedChangesGuard(dirty)
 
-  function handleGraded(questionId: string, pointsAwarded: number, questionFeedback: string | null, totals: GradeTotals) {
-    setAttempt((prev) => {
-      const questions = prev.questions.map((question) =>
-        question.attemptQuestionId === questionId
-          ? { ...question, pointsAwarded, feedback: questionFeedback }
-          : question
-      )
-      const manualScore = questions
-        .filter((question) => question.type === "OPEN_ENDED")
-        .reduce((sum, question) => sum + (question.pointsAwarded ?? 0), 0)
+  const score = useMemo(() => {
+    const manualPoints: Record<string, number | null> = {}
+    for (const [id, v] of Object.entries(values)) {
+      const n = v.points.trim() === "" ? null : Number(v.points)
+      manualPoints[id] = n === null || Number.isNaN(n) ? null : n
+    }
+    return computeAttemptScore({ questions: attempt.questions, manualPoints })
+  }, [values, attempt.questions])
 
-      return {
-        ...prev,
-        questions,
-        manualScore,
-        status: totals.status,
-        totalScore: totals.totalScore,
-        scorePercent: totals.scorePercent,
-        scoreLabel: totals.scoreLabel,
-      }
-    })
+  const range = score.percent === null ? null : resolveScoreLabel(scoreRanges, score.percent)
+  const liveAttempt: AttemptForGrading = {
+    ...attempt,
+    autoScore: score.autoScore,
+    manualScore: score.manualScore,
+    totalScore: score.totalScore,
+    scorePercent: score.percent,
+    scoreLabel: range?.label ?? null,
+    passed: range?.isPassing ?? null,
   }
 
-  async function handleSaveFeedback() {
-    const parsed = saveAttemptFeedbackSchema.safeParse({ attemptId: attempt.attemptId, feedback })
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? teachGradingMessages.errors.feedbackRequired)
-      return
-    }
+  function handleAnswerChange(id: string, value: AnswerGradeValue) {
+    setDirty(true)
+    setValues((prev) => ({ ...prev, [id]: value }))
+    setErrors((prev) => ({ ...prev, [id]: "" }))
+  }
 
-    setIsSavingFeedback(true)
-    const result = await saveAttemptFeedback(parsed.data)
-    setIsSavingFeedback(false)
-
-    if (!result.ok) {
-      toast.error(result.message)
-      return
+  /** Client pre-check; the server re-validates everything. */
+  function validate(): boolean {
+    const next: Record<string, string> = {}
+    for (const q of attempt.questions) {
+      if (q.type !== "OPEN_ENDED") {
+        continue
+      }
+      const raw = values[q.attemptQuestionId]?.points.trim()
+      if (!raw) {
+        // A saved grade cannot be cleared (the batch only upserts): blank would
+        // preview as ungraded while the server keeps the old points.
+        if (q.pointsAwarded !== null) {
+          next[q.attemptQuestionId] = teachGradingMessages.errors.pointsRange(q.points)
+        }
+        continue
+      }
+      const n = Number(raw)
+      if (Number.isNaN(n) || n < 0 || n > q.points) {
+        next[q.attemptQuestionId] = teachGradingMessages.errors.pointsRange(q.points)
+      }
     }
-    toast.success(teachGradingMessages.panel.feedbackSaved)
+    setErrors(next)
+    const missingFeedback = feedback.trim() === ""
+    setFeedbackError(missingFeedback ? teachGradingMessages.errors.feedbackRequired : null)
+    return Object.keys(next).length === 0 && !missingFeedback
+  }
+
+  async function handleConfirm() {
+    const grades = Object.entries(values)
+      .filter(([, v]) => v.points.trim() !== "")
+      .map(([attemptQuestionId, v]) => ({
+        attemptQuestionId,
+        points: Number(v.points),
+        feedback: v.feedback.trim() || undefined,
+      }))
+    const result = await saveAttemptGrades({ attemptId: attempt.attemptId, grades, feedback })
+    if (result.ok) {
+      setDirty(false)
+      toast.success(teachGradingMessages.panel.gradesSaved(result.data.scorePercent, result.data.scoreLabel))
+      router.refresh()
+    }
+    return result
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <ScoreSummary attempt={attempt} />
+      <ScoreSummary attempt={liveAttempt} />
       <div className="flex flex-col gap-3">
         {attempt.questions.map((question) => (
           <AnswerGrader
             key={question.attemptQuestionId}
-            attemptId={attempt.attemptId}
             question={question}
-            onGraded={handleGraded}
+            value={values[question.attemptQuestionId] ?? { points: "", feedback: "" }}
+            onChange={(value) => handleAnswerChange(question.attemptQuestionId, value)}
+            error={errors[question.attemptQuestionId] || undefined}
           />
         ))}
       </div>
@@ -83,14 +128,34 @@ export function GradingPanel({ attempt: initialAttempt }: GradingPanelProps) {
         <Textarea
           id="overall-feedback"
           value={feedback}
-          onChange={(event) => setFeedback(event.target.value)}
+          onChange={(event) => {
+            setDirty(true)
+            setFeedback(event.target.value)
+            setFeedbackError(null)
+          }}
           rows={4}
+          aria-invalid={feedbackError ? true : undefined}
           placeholder={teachGradingMessages.panel.overallFeedbackPlaceholder}
         />
-        <Button onClick={handleSaveFeedback} disabled={isSavingFeedback} className="self-start">
-          {isSavingFeedback ? messages.common.loading : messages.common.save}
-        </Button>
+        {feedbackError && (
+          <p role="alert" className="text-sm text-destructive">
+            {feedbackError}
+          </p>
+        )}
       </div>
+      <div className="sticky bottom-0 -mx-1 flex items-center justify-between gap-3 border-t bg-background/95 px-1 py-3 backdrop-blur">
+        <p className="text-sm text-muted-foreground">{dirty ? teachGradingMessages.panel.unsavedHint : ""}</p>
+        <Button onClick={() => validate() && setPreviewOpen(true)}>{teachGradingMessages.panel.saveAction}</Button>
+      </div>
+      <GradePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        percent={score.percent}
+        label={range?.label ?? null}
+        isPassing={range?.isPassing ?? null}
+        ungradedCount={score.ungradedCount}
+        onConfirm={handleConfirm}
+      />
     </div>
   )
 }

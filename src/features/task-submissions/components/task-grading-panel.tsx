@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDateTimeInTimeZone } from "@/lib/dates/format-in-time-zone"
 import { taskSubmissionMessages } from "@/lib/messages/task-submissions"
 import { teachGradingMessages } from "@/lib/messages/teach-grading"
+import type { ScoreRangeForLabel } from "@/features/organizations/score-label"
 import { formatScoreSummary } from "@/features/attempts/lib/format-score"
 import type { TaskSubmissionForGrading } from "../queries/get-task-submission-for-grading"
 import { TaskGradeForm } from "./task-grade-form"
@@ -11,6 +12,7 @@ import { TaskSubmittedFiles } from "./task-submitted-files"
 interface TaskGradingPanelProps {
   submission: TaskSubmissionForGrading
   timeZone: string
+  scoreRanges: ScoreRangeForLabel[]
 }
 
 /**
@@ -18,7 +20,7 @@ interface TaskGradingPanelProps {
  * (open/download) and the score + feedback form. The form only appears once
  * the deadline has passed — `grade_task_submission` refuses earlier.
  */
-export function TaskGradingPanel({ submission, timeZone }: TaskGradingPanelProps) {
+export function TaskGradingPanel({ submission, timeZone, scoreRanges }: TaskGradingPanelProps) {
   const copy = taskSubmissionMessages.grading
   const deadlinePassed = submission.availableUntil !== null && new Date() >= new Date(submission.availableUntil)
   const graded = submission.status === "GRADED"
@@ -78,6 +80,7 @@ export function TaskGradingPanel({ submission, timeZone }: TaskGradingPanelProps
               submittedAt={submission.submittedAt}
               initialScore={submission.scorePercent}
               initialFeedback={submission.feedback}
+              scoreRanges={scoreRanges}
             />
           ) : (
             <p className="text-sm text-muted-foreground">

@@ -1995,6 +1995,10 @@ export type Database = {
       can_edit_offering: { Args: { p_offering: string }; Returns: boolean }
       can_edit_question_bank: { Args: { p_bank: string }; Returns: boolean }
       can_grade_attempt: { Args: { p_attempt: string }; Returns: boolean }
+      can_staff_view_enrollment: {
+        Args: { p_enrollment: string }
+        Returns: boolean
+      }
       can_view_attempt: { Args: { p_attempt: string }; Returns: boolean }
       can_view_block: { Args: { p_block: string }; Returns: boolean }
       can_view_enrollment: { Args: { p_enrollment: string }; Returns: boolean }
@@ -2098,6 +2102,18 @@ export type Database = {
           exhausted: boolean
           organization_name: string
           valid: boolean
+        }[]
+      }
+      grade_attempt_batch: {
+        Args: { p_attempt: string; p_feedback: string; p_grades: Json }
+        Returns: {
+          max_score: number
+          passed: boolean
+          score_label: string
+          score_percent: number
+          status: Database["public"]["Enums"]["attempt_status"]
+          total_score: number
+          ungraded_count: number
         }[]
       }
       grade_open_answer: {
@@ -2355,6 +2371,10 @@ export type Database = {
         Args: { p_enrollment: string }
         Returns: undefined
       }
+      recompute_attempt_score: {
+        Args: { p_attempt: string }
+        Returns: undefined
+      }
       refresh_offering_enrollment_totals: {
         Args: { p_offering: string }
         Returns: undefined
@@ -2435,6 +2455,66 @@ export type Database = {
         Returns: undefined
       }
       shares_active_org: { Args: { p_user: string }; Returns: boolean }
+      staff_enrollment_activity: {
+        Args: { p_enrollment: string }
+        Returns: {
+          item_title: string
+          kind: string
+          lesson_title: string
+          module_title: string
+          occurred_at: string
+          passed: boolean
+          score_label: string
+        }[]
+      }
+      staff_enrollment_assessments: {
+        Args: { p_enrollment: string }
+        Returns: {
+          assessment_id: string
+          attempts_used: number
+          available_until: string
+          kind: Database["public"]["Enums"]["assessment_kind"]
+          last_attempt_id: string
+          last_status: Database["public"]["Enums"]["attempt_status"]
+          max_attempts: number
+          passed: boolean
+          score_label: string
+          score_percent: number
+          title: string
+        }[]
+      }
+      staff_enrollment_pending: {
+        Args: { p_enrollment: string }
+        Returns: {
+          block_position: number
+          item_kind: string
+          item_title: string
+          kind: string
+          lesson_position: number
+          lesson_title: string
+          module_position: number
+          module_title: string
+        }[]
+      }
+      staff_student_enrollments: {
+        Args: { p_user: string }
+        Returns: {
+          completed_at: string
+          completed_blocks: number
+          course_id: string
+          course_title: string
+          ends_at: string
+          enrolled_at: string
+          enrollment_id: string
+          enrollment_status: Database["public"]["Enums"]["enrollment_status"]
+          offering_id: string
+          offering_label: string
+          progress_percent: number
+          started_at: string
+          starts_at: string
+          total_blocks: number
+        }[]
+      }
       start_attempt: {
         Args: { p_assessment: string; p_enrollment: string }
         Returns: string

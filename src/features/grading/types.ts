@@ -12,6 +12,7 @@ export interface PendingAttemptListItem {
   attemptNumber: number
   /** TASK only: handed in after the deadline (late submissions allowed). */
   submittedLate: boolean
+  studentUserId: string
   studentName: string
   assessmentId: string
   assessmentTitle: string
@@ -41,6 +42,7 @@ export interface AttemptForGrading {
   status: AttemptStatus
   attemptNumber: number
   submittedAt: string | null
+  studentUserId: string
   studentName: string
   assessmentId: string
   assessmentTitle: string
@@ -58,11 +60,14 @@ export interface AttemptForGrading {
   questions: AttemptQuestionForGrading[]
 }
 
-export interface GradeAnswerResult {
+export interface SaveAttemptGradesResult {
   status: AttemptStatus
   totalScore: number
+  maxScore: number
   scorePercent: number | null
   scoreLabel: string | null
+  passed: boolean | null
+  ungradedCount: number
 }
 
 export interface GradableAssessmentOption {

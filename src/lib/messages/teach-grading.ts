@@ -38,17 +38,35 @@ export const teachGradingMessages = {
     noAnswer: "El estudiante no respondió esta pregunta.",
     pointsLabel: (max: number) => `Puntos (máximo ${max})`,
     feedbackLabel: "Comentario para el estudiante",
-    saveAnswer: "Guardar",
+    saveAction: "Guardar",
     saving: "Guardando…",
-    saved: "Guardado",
-    answerSaved: "Respuesta corregida.",
+    gradesSaved: (percent: number | null, label: string | null) =>
+      percent === null ? "Corrección guardada." : `Corrección guardada: ${percent}%${label ? ` (${label})` : ""}.`,
+    unsavedHint: "Tenés cambios sin guardar.",
     overallFeedbackLabel: "Comentario general de la entrega",
     overallFeedbackPlaceholder: "Comentario visible para el estudiante una vez corregida la entrega…",
-    feedbackSaved: "Comentario guardado.",
+  },
+  preview: {
+    title: "Revisá la nota antes de guardar",
+    description: "Esto es lo que verá el estudiante una vez guardada la corrección.",
+    percentLabel: "Porcentaje",
+    noScale: "Sin escala configurada",
+    noPercent: "—",
+    passed: "Aprobado",
+    failed: "No aprobado",
+    partialWarning: (n: number) =>
+      n === 1
+        ? "Queda 1 pregunta sin corregir: la nota es parcial y el intento no se cerrará."
+        : `Quedan ${n} preguntas sin corregir: la nota es parcial y el intento no se cerrará.`,
+    back: "Volver",
+    confirm: "Confirmar y guardar",
+    confirming: "Guardando…",
+    retry: "Reintentar",
   },
   errors: {
-    pointsAboveMax: "El puntaje no puede superar el máximo de la pregunta.",
+    invalidGrades: "Alguna corrección no es válida (puntaje fuera de rango, pregunta inexistente o comentario vacío). Recargá la página y revisá los datos.",
     attemptInProgress: "Esta entrega todavía está en curso y no se puede corregir.",
     feedbackRequired: "Ingresá un comentario.",
+    pointsRange: (max: number) => `Ingresá un puntaje entre 0 y ${max}.`,
   },
 } as const

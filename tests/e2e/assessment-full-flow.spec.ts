@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test"
 import { loginViaOtp } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 import { makeUser } from "../helpers/make-user"
+import { previewAndConfirmGrade } from "../helpers/grading-e2e"
 import {
   makeCourseFixture,
   enrollStudent,
@@ -214,32 +215,12 @@ test("assessment full flow: student quiz → score; exam → save → reload →
     await expect(pointsInput).toBeVisible()
     await pointsInput.fill("0.8")
 
-    // Fill feedback for the answer
-    const feedbackTextarea = professorPage.locator('textarea').first()
-    await expect(feedbackTextarea).toBeVisible()
-    await feedbackTextarea.fill("Excelente trabajo, bien estructurado.")
+    // Answer feedback (first textarea) and the overall feedback (last textarea)
+    await professorPage.locator("textarea").first().fill("Excelente trabajo, bien estructurado.")
+    await professorPage.locator("textarea").last().fill("Felicidades, aprobaste el examen.")
 
-    // Save the answer/feedback
-    const saveButtons = professorPage.getByRole("button", { name: "Guardar" })
-    await expect(saveButtons.first()).toBeVisible()
-    await saveButtons.first().click()
-
-    // Wait for the save success message and overall feedback section to appear
-    const overallFeedbackLabel = professorPage.getByText("Comentario general de la entrega")
-    await expect(overallFeedbackLabel).toBeVisible()
-
-    // Find and fill the overall feedback textarea (the second textarea on the page)
-    const allTextareas = professorPage.locator('textarea')
-    const lastTextarea = allTextareas.last()
-    await expect(lastTextarea).toBeVisible()
-    await lastTextarea.fill("Felicidades, aprobaste el examen.")
-
-    // Save overall feedback
-    const allSaveButtons = professorPage.getByRole("button", { name: "Guardar" })
-    const lastSaveButton = allSaveButtons.last()
-    await expect(lastSaveButton).toBeVisible()
-    await lastSaveButton.click()
-    await expect(professorPage.getByText("Comentario guardado.")).toBeVisible()
+    // One "Guardar": preview modal, then confirm; the modal and the saved summary must agree
+    await previewAndConfirmGrade(professorPage)
 
     // ===== STUDENT VIEWS GRADED RESULT =====
     await studentPage.reload()

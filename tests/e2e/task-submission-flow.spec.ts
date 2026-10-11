@@ -71,6 +71,11 @@ test("task submission: student uploads a PDF → professor grades after the dead
     await professorPage.getByLabel("Nota (0 a 100)").fill("85")
     await professorPage.getByLabel("Devolución para el estudiante").fill("Muy bien organizado.")
     await professorPage.getByRole("button", { name: "Guardar corrección" }).click()
+    // Same preview dialog as the answer grading: check what it shows, then confirm.
+    const preview = professorPage.getByRole("dialog", { name: "Revisá la nota antes de guardar" })
+    await expect(preview.getByTestId("grade-preview-percent")).toHaveText("85%")
+    await expect(preview.getByTestId("grade-preview-label")).toHaveText("Muy bueno")
+    await preview.getByRole("button", { name: "Confirmar y guardar" }).click()
     await expect(professorPage.getByText("Corrección guardada.")).toBeVisible()
 
     // Student: sees the grade, label and feedback; the upload area is gone.

@@ -3,6 +3,7 @@ import { loginViaOtp } from "../helpers/e2e-login"
 import { generateOtp } from "../helpers/otp"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 import { makeUser, deleteUser, deleteUserByEmail } from "../helpers/make-user"
+import { previewAndConfirmGrade } from "../helpers/grading-e2e"
 import { makeAssessmentFixture, cleanupFixtures} from "../helpers/course-fixtures"
 import {
   buildJourneyCourse,
@@ -175,11 +176,8 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
     await professorPage.waitForURL(/\/teach\/grading\//)
     await professorPage.locator('input[type="number"]').first().fill("0.9")
     await professorPage.locator("textarea").first().fill("Buen desarrollo.")
-    await professorPage.getByRole("button", { name: "Guardar" }).first().click()
-    await expect(professorPage.getByText("Comentario general de la entrega")).toBeVisible()
     await professorPage.locator("textarea").last().fill("Felicitaciones, aprobaste el examen.")
-    await professorPage.getByRole("button", { name: "Guardar" }).last().click()
-    await expect(professorPage.getByText("Comentario guardado.")).toBeVisible()
+    await previewAndConfirmGrade(professorPage)
 
     // ===== Student sees the graded score, label and feedback =====
     await studentPage.reload()

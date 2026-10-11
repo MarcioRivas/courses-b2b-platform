@@ -27,7 +27,7 @@ export async function getAttemptForGrading(attemptId: string): Promise<AttemptFo
     supabase
       .from("assessment_attempts")
       .select(
-        `id, status, attempt_number, submitted_at, auto_score, manual_score, total_score, max_score,
+        `id, user_id, status, attempt_number, submitted_at, auto_score, manual_score, total_score, max_score,
          score_percent, score_label, passed,
          profiles(first_name, last_name),
          assessments(id, title, kind, offering_id, course_offerings(course_id, courses(id, title))),
@@ -73,6 +73,7 @@ export async function getAttemptForGrading(attemptId: string): Promise<AttemptFo
     status: attempt.status,
     attemptNumber: attempt.attempt_number,
     submittedAt: attempt.submitted_at,
+    studentUserId: attempt.user_id,
     studentName: attempt.profiles ? `${attempt.profiles.first_name} ${attempt.profiles.last_name}`.trim() : "—",
     assessmentId: attempt.assessments.id,
     assessmentTitle: attempt.assessments.title,

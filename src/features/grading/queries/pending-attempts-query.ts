@@ -41,7 +41,7 @@ export function buildPendingAttemptsQuery(
   let query = supabase
     .from("assessment_attempts")
     .select(
-      `id, status, submitted_at, attempt_number, submitted_late,
+      `id, user_id, status, submitted_at, attempt_number, submitted_late,
        profiles(first_name, last_name),
        assessments!inner(id, title, kind, offering_id, available_until),
        course_enrollments!inner(offering_id, course_id, courses(id, title))`,

@@ -26,7 +26,11 @@ export function GradingQueue({ items, total, page, statusGroup, timeZone, search
   const titleColumn: DataListColumn<PendingAttemptListItem> = {
     key: "student",
     header: teachGradingMessages.queue.studentHeader,
-    cell: (item) => item.studentName,
+    cell: (item) => (
+      <Link href={`/teach/students/${item.studentUserId}`} className="font-medium hover:underline">
+        {item.studentName}
+      </Link>
+    ),
   }
 
   const columns: DataListColumn<PendingAttemptListItem>[] = [
