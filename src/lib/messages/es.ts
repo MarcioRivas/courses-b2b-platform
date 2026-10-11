@@ -97,6 +97,9 @@ export const messages = {
   },
   home: {
     greeting: "Hola",
+    welcome: "Bienvenid@",
+    /** Read instead of the "@" form, which screen readers spell out as "arroba". */
+    welcomeLabel: (name: string) => `Te damos la bienvenida, ${name}`,
     admin: "Administrador",
     professor: "Profesor",
     student: "Estudiante",

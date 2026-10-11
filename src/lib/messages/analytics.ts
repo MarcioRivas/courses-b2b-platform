@@ -12,7 +12,6 @@ export const analyticsMessages = {
     activeProfessors: "Profesores activos",
     coursesPublished: "Cursos publicados",
     pendingGrading: "Pendientes de corregir",
-    viewAnalytics: "Ver todas las estadísticas",
   },
   admin: {
     pageTitle: "Estadísticas",

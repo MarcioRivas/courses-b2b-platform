@@ -23,7 +23,7 @@ export async function loginViaOtp(page: Page, email: string, expectedPath: strin
  * server-side render crashes that integration tests cannot see — for example a
  * Server Component handing a Client Component a non-serializable prop.
  */
-export async function expectRouteRenders(page: Page, path: string, heading: string): Promise<void> {
+export async function expectRouteRenders(page: Page, path: string, heading: string | RegExp): Promise<void> {
   await page.goto(path)
   await expect(page.getByRole("heading", { name: "Ocurrió un error inesperado. Intentá de nuevo." })).toBeHidden()
   await expect(page.getByRole("heading", { name: heading })).toBeVisible()

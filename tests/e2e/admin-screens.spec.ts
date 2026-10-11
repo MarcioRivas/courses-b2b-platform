@@ -4,7 +4,6 @@ import { supabaseAdmin } from "../helpers/supabase-admin"
 import { deleteCourses, makeCourseFixture } from "../helpers/course-fixtures"
 
 const ORG_B = "22222222-2222-2222-2222-222222222222"
-const ORG_B_NAME = "Federación Demo"
 
 // Org B's admin. login.spec.ts drives the org A users; one seeded email per
 // spec file keeps parallel workers from invalidating each other's OTP.
@@ -30,7 +29,7 @@ test.afterAll(async () => {
 })
 
 test("every org-admin screen renders without hitting the error boundary", async () => {
-  await expectRouteRenders(page, "/admin", ORG_B_NAME)
+  await expectRouteRenders(page, "/admin", /^Te damos la bienvenida, /)
   await expectRouteRenders(page, "/admin/members", "Miembros")
   await expectRouteRenders(page, "/admin/groups", "Grupos")
   await expectRouteRenders(page, "/admin/links", "Links de registro")
@@ -40,18 +39,19 @@ test("every org-admin screen renders without hitting the error boundary", async 
   await expectRouteRenders(page, "/admin/audit", "Registro de auditoría")
 })
 
-test("the dashboard counts the organization's seeded members and groups", async () => {
+test("the dashboard is a welcome only: statistics live under Estadísticas", async () => {
   await page.goto("/admin")
 
-  // Seeded org B: 3 students, 1 professor. Phase 6 replaced the P2 cards with
-  // `org_overview_stats`; assert the numbers, not just the labels.
-  // Scoped to <main>: the side nav repeats some labels.
-  const statCard = (label: string) =>
-    page.getByRole("main").getByText(label, { exact: true }).locator("..")
-  await expect(statCard("Estudiantes activos")).toContainText("3")
-  await expect(statCard("Profesores activos")).toContainText("1")
-  await expect(page.getByRole("main").getByText("Cursos publicados", { exact: true })).toBeVisible()
-  await expect(page.getByRole("main").getByText("Pendientes de corregir", { exact: true })).toBeVisible()
+  // Centered welcome: name + role; the org name is already in the header, not repeated.
+  const main = page.getByRole("main")
+  await expect(main.getByRole("heading", { level: 1, name: /^Te damos la bienvenida, .+/ })).toBeVisible()
+  await expect(main.getByText(/^Bienvenid@,/)).toBeVisible()
+  await expect(main.getByText("Administrador", { exact: true })).toBeVisible()
+  // Scoped to <main>: the side nav keeps its "Estadísticas" link.
+  for (const label of ["Estudiantes activos", "Profesores activos", "Cursos publicados", "Pendientes de corregir"]) {
+    await expect(main.getByText(label, { exact: true })).toHaveCount(0)
+  }
+  await expect(page.getByRole("link", { name: "Estadísticas", exact: true })).toBeVisible()
 })
 
 test("the member directory lists this org's members only, with admin-only PII", async () => {
@@ -153,18 +153,6 @@ test("statistics per edition: the course filter narrows the table, and the editi
   } finally {
     await deleteCourses([course.courseId])
   }
-})
-
-test("admin dashboard still displays count cards", async () => {
-  await page.goto("/admin")
-
-  // The four stat cards from Phase 6
-  const statCard = (label: string) =>
-    page.getByRole("main").getByText(label, { exact: true }).locator("..")
-  await expect(statCard("Estudiantes activos")).toBeVisible()
-  await expect(statCard("Profesores activos")).toBeVisible()
-  await expect(statCard("Cursos publicados")).toBeVisible()
-  await expect(statCard("Pendientes de corregir")).toBeVisible()
 })
 
 test("a professor cannot reach the admin screens", async ({ page: professorPage }) => {
