@@ -3,11 +3,13 @@ import { BrandMark } from "@/components/layout/brand-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { landingMessages } from "@/lib/messages/landing"
+import { NAV_FORWARD } from "@/components/motion/directional-transition"
 
 const { header } = landingMessages
 
 const NAV_ITEMS = [
   { href: "#funcionalidades", label: header.nav.features },
+  { href: "#experiencia", label: header.nav.experience },
   { href: "#como-funciona", label: header.nav.how },
   { href: "#roles", label: header.nav.roles },
 ] as const
@@ -29,7 +31,7 @@ export function LandingHeader() {
             </a>
           ))}
         </nav>
-        <Link href="/login" className={cn(buttonVariants(), "h-10 rounded-xl px-4")}>
+        <Link href="/login" transitionTypes={NAV_FORWARD} className={cn(buttonVariants(), "h-10 rounded-xl px-4")}>
           {header.login}
         </Link>
       </div>

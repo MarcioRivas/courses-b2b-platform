@@ -21,7 +21,7 @@ export function LandingTrustStrip() {
           <h2 id="trust-title" className="text-2xl font-semibold tracking-tight md:text-3xl">
             {trust.title}
           </h2>
-          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="reveal-on-scroll mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {trust.items.map((item) => {
               const Icon = ICONS[item.icon]
               return (

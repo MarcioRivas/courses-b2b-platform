@@ -1,0 +1,139 @@
+/*
+ * Landing page motion (audit 2026-10-09, plans/reports/motion-audit-261009-2134-*).
+ * CSS only — the landing stays a Server Component. One orchestrated hero
+ * moment, a product preview that comes alive once, scroll-driven reveals on
+ * card groups only, and a lesson preview driven by scroll (never loops).
+ * Every animation is `backwards` fill (see motion.css) and sits behind
+ * `prefers-reduced-motion: no-preference`; without it the final state shows.
+ */
+
+@theme {
+  /* Hero dashboard mock lands into its tilt after the copy. */
+  --animate-mock-land: mock-land 560ms var(--ease-out-quint) 220ms backwards;
+
+  @keyframes mock-land {
+    from {
+      opacity: 0;
+      translate: 28px 0;
+      rotate: 0deg;
+      filter: blur(6px);
+    }
+  }
+}
+
+/* Smooth anchor scroll, landing only. `data-scroll-behavior="smooth"` on <html>
+   (root layout) tells Next 16 to switch it off during route navigations. */
+html:has([data-landing]) {
+  scroll-behavior: smooth;
+}
+
+/* Animated integer for the mock's stats: `style={{ "--stat": 248 }}`. */
+@property --stat {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+@keyframes count-up {
+  from {
+    --stat: 0;
+  }
+}
+
+@utility stat-counter {
+  counter-reset: stat var(--stat);
+  &::before {
+    content: counter(stat);
+  }
+}
+
+/* Hero highlight underline, drawn once after the headline lands. */
+@utility underline-draw {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -0.08em;
+    height: 0.12em;
+    border-radius: 999px;
+    background: var(--color-secondary);
+    transform-origin: left;
+  }
+}
+
+@keyframes draw-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stat-counter {
+    animation: count-up 900ms var(--ease-out-quint) 380ms backwards;
+  }
+
+  .underline-draw::after {
+    animation: draw-x 520ms var(--ease-out-quint) 420ms backwards;
+  }
+
+  @supports (animation-timeline: view()) {
+    /* Card groups only — never headings or paragraphs. */
+    .reveal-on-scroll {
+      animation: reveal-rise linear backwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+    /* Tall stacked grids on phones: finish early so the first card isn't half-faded while readable. */
+    @media (width < 48rem) {
+      .reveal-on-scroll {
+        animation-range: entry 0% entry 15%;
+      }
+    }
+
+    /* "Cómo funciona" connector draws as the steps cross the viewport. */
+    .connector-draw {
+      transform-origin: left;
+      animation: draw-x linear backwards;
+      animation-timeline: view();
+      animation-range: entry 60% cover 50%;
+    }
+
+    /* Lesson preview: one named timeline on the card, staged ranges per part. */
+    .lesson-preview {
+      view-timeline-name: --lesson-preview;
+    }
+    .lesson-preview [data-step] {
+      animation: pop-in linear backwards;
+      animation-timeline: --lesson-preview;
+    }
+    .lesson-preview [data-step="1"] { animation-range: cover 22% cover 30%; }
+    .lesson-preview [data-step="2"] { animation-range: cover 32% cover 40%; }
+    .lesson-preview [data-step="3"] { animation-range: cover 42% cover 50%; }
+    .lesson-preview [data-fill] {
+      transform-origin: left;
+      animation: draw-x linear backwards;
+      animation-timeline: --lesson-preview;
+      animation-range: cover 20% cover 50%;
+    }
+    .lesson-preview [data-reward] {
+      animation: reveal-rise linear backwards;
+      animation-timeline: --lesson-preview;
+      animation-range: cover 50% cover 58%;
+    }
+  }
+}

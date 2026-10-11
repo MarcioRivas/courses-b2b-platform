@@ -10,8 +10,11 @@ export function LandingHowItWorks() {
         <SectionHeading id="how-title" eyebrow={how.eyebrow} title={how.title} lead={how.lead} />
         {/* Connector runs behind the number bubbles on wide screens only; kept outside <ol> so its only children are <li>. */}
         <div className="relative mt-12">
-          <div aria-hidden="true" className="absolute top-5 right-[16%] left-[16%] hidden h-px bg-border lg:block" />
-          <ol className="relative grid gap-10 lg:grid-cols-3 lg:gap-8">
+          <div aria-hidden="true" className="absolute top-5 right-[16%] left-[16%] hidden h-px bg-border lg:block">
+            {/* Primary line draws over the grey one as the steps scroll in. */}
+            <div className="connector-draw h-full w-full bg-primary" />
+          </div>
+          <ol className="reveal-on-scroll relative grid gap-10 lg:grid-cols-3 lg:gap-8">
             {how.steps.map((step, index) => (
               <li key={step.title} className="relative flex gap-4 lg:flex-col lg:items-center lg:text-center">
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground ring-4 ring-background">
@@ -23,7 +26,7 @@ export function LandingHowItWorks() {
                 </div>
               </li>
             ))}
-            </ol>
+          </ol>
         </div>
       </div>
     </section>

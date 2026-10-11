@@ -1,5 +1,6 @@
 "use client"
 
+import { LoaderCircleIcon } from "lucide-react"
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -67,6 +68,7 @@ export function EmailForm({ mode, token }: EmailFormProps) {
           )}
         />
         <Button type="submit" size="lg" className="h-11 rounded-xl" disabled={isPending}>
+          {isPending && <LoaderCircleIcon className="animate-spin" aria-hidden />}
           {isPending ? messages.common.loading : messages.login.submit}
         </Button>
       </form>

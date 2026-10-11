@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BrandMark } from "@/components/layout/brand-mark"
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants"
 import { landingMessages } from "@/lib/messages/landing"
+import { NAV_FORWARD } from "@/components/motion/directional-transition"
 
 const { footer } = landingMessages
 
@@ -16,6 +17,7 @@ export function LandingFooter() {
         <nav aria-label={footer.navLabel}>
           <Link
             href="/login"
+            transitionTypes={NAV_FORWARD}
             className="rounded-md text-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {footer.login}

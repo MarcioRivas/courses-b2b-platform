@@ -12,6 +12,12 @@ test.setTimeout(180_000)
 
 /** Fails with the offending rule ids/node counts inlined, not just a boolean. */
 async function assertNoSeriousViolations(page: Page, screen: string): Promise<void> {
+  // Measure the settled page: one-off entrances (landing hero, lesson block
+  // stagger) must finish first, or half-faded elements skew colour contrast.
+  // Scroll-driven reveals never "finish", so only document-timeline ones count.
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => !(animation.timeline instanceof DocumentTimeline) || animation.playState === "finished")
+  )
   const results = await new AxeBuilder({ page }).analyze()
   const serious = results.violations.filter((v) => v.impact === "critical" || v.impact === "serious")
   const detail = serious.map((v) => `${v.id} (${v.impact}, ${v.nodes.length} nodes): ${v.help}`).join("\n")
