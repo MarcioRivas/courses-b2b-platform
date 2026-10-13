@@ -1,43 +1,40 @@
 "use server"
 
-import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
+import { revalidateAssessment } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { canEditOffering } from "@/lib/auth/course-access"
 import { logAudit } from "@/lib/audit/log"
-import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
-import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
-import { updateAssessmentSchema, type UpdateAssessmentInput } from "../schemas/assessment-schemas"
-import { localDateTimeToUtcIso } from "../lib/local-datetime"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
+import { updateAssessmentConfigSchema, type UpdateAssessmentConfigInput } from "../schemas/assessment-schemas"
+import { configToColumns } from "../lib/assessment-config-values"
+import { getAssessmentWizardContext } from "../queries/get-assessment-editor-data"
 
-/** Instant equality tolerant of ISO string formatting differences (`+00:00` vs `Z`, trailing `.000`). */
+/**
+ * Same minute? The form only carries minutes (`datetime-local`), so a stored
+ * window with seconds must still compare equal to its unchanged form value.
+ */
 function sameInstant(a: string | null, b: string | null): boolean {
   if (a === null || b === null) return a === b
-  return new Date(a).getTime() === new Date(b).getTime()
+  const minute = (iso: string) => Math.floor(new Date(iso).getTime() / 60_000)
+  return minute(a) === minute(b)
 }
 
 /**
- * Full config write (5B step 3): QUIZ always forces attempts/duration/window
- * back to NULL server-side regardless of what a stale client form sent
- * (D25 — never trust the client for rules the DB itself encodes as CHECKs).
- *
- * M3 fix: once PUBLISHED, `kind` is locked (a published assessment's shape
- * is a contract with in-flight/completed attempts); `kind` is also locked
- * the moment a lesson content block or module dependency references the
- * assessment, published or not. A PUBLISHED EXAM's window/duration can only
- * move through `extendWindow` (D32), which also nudges in-flight attempts —
- * a direct edit here would silently desync `effective_end_at`.
+ * Wizard step 1 save (edit mode). The kind is fixed at creation and never
+ * changes. A PUBLISHED EXAM's window/duration only moves through
+ * `extendWindow` (D32), which also nudges in-flight attempts — a direct edit
+ * would silently desync `effective_end_at`.
  */
-export async function updateAssessment(input: UpdateAssessmentInput): Promise<ActionResult<void>> {
-  const parsed = updateAssessmentSchema.safeParse(input)
+export async function updateAssessment(input: UpdateAssessmentConfigInput): Promise<ActionResult<void>> {
+  const parsed = updateAssessmentConfigSchema.safeParse(input)
   if (!parsed.success) {
     return { ok: false, code: "VALIDATION", message: parsed.error.issues[0]?.message ?? messages.errors.VALIDATION }
   }
 
-  const ctx = await requireOrgRole(["ADMIN", "PROFESSOR"])
+  await requireOrgRole(["ADMIN", "PROFESSOR"])
   const supabase = await createClient()
 
   const { data: existing } = await supabase
@@ -53,76 +50,39 @@ export async function updateAssessment(input: UpdateAssessmentInput): Promise<Ac
     return { ok: false, code: "FORBIDDEN", message: messages.errors.FORBIDDEN }
   }
 
-  const { kind } = parsed.data
-
-  if (kind !== existing.kind) {
-    if (existing.status === "PUBLISHED") {
-      return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.publishedKindLocked }
-    }
-
-    const [{ count: blockCount }, { count: dependencyCount }] = await Promise.all([
-      supabase.from("lesson_content_blocks").select("id", { count: "exact", head: true }).eq("assessment_id", existing.id),
-      supabase.from("module_dependencies").select("id", { count: "exact", head: true }).eq("assessment_id", existing.id),
-    ])
-
-    if ((blockCount ?? 0) > 0 || (dependencyCount ?? 0) > 0) {
-      return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.kindReferencedLocked }
-    }
-  }
-
-  const settings = await getOrgSettings(ctx.organizationId)
-  const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
-
-  const isTask = kind === "TASK"
-  // A TASK is one submission, untimed: attempts are fixed at 1 and the
-  // duration is always cleared (the DB check `assessments_task_shape_check`
-  // would refuse anything else).
-  const maxAttempts = kind === "QUIZ" ? null : isTask ? 1 : parsed.data.maxAttempts ? Number(parsed.data.maxAttempts) : null
-  const durationSeconds =
-    kind === "QUIZ" || isTask ? null : parsed.data.durationMinutes ? Number(parsed.data.durationMinutes) * 60 : null
-  const availableFrom = kind === "QUIZ" || !parsed.data.availableFrom ? null : localDateTimeToUtcIso(parsed.data.availableFrom, timeZone)
-  const availableUntil = kind === "QUIZ" || !parsed.data.availableUntil ? null : localDateTimeToUtcIso(parsed.data.availableUntil, timeZone)
+  const { timeZone } = await getAssessmentWizardContext(existing.organization_id)
+  // The stored kind wins over whatever the client sent.
+  const columns = configToColumns({ ...parsed.data.config, kind: existing.kind }, timeZone)
 
   if (existing.status === "PUBLISHED" && existing.kind === "EXAM") {
     const windowChanged =
-      durationSeconds !== existing.duration_seconds ||
-      !sameInstant(availableFrom, existing.available_from) ||
-      !sameInstant(availableUntil, existing.available_until)
+      columns.duration_seconds !== existing.duration_seconds ||
+      !sameInstant(columns.available_from, existing.available_from) ||
+      !sameInstant(columns.available_until, existing.available_until)
 
     if (windowChanged) {
       return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.publishedWindowLocked }
     }
   }
 
-  const { error } = await supabase
-    .from("assessments")
-    .update({
-      title: parsed.data.title,
-      description: parsed.data.description || null,
-      kind,
-      passing_score: Number(parsed.data.passingScore),
-      max_attempts: maxAttempts,
-      duration_seconds: durationSeconds,
-      available_from: availableFrom,
-      available_until: availableUntil,
-      instructions: isTask ? parsed.data.instructions || null : null,
-      max_files: isTask ? Number(parsed.data.maxFiles) : null,
-      allow_late_submissions: isTask ? parsed.data.allowLateSubmissions : false,
-      ...(isTask ? { question_bank_id: null, random_question_count: null } : {}),
-    })
-    .eq("id", existing.id)
+  // Unchanged window of a published exam: keep the stored instants untouched.
+  const update =
+    existing.status === "PUBLISHED" && existing.kind === "EXAM"
+      ? { ...columns, duration_seconds: undefined, available_from: undefined, available_until: undefined }
+      : columns
 
+  const { error } = await supabase.from("assessments").update(update).eq("id", existing.id)
   if (error) {
     return { ok: false, ...toActionError(error) }
   }
 
-  // Switching a draft into TASK drops its question configuration: a TASK has
-  // no questions (the `assessment_questions_task_guard` trigger refuses new
-  // ones). Done after the update so a failed update leaves the draft intact.
-  if (isTask && existing.kind !== "TASK") {
-    const { error: clearError } = await supabase.from("assessment_questions").delete().eq("assessment_id", existing.id)
-    if (clearError) {
-      return { ok: false, ...toActionError(clearError) }
+  if (existing.kind !== "EXAM" && parsed.data.isRequired !== undefined) {
+    const { error: blockError } = await supabase
+      .from("lesson_content_blocks")
+      .update({ is_required: parsed.data.isRequired })
+      .eq("assessment_id", existing.id)
+    if (blockError) {
+      return { ok: false, ...toActionError(blockError) }
     }
   }
 
@@ -131,10 +91,10 @@ export async function updateAssessment(input: UpdateAssessmentInput): Promise<Ac
     action: "assessment.updated",
     entityType: "assessment",
     entityId: existing.id,
-    metadata: { kind },
+    metadata: { kind: existing.kind },
   })
 
-  await revalidateOfferingAssessments(existing.offering_id, existing.id)
+  await revalidateAssessment(existing.offering_id, existing.kind, existing.id)
 
   return { ok: true, data: undefined }
 }

@@ -19,11 +19,10 @@ const ORG_A = "11111111-1111-1111-1111-111111111111"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -43,12 +42,11 @@ async function scenario(title: string, spec: { multipleChoice?: number; openEnde
     multipleChoice: spec.multipleChoice ?? 2,
     openEnded: spec.openEnded ?? 0,
   })
-  bankIds.push(fixture.bankId)
   return { course, fixture }
 }
 
 describe("snapshot immutability (§22)", () => {
-  it("keeps the attempt's questions and wording when the bank is edited mid-attempt", async () => {
+  it("keeps the attempt's questions and wording when the assessment is edited mid-attempt", async () => {
     const student = await member("snapshot-edit", ORG_A, "STUDENT")
     const { course, fixture } = await scenario("Curso inmutable")
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
@@ -64,10 +62,10 @@ describe("snapshot immutability (§22)", () => {
       .eq("attempt_id", attemptId!)
       .order("position")
 
-    // The professor rewrites the question and retires it, mid-exam.
+    // The professor rewrites the question and its points mid-exam.
     await supabaseAdmin
       .from("questions")
-      .update({ prompt: "PREGUNTA REESCRITA", default_points: 99, is_active: false })
+      .update({ prompt: "PREGUNTA REESCRITA", points: 99 })
       .eq("id", fixture.questions[0]!.questionId)
     await supabaseAdmin
       .from("question_options")
@@ -135,23 +133,29 @@ describe("snapshot immutability (§22)", () => {
     expect(endAfter!.effective_end_at).toBe(end!.effective_end_at)
   })
 
-  it("survives the question being deleted from the bank (RESTRICT protects history)", async () => {
+  it("survives the question being deleted mid-attempt (snapshot keeps the copy, question_id goes NULL)", async () => {
     const student = await member("snapshot-delete", ORG_A, "STUDENT")
     const { course, fixture } = await scenario("Curso borrado pregunta")
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
 
-    await student.client.rpc("start_attempt", {
+    const { data: attemptId } = await student.client.rpc("start_attempt", {
       p_enrollment: enrollmentId,
       p_assessment: fixture.assessmentId,
     })
+    const deletedQuestionId = fixture.questions[0]!.questionId
 
-    const { error } = await supabaseAdmin
-      .from("questions")
-      .delete()
-      .eq("id", fixture.questions[0]!.questionId)
+    const { error } = await supabaseAdmin.from("questions").delete().eq("id", deletedQuestionId)
+    expect(error).toBeNull()
 
-    // 23503: the snapshot's RESTRICT FK refuses to let history be erased.
-    expect(error?.code).toBe("23503")
+    // The snapshot still holds both questions; the link to the source is cleared.
+    const { data: snapshot } = await supabaseAdmin
+      .from("assessment_attempt_questions")
+      .select("question_id, prompt")
+      .eq("attempt_id", attemptId!)
+      .order("position")
+    expect(snapshot).toHaveLength(2)
+    expect(snapshot![0]!.question_id).toBeNull()
+    expect(snapshot![0]!.prompt).toBe("Pregunta MC 1")
   })
 })
 
@@ -228,7 +232,7 @@ describe("start_attempt concurrency", () => {
 })
 
 describe("scoring edge cases", () => {
-  it("a zero-point assessment yields a NULL percent, not a division error", async () => {
+  it("an assessment with no questions cannot be started (no empty, zero-point attempts)", async () => {
     const student = await member("score-zero", ORG_A, "STUDENT")
     const course = await makeCourseFixture({
       organizationId: ORG_A,
@@ -237,7 +241,7 @@ describe("scoring edge cases", () => {
     })
     courseIds.push(course.courseId)
 
-    // An assessment with no questions at all: max_score is 0.
+    // Published, but every question was removed afterwards.
     const fixture = await makeAssessmentFixture({
       offeringId: course.offeringId,
       organizationId: ORG_A,
@@ -245,25 +249,20 @@ describe("scoring edge cases", () => {
       kind: "QUIZ",
       multipleChoice: 0,
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
-    const { data: attemptId } = await student.client.rpc("start_attempt", {
+    const { data: attemptId, error } = await student.client.rpc("start_attempt", {
       p_enrollment: enrollmentId,
       p_assessment: fixture.assessmentId,
     })
-    const session = randomUUID()
-    await student.client.rpc("heartbeat", { p_attempt: attemptId!, p_session: session })
 
-    const { data, error } = await student.client.rpc("submit_attempt", {
-      p_attempt: attemptId!,
-      p_session: session,
-      p_answers: [],
-    })
-
-    expect(error).toBeNull()
-    expect(data![0]!.score_percent).toBeNull()
-    expect(data![0]!.score_label).toBeNull()
+    expect(attemptId).toBeNull()
+    expect(error?.message).toContain("ASSESSMENT_NOT_AVAILABLE")
+    const { count } = await supabaseAdmin
+      .from("assessment_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("assessment_id", fixture.assessmentId)
+    expect(count).toBe(0)
   })
 
   it("scores an all-correct MC attempt at 100% with the org's label", async () => {

@@ -36,7 +36,7 @@ describe("D24: no authenticated role writes directly into the no-direct-write ta
     }),
     assessment_attempt_questions: () => ({
       attempt_id: fx.attemptA,
-      question_id: fx.spareQuestionA,
+      question_id: fx.assessmentA.questions[0]!.questionId,
       position: 99,
       type: "MULTIPLE_CHOICE",
       prompt: "hack",

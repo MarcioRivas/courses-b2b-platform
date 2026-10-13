@@ -50,6 +50,6 @@ test("admin assigns and removes a professor on an edition, with breadcrumb and g
     await page.getByRole("dialog").getByRole("button", { name: "Quitar" }).click()
     await expect(page.getByText("Esta edición todavía no tiene profesores asignados.")).toBeVisible()
   } finally {
-    await cleanupFixtures({ users: [admin.id, professor.id], courseIds: [course.courseId], bankIds: [] })
+    await cleanupFixtures({ users: [admin.id, professor.id], courseIds: [course.courseId] })
   }
 })

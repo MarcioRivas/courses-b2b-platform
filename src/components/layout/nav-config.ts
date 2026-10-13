@@ -7,7 +7,6 @@ import {
   CompassIcon,
   GraduationCapIcon,
   LayoutDashboardIcon,
-  LibraryIcon,
   Link2Icon,
   SettingsIcon,
   ShieldCheckIcon,
@@ -73,7 +72,6 @@ export const NAV_SECTIONS: Record<AppRole, NavSection[]> = {
       items: [
         { label: messages.nav.professor, href: "/teach", icon: GraduationCapIcon, exact: true },
         { label: courseMessages.nav.courses, href: "/teach/courses", icon: BookOpenIcon },
-        { label: teachAssessmentMessages.nav.banks, href: "/teach/banks", icon: LibraryIcon },
         { label: teachAssessmentMessages.nav.grading, href: "/teach/grading", icon: ClipboardCheckIcon },
         { label: studentTranscriptMessages.nav, href: "/teach/students", icon: UsersIcon },
       ],

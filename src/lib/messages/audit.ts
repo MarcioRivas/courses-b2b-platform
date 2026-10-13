@@ -123,6 +123,7 @@ export const auditActionLabels: Record<string, string> = {
   "assessment.deleted": "Evaluación eliminada",
   "assessment.published": "Evaluación publicada",
   "assessment.questions_set": "Preguntas de evaluación configuradas",
+  "assessment.questions_saved": "Preguntas de evaluación guardadas",
   "assessment.window_extended": "Ventana de evaluación extendida",
   "assessment.started": "Intento de evaluación iniciado",
   "assessment.submitted": "Intento de evaluación entregado",

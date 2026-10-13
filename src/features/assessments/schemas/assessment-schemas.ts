@@ -3,7 +3,7 @@ import { z } from "zod"
 const titleSchema = z.string().trim().min(2, "Ingresá al menos 2 caracteres.").max(150, "Máximo 150 caracteres.")
 const descriptionSchema = z.string().trim().max(2000, "Máximo 2000 caracteres.").optional().or(z.literal(""))
 const instructionsSchema = z.string().trim().max(10000, "Máximo 10000 caracteres.").optional().or(z.literal(""))
-const kindSchema = z.enum(["QUIZ", "TASK", "EXAM"])
+export const assessmentKindSchema = z.enum(["QUIZ", "TASK", "EXAM"])
 /** `<input type="datetime-local">` value, empty string means unset. */
 const optionalDateTimeLocal = z
   .string()
@@ -11,41 +11,11 @@ const optionalDateTimeLocal = z
   .optional()
   .or(z.literal(""))
 
-export const createAssessmentSchema = z.object({
-  offeringId: z.guid(),
-  title: titleSchema,
-  kind: kindSchema,
-})
-export type CreateAssessmentInput = z.infer<typeof createAssessmentSchema>
-
 /**
- * Kind defaults (B3, D12) applied when creating an assessment or switching
- * kind: QUIZ is always unlimited/untimed/no-window; TASK is a single file
- * submission (one file by default) that requires a deadline; EXAM gets one
- * attempt and requires the window + duration to be filled in by the professor
- * (enforced by `updateAssessmentSchema`).
- */
-export function assessmentKindDefaults(kind: z.infer<typeof kindSchema>): {
-  maxAttempts: number | null
-  maxFiles: number | null
-  durationMinutes: number | null
-  availableFrom: string
-  availableUntil: string
-} {
-  if (kind === "QUIZ") {
-    return { maxAttempts: null, maxFiles: null, durationMinutes: null, availableFrom: "", availableUntil: "" }
-  }
-  return { maxAttempts: 1, maxFiles: kind === "TASK" ? 1 : null, durationMinutes: null, availableFrom: "", availableUntil: "" }
-}
-
-/**
- * Numeric fields stay string-typed end to end (no `z.coerce`, unlike
- * `setAssessmentQuestionsSchema` below): this schema is bound to a
- * react-hook-form `<input type="number">`, and `zodResolver` requires the
- * form's value type and the schema's parsed (output) type to match — coercion
- * would make them diverge (`unknown` in, `number` out) and break the
- * resolver's generic. `Number(...)` happens once, server-side, in
- * `updateAssessment`.
+ * Numeric fields stay string-typed end to end (no `z.coerce`): this schema is
+ * bound to a react-hook-form `<input type="number">`, and `zodResolver`
+ * requires the form's value type and the schema's output type to match.
+ * `Number(...)` happens once, server-side (`configToColumns`).
  */
 const requiredPercentString = z
   .string()
@@ -57,30 +27,27 @@ const optionalPositiveIntString = z
   .optional()
   .or(z.literal(""))
 
-const baseUpdateFields = {
-  assessmentId: z.guid(),
-  title: titleSchema,
-  description: descriptionSchema,
-  kind: kindSchema,
-  passingScore: requiredPercentString,
-  // Empty string = unlimited attempts (NULL in the DB, B3).
-  maxAttempts: optionalPositiveIntString,
-  durationMinutes: optionalPositiveIntString,
-  availableFrom: optionalDateTimeLocal,
-  availableUntil: optionalDateTimeLocal,
-  // TASK only: the instruction text, how many files a student may upload
-  // (string-typed for the same resolver reason as above) and late submissions.
-  instructions: instructionsSchema,
-  maxFiles: optionalPositiveIntString,
-  allowLateSubmissions: z.boolean(),
-}
-
-export const updateAssessmentSchema = z
-  .object(baseUpdateFields)
+/**
+ * Wizard step 1 — configuration only, no questions/instructions. The kind is
+ * fixed at creation; it travels with the values so the per-kind rules apply:
+ * QUIZ is untimed with no window; TASK needs 1–10 files and a deadline; EXAM
+ * needs a duration and a full window.
+ */
+export const assessmentConfigSchema = z
+  .object({
+    kind: assessmentKindSchema,
+    title: titleSchema,
+    description: descriptionSchema,
+    passingScore: requiredPercentString,
+    // Empty string = unlimited attempts (NULL in the DB, B3). EXAM only.
+    maxAttempts: optionalPositiveIntString,
+    durationMinutes: optionalPositiveIntString,
+    availableFrom: optionalDateTimeLocal,
+    availableUntil: optionalDateTimeLocal,
+    maxFiles: optionalPositiveIntString,
+    allowLateSubmissions: z.boolean(),
+  })
   .superRefine((data, ctx) => {
-    if (data.kind === "QUIZ") {
-      return
-    }
     if (data.kind === "TASK") {
       const maxFiles = Number(data.maxFiles)
       if (!data.maxFiles || maxFiles < 1 || maxFiles > 10) {
@@ -98,30 +65,44 @@ export const updateAssessmentSchema = z
         ctx.addIssue({ code: "custom", path: ["availableUntil"], message: "Los exámenes requieren una ventana de disponibilidad." })
       }
     }
-    if (data.availableFrom && data.availableUntil && data.availableFrom >= data.availableUntil) {
+    if (data.kind !== "QUIZ" && data.availableFrom && data.availableUntil && data.availableFrom >= data.availableUntil) {
       ctx.addIssue({ code: "custom", path: ["availableUntil"], message: "La fecha de fin debe ser posterior al inicio." })
     }
   })
-export type UpdateAssessmentInput = z.infer<typeof updateAssessmentSchema>
+export type AssessmentConfigInput = z.infer<typeof assessmentConfigSchema>
+
+export const createAssessmentBlockSchema = z.object({
+  lessonId: z.guid(),
+  isRequired: z.boolean(),
+  config: assessmentConfigSchema,
+})
+export type CreateAssessmentBlockInput = z.infer<typeof createAssessmentBlockSchema>
+
+export const createExamSchema = z.object({
+  offeringId: z.guid(),
+  config: assessmentConfigSchema,
+})
+export type CreateExamInput = z.infer<typeof createExamSchema>
+
+export const updateAssessmentConfigSchema = z.object({
+  assessmentId: z.guid(),
+  config: assessmentConfigSchema,
+  /** QUIZ/TASK only: the owning block's "required" flag, edited alongside the config. */
+  isRequired: z.boolean().optional(),
+})
+export type UpdateAssessmentConfigInput = z.infer<typeof updateAssessmentConfigSchema>
+
+export const updateTaskInstructionsSchema = z.object({
+  assessmentId: z.guid(),
+  instructions: instructionsSchema,
+})
+export type UpdateTaskInstructionsInput = z.infer<typeof updateTaskInstructionsSchema>
 
 export const publishAssessmentSchema = z.object({ assessmentId: z.guid() })
 export type PublishAssessmentInput = z.infer<typeof publishAssessmentSchema>
 
 export const deleteAssessmentSchema = z.object({ assessmentId: z.guid() })
 export type DeleteAssessmentInput = z.infer<typeof deleteAssessmentSchema>
-
-const fixedQuestionSchema = z.object({
-  questionId: z.guid(),
-  points: z.coerce.number().positive("Los puntos deben ser mayores a 0.").max(1000),
-})
-
-export const setAssessmentQuestionsSchema = z.object({
-  assessmentId: z.guid(),
-  fixedQuestions: z.array(fixedQuestionSchema).max(200),
-  randomBankId: z.guid().optional(),
-  randomCount: z.coerce.number().int().positive().optional(),
-})
-export type SetAssessmentQuestionsInput = z.infer<typeof setAssessmentQuestionsSchema>
 
 export const extendWindowSchema = z.object({
   assessmentId: z.guid(),

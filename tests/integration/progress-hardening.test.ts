@@ -17,12 +17,11 @@ const ORG_A = "11111111-1111-1111-1111-111111111111"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
   await supabaseAdmin.from("organizations").update({ status: "ACTIVE" }).eq("id", ORG_A)
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -270,7 +269,6 @@ describe("QUIZ_PASSED dependency (stub replaced in Phase 5)", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(assessment.bankId)
 
     await supabaseAdmin.from("module_dependencies").insert({
       module_id: fixture.modules[1]!.id,

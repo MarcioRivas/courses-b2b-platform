@@ -16,11 +16,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 })
 
 describe("org-scoped functions reject a foreign org id", () => {
@@ -130,7 +129,6 @@ describe("assessment_score_distribution derives org/course from the row (D25)", 
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const { error } = await adminA.client.rpc("assessment_score_distribution", {
       p_assessment: fixture.assessmentId,
@@ -153,7 +151,6 @@ describe("assessment_score_distribution derives org/course from the row (D25)", 
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const { error } = await student.client.rpc("assessment_score_distribution", {
       p_assessment: fixture.assessmentId,

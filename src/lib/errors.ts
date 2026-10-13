@@ -52,7 +52,6 @@ function isPostgresErrorLike(err: unknown): err is PostgresErrorLike {
 
 /** Business rules raised by DB triggers with a recognisable token in the message. */
 const DB_RULE_MARKERS = [
-  "QUESTION_IN_USE_ELSEWHERE",
   "CROSS_EDITION_LINK",
   "ACCESS_TYPE_LOCKED",
   "OFFERING_KIND_MISMATCH",

@@ -1,169 +1,106 @@
 import { describe, expect, it } from "vitest"
 import {
-  assessmentKindDefaults,
-  setAssessmentQuestionsSchema,
-  updateAssessmentSchema,
+  assessmentConfigSchema,
+  createAssessmentBlockSchema,
+  type AssessmentConfigInput,
 } from "@/features/assessments/schemas/assessment-schemas"
 
-describe("assessmentKindDefaults", () => {
-  it("QUIZ is unlimited attempts, untimed, no window (B3, D12)", () => {
-    expect(assessmentKindDefaults("QUIZ")).toEqual({
-      maxAttempts: null,
-      maxFiles: null,
-      durationMinutes: null,
-      availableFrom: "",
-      availableUntil: "",
-    })
-  })
+const LESSON_ID = "11111111-1111-4111-8111-111111111111"
 
-  it("TASK defaults to a single attempt, single file", () => {
-    const defaults = assessmentKindDefaults("TASK")
-    expect(defaults.maxAttempts).toBe(1)
-    expect(defaults.maxFiles).toBe(1)
-  })
-
-  it("EXAM defaults to a single attempt, no files", () => {
-    const defaults = assessmentKindDefaults("EXAM")
-    expect(defaults.maxAttempts).toBe(1)
-    expect(defaults.maxFiles).toBeNull()
-  })
-})
-
-const baseUpdate = {
-  assessmentId: "11111111-1111-4111-8111-111111111111",
-  title: "Parcial 1",
+const quiz: AssessmentConfigInput = {
+  kind: "QUIZ",
+  title: "Quiz de módulo",
   description: "",
   passingScore: "60",
   maxAttempts: "",
-  kind: "QUIZ",
-  instructions: "",
+  durationMinutes: "",
+  availableFrom: "",
+  availableUntil: "",
   maxFiles: "",
   allowLateSubmissions: false,
 }
 
-describe("updateAssessmentSchema", () => {
-  it("accepts a QUIZ with no window or duration", () => {
-    const result = updateAssessmentSchema.safeParse({ ...baseUpdate, kind: "QUIZ" })
-    expect(result.success).toBe(true)
+const task: AssessmentConfigInput = {
+  ...quiz,
+  kind: "TASK",
+  maxAttempts: "",
+  maxFiles: "1",
+  availableUntil: "2026-10-15T23:59",
+}
+
+const exam: AssessmentConfigInput = {
+  ...quiz,
+  kind: "EXAM",
+  maxAttempts: "1",
+  durationMinutes: "60",
+  availableFrom: "2026-10-01T09:00",
+  availableUntil: "2026-10-01T11:00",
+}
+
+describe("assessmentConfigSchema: QUIZ", () => {
+  it("accepts a QUIZ with no window, duration or file limit", () => {
+    expect(assessmentConfigSchema.safeParse(quiz).success).toBe(true)
+  })
+
+  it("rejects a title shorter than 2 characters", () => {
+    expect(assessmentConfigSchema.safeParse({ ...quiz, title: "x" }).success).toBe(false)
+  })
+
+  it("rejects a passing score above 100", () => {
+    expect(assessmentConfigSchema.safeParse({ ...quiz, passingScore: "101" }).success).toBe(false)
+  })
+})
+
+describe("assessmentConfigSchema: TASK", () => {
+  it("accepts a TASK with a deadline and a file limit", () => {
+    expect(assessmentConfigSchema.safeParse(task).success).toBe(true)
+  })
+
+  it("rejects a TASK without a deadline", () => {
+    expect(assessmentConfigSchema.safeParse({ ...task, availableUntil: "" }).success).toBe(false)
+  })
+
+  it("rejects a TASK without maxFiles", () => {
+    expect(assessmentConfigSchema.safeParse({ ...task, maxFiles: "" }).success).toBe(false)
+  })
+
+  it("rejects a TASK with 0 or 11 files (valid range is 1..10)", () => {
+    expect(assessmentConfigSchema.safeParse({ ...task, maxFiles: "0" }).success).toBe(false)
+    expect(assessmentConfigSchema.safeParse({ ...task, maxFiles: "11" }).success).toBe(false)
+  })
+})
+
+describe("assessmentConfigSchema: EXAM", () => {
+  it("accepts a fully configured EXAM", () => {
+    expect(assessmentConfigSchema.safeParse(exam).success).toBe(true)
   })
 
   it("rejects an EXAM missing duration", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "EXAM",
-      availableFrom: "2026-10-01T09:00",
-      availableUntil: "2026-10-01T11:00",
-    })
-    expect(result.success).toBe(false)
+    expect(assessmentConfigSchema.safeParse({ ...exam, durationMinutes: "" }).success).toBe(false)
   })
 
   it("rejects an EXAM missing the availability window", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "EXAM",
-      durationMinutes: "60",
-    })
-    expect(result.success).toBe(false)
+    expect(assessmentConfigSchema.safeParse({ ...exam, availableFrom: "", availableUntil: "" }).success).toBe(false)
   })
 
-  it("accepts a fully configured EXAM", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "EXAM",
-      durationMinutes: "60",
-      availableFrom: "2026-10-01T09:00",
-      availableUntil: "2026-10-01T11:00",
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it("rejects a window where the end is before the start", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "TASK",
-      maxFiles: "1",
+  it("rejects a window where the end is not after the start", () => {
+    const result = assessmentConfigSchema.safeParse({
+      ...exam,
       availableFrom: "2026-10-01T11:00",
       availableUntil: "2026-10-01T09:00",
     })
     expect(result.success).toBe(false)
   })
-
-  it("accepts a TASK with required deadline and file limit", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "TASK",
-      maxFiles: "1",
-      availableUntil: "2026-10-15T23:59",
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it("rejects a TASK without a deadline", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "TASK",
-      maxFiles: "1",
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it("rejects a TASK without maxFiles", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "TASK",
-      availableUntil: "2026-10-15T23:59",
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it("rejects a TASK with invalid file count", () => {
-    const result = updateAssessmentSchema.safeParse({
-      ...baseUpdate,
-      kind: "TASK",
-      maxFiles: "11",
-      availableUntil: "2026-10-15T23:59",
-    })
-    expect(result.success).toBe(false)
-  })
 })
 
-describe("setAssessmentQuestionsSchema", () => {
-  const assessmentId = "22222222-2222-4222-8222-222222222222"
-  const bankId = "33333333-3333-4333-8333-333333333333"
-
-  it("accepts a fixed-only question source", () => {
-    const result = setAssessmentQuestionsSchema.safeParse({
-      assessmentId,
-      fixedQuestions: [{ questionId: "44444444-4444-4444-8444-444444444444", points: 2 }],
-    })
+describe("createAssessmentBlockSchema", () => {
+  it("accepts a lesson id, the required flag and a QUIZ config", () => {
+    const result = createAssessmentBlockSchema.safeParse({ lessonId: LESSON_ID, isRequired: true, config: quiz })
     expect(result.success).toBe(true)
   })
 
-  it("accepts a random-only configuration (bank + positive count)", () => {
-    const result = setAssessmentQuestionsSchema.safeParse({
-      assessmentId,
-      fixedQuestions: [],
-      randomBankId: bankId,
-      randomCount: 5,
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it("rejects a non-positive random count", () => {
-    const result = setAssessmentQuestionsSchema.safeParse({
-      assessmentId,
-      fixedQuestions: [],
-      randomBankId: bankId,
-      randomCount: 0,
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it("rejects non-positive fixed question points", () => {
-    const result = setAssessmentQuestionsSchema.safeParse({
-      assessmentId,
-      fixedQuestions: [{ questionId: "44444444-4444-4444-8444-444444444444", points: 0 }],
-    })
+  it("rejects a non-guid lesson id", () => {
+    const result = createAssessmentBlockSchema.safeParse({ lessonId: "nope", isRequired: true, config: quiz })
     expect(result.success).toBe(false)
   })
 })

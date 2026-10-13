@@ -23,11 +23,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 })
 
 const M1_BLOCK_A_AT = "2026-10-01T10:00:00.000Z"
@@ -91,7 +90,6 @@ async function buildTranscript(label: string, points: number): Promise<Transcrip
     availableFrom: new Date().toISOString(),
     availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
-  bankIds.push(fixture.bankId)
 
   const { attemptId, questions } = await submitOpenAttempt(student, enrollmentId, fixture.assessmentId)
   const openQuestionId = questions.find((q) => q.type === "OPEN_ENDED")!.id

@@ -21,11 +21,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -86,7 +85,6 @@ describe("grade_open_answer", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const { attemptId, questions } = await submitOpenAttempt(student, enrollmentId, fixture.assessmentId)
@@ -130,7 +128,6 @@ describe("grade_open_answer", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const { attemptId, questions } = await submitOpenAttempt(student, enrollmentId, fixture.assessmentId)
@@ -159,7 +156,6 @@ describe("grade_open_answer", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const { attemptId, questions } = await submitOpenAttempt(student, enrollmentId, fixture.assessmentId)
@@ -201,7 +197,6 @@ describe("grade_open_answer", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const { data: attemptId } = await student.client.rpc("start_attempt", {
@@ -239,7 +234,6 @@ describe("QUIZ/TASK completion writes content_progress (D33)", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const { data: block } = await supabaseAdmin
       .from("lesson_content_blocks")
@@ -298,7 +292,6 @@ describe("QUIZ/TASK completion writes content_progress (D33)", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const { data: block } = await supabaseAdmin
       .from("lesson_content_blocks")
@@ -339,7 +332,6 @@ describe("QUIZ/TASK completion writes content_progress (D33)", () => {
       multipleChoice: 2,
       passingScore: 80,
     })
-    bankIds.push(fixture.bankId)
 
     const { data: block } = await supabaseAdmin
       .from("lesson_content_blocks")
@@ -397,7 +389,6 @@ describe("QUIZ_PASSED unlocks a module (completes the Phase 4 stub)", () => {
       kind: "QUIZ",
       multipleChoice: 2,
     })
-    bankIds.push(fixture.bankId)
 
     await supabaseAdmin.from("module_dependencies").insert({
       module_id: course.modules[1]!.id,
@@ -477,7 +468,6 @@ describe("deletion guards (C10)", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     await student.client.rpc("start_attempt", {
@@ -513,7 +503,6 @@ describe("deletion guards (C10)", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const { error } = await admin.client.rpc("delete_assessment", {
       p_assessment: fixture.assessmentId,
@@ -543,7 +532,6 @@ describe("extend_assessment_window (D32)", () => {
       availableFrom: new Date(Date.now() - 3_600_000).toISOString(),
       availableUntil: until,
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const { data: attemptId, error: startError } = await student.client.rpc("start_attempt", {
@@ -593,7 +581,6 @@ describe("extend_assessment_window (D32)", () => {
       availableFrom: new Date(Date.now() - 3_600_000).toISOString(),
       availableUntil: until,
     })
-    bankIds.push(fixture.bankId)
 
     const byStudent = await student.client.rpc("extend_assessment_window", {
       p_assessment: fixture.assessmentId,

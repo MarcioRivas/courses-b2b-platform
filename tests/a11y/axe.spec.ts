@@ -30,7 +30,6 @@ test.describe("accessibility (axe) — key screens", () => {
   let professorId: string
   let courseId: string
   let offeringId: string
-  const bankIds: string[] = []
   let enrollmentId: string
   let registrationToken: string
   let quizAssessmentId: string
@@ -63,11 +62,10 @@ test.describe("accessibility (axe) — key screens", () => {
       multipleChoice: 2,
       passingScore: 50,
     })
-    bankIds.push(quiz.bankId)
     quizAssessmentId = quiz.assessmentId
 
     const now = new Date()
-    const exam = await makeAssessmentFixture({
+    await makeAssessmentFixture({
       organizationId: ORG_A,
       offeringId: fixture.offeringId,
       title: "Examen A11y",
@@ -79,7 +77,6 @@ test.describe("accessibility (axe) — key screens", () => {
       durationSeconds: 600,
       passingScore: 50,
     })
-    bankIds.push(exam.bankId)
 
     await supabaseAdmin.from("lesson_content_blocks").insert({
       lesson_id: lessonId,
@@ -102,7 +99,7 @@ test.describe("accessibility (axe) — key screens", () => {
   })
 
   test.afterAll(async () => {
-    await cleanupFixtures({ users: [studentId, professorId], courseIds: [courseId], bankIds })
+    await cleanupFixtures({ users: [studentId, professorId], courseIds: [courseId] })
   })
 
   test("landing page (anonymous)", async ({ page }) => {
@@ -166,8 +163,8 @@ test.describe("accessibility (axe) — key screens", () => {
       await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/content`)
       await assertNoSeriousViolations(page, "/admin/courses/[courseId]/offerings/[offeringId]/content")
 
-      await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/assessments`)
-      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/offerings/[offeringId]/assessments")
+      await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/exams`)
+      await assertNoSeriousViolations(page, "/admin/courses/[courseId]/offerings/[offeringId]/exams")
 
       // Drill-down deep link: the lesson page renders the block list full-width.
       await page.goto(`/admin/courses/${courseId}/offerings/${offeringId}/content/${moduleId}/${lessonId}`)

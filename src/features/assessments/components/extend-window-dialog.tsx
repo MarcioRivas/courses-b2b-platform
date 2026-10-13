@@ -15,10 +15,11 @@ interface ExtendWindowDialogProps {
   assessmentId: string
   currentUntil: string | null
   timeZone: string
+  onExtended?: () => void
 }
 
 /** Exam-day incident dialog (D32): admins/professors only, EXAM must be PUBLISHED (enforced by the RPC). */
-export function ExtendWindowDialog({ assessmentId, currentUntil, timeZone }: ExtendWindowDialogProps) {
+export function ExtendWindowDialog({ assessmentId, currentUntil, timeZone, onExtended }: ExtendWindowDialogProps) {
   const [open, setOpen] = useState(false)
   const [newUntil, setNewUntil] = useState(utcIsoToLocalDateTimeInput(currentUntil, timeZone))
   const [isPending, startTransition] = useTransition()
@@ -33,6 +34,7 @@ export function ExtendWindowDialog({ assessmentId, currentUntil, timeZone }: Ext
       }
       toast.success(labels.extended)
       setOpen(false)
+      onExtended?.()
     })
   }
 

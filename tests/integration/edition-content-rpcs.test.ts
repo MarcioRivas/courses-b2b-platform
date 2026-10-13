@@ -12,7 +12,7 @@ import { deleteGroups, makeTwoEditionCourse, type TwoEditionCourse } from "../he
 
 /**
  * B2 RPCs: create_course (+ OPEN edition for FREE), the access-type lock, the
- * publish guards, the shared-bank edit lock and copy_edition_content.
+ * publish guards, per-edition question ownership and copy_edition_content.
  */
 
 const ORG_A = "11111111-1111-1111-1111-111111111111"
@@ -21,11 +21,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 const cleanup: string[] = []
 const courseIds: string[] = []
 const groupIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   await deleteGroups(groupIds)
 })
 
@@ -154,18 +153,17 @@ describe("publish_course guards", () => {
   })
 })
 
-describe("shared question banks: QUESTION_IN_USE_ELSEWHERE", () => {
+describe("questions belong to one edition (no sharing across editions)", () => {
   let course: TwoEditionCourse
   let profA: Awaited<ReturnType<typeof member>>
   let profB: Awaited<ReturnType<typeof member>>
   let questionId: string
   let optionId: string
-  let assessmentId: string
 
   beforeAll(async () => {
     profA = await member("qb-prof-a", ORG_A, "PROFESSOR")
     profB = await member("qb-prof-b", ORG_A, "PROFESSOR")
-    course = await makeTwoEditionCourse(ORG_A, "Curso banco compartido")
+    course = await makeTwoEditionCourse(ORG_A, "Curso preguntas por edición")
     courseIds.push(course.courseId)
     groupIds.push(course.groupId)
     await assignOfferingProfessor(course.a.offeringId, profA.id)
@@ -178,41 +176,32 @@ describe("shared question banks: QUESTION_IN_USE_ELSEWHERE", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
-    assessmentId = fixture.assessmentId
     questionId = fixture.questions[0]!.questionId
     optionId = fixture.questions[0]!.correctOptionId!
   }, 60_000)
 
   it("the professor of the evaluation's edition can edit the question and its options", async () => {
     expect((await profA.client.from("questions").update({ prompt: "Editada por A" }).eq("id", questionId).select("id")).error).toBeNull()
-    expect((await profA.client.from("question_options").update({ label: "Editada" }).eq("id", optionId).select("id")).error).toBeNull()
+    expect((await profA.client.from("question_options").update({ label: "Editada" }).eq("id", optionId).select("id")).data).toHaveLength(1)
   })
 
-  it("another edition's professor is locked out of questions used by a PUBLISHED evaluation", async () => {
+  it("another edition's professor cannot update questions or options of edition A (RLS hides them)", async () => {
     const question = await profB.client.from("questions").update({ prompt: "Hack" }).eq("id", questionId).select("id")
-    expect(question.error?.message).toContain("QUESTION_IN_USE_ELSEWHERE")
+    expect(question.data).toEqual([])
 
     const option = await profB.client.from("question_options").update({ is_correct: false }).eq("id", optionId).select("id")
-    expect(option.error?.message).toContain("QUESTION_IN_USE_ELSEWHERE")
+    expect(option.data).toEqual([])
 
     const insertOption = await profB.client.from("question_options").insert({ question_id: questionId, label: "extra", position: 9 })
-    expect(insertOption.error?.message).toContain("QUESTION_IN_USE_ELSEWHERE")
+    expect(insertOption.error?.code).toBe("42501")
 
     const row = await supabaseAdmin.from("questions").select("prompt").eq("id", questionId).single()
     expect(row.data?.prompt).toBe("Editada por A")
   })
 
-  it("reading the shared bank across editions is still allowed", async () => {
+  it("another edition's professor cannot read edition A's questions", async () => {
     const read = await profB.client.from("questions").select("id").eq("id", questionId)
-    expect(read.data).toHaveLength(1)
-  })
-
-  it("the lock lifts when the evaluation is no longer PUBLISHED", async () => {
-    await supabaseAdmin.from("assessments").update({ status: "DRAFT" }).eq("id", assessmentId)
-    const question = await profB.client.from("questions").update({ prompt: "Ahora sí" }).eq("id", questionId).select("id")
-    expect(question.error).toBeNull()
-    await supabaseAdmin.from("assessments").update({ status: "PUBLISHED" }).eq("id", assessmentId)
+    expect(read.data).toEqual([])
   })
 })
 
@@ -236,10 +225,9 @@ describe("copy_edition_content", () => {
     const from = new Date(Date.now() - 3_600_000).toISOString()
     const until = new Date(Date.now() + 3_600_000).toISOString()
     const exam = await makeAssessmentFixture({
-      offeringId: source.offeringId, organizationId: ORG_A, title: "Examen origen", kind: "EXAM",
+      offeringId: source.offeringId, organizationId: ORG_A, title: "Cuestionario origen", kind: "QUIZ",
       multipleChoice: 1, durationSeconds: 600, availableFrom: from, availableUntil: until,
     })
-    bankIds.push(exam.bankId)
     await supabaseAdmin.from("lesson_content_blocks").insert({
       lesson_id: source.modules[0]!.lessonId, type: "QUIZ", position: 5, data: {}, assessment_id: exam.assessmentId, is_required: false,
     })
@@ -277,7 +265,7 @@ describe("copy_edition_content", () => {
     expect(assessments.data![0]!.status).toBe("DRAFT")
     expect(new Date(assessments.data![0]!.available_until!).getTime()).toBe(new Date(until).getTime())
     expect(new Date(assessments.data![0]!.available_from!).getTime()).toBe(new Date(from).getTime())
-    const copiedQuestions = await supabaseAdmin.from("assessment_questions").select("id").eq("assessment_id", assessments.data![0]!.id)
+    const copiedQuestions = await supabaseAdmin.from("questions").select("id").eq("assessment_id", assessments.data![0]!.id)
     expect(copiedQuestions.data).toHaveLength(1)
 
     // The QUIZ block and both dependencies point at the COPIED rows.
@@ -336,7 +324,6 @@ describe("authoring RPCs of the owning edition", () => {
       offeringId: course.a.offeringId, organizationId: ORG_A, title: "Examen extender", kind: "EXAM", openEnded: 1,
       durationSeconds: 600, availableFrom: new Date().toISOString(), availableUntil: new Date(Date.now() + 3_600_000).toISOString(),
     })
-    bankIds.push(exam.bankId)
     const extended = await prof.client.rpc("extend_assessment_window", {
       p_assessment: exam.assessmentId,
       p_new_until: new Date(Date.now() + 2 * 3_600_000).toISOString(),

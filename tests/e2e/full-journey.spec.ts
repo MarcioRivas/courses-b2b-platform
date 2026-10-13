@@ -47,7 +47,7 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
   await gateModuleOnQuiz(course.module2Id, quiz.assessmentId, 50)
 
   const now = new Date()
-  const exam = await makeAssessmentFixture({
+  await makeAssessmentFixture({
     organizationId: JOURNEY_ORG,
     offeringId: course.offeringId,
     title: "Examen Jornada",
@@ -189,6 +189,6 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
     await professorPage.close()
     if (studentId) await deleteUser(studentId)
     else await deleteUserByEmail(studentEmail)
-    await cleanupFixtures({ users: [admin.id, professor.id], courseIds: [course.courseId], bankIds: [quiz.bankId, exam.bankId] })
+    await cleanupFixtures({ users: [admin.id, professor.id], courseIds: [course.courseId] })
   }
 })

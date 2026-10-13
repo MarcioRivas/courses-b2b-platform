@@ -22,11 +22,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -46,7 +45,6 @@ async function scenario(title: string, spec: { multipleChoice?: number; openEnde
     multipleChoice: spec.multipleChoice ?? 1,
     openEnded: spec.openEnded ?? 0,
   })
-  bankIds.push(fixture.bankId)
   return { course, fixture }
 }
 
@@ -102,15 +100,13 @@ describe("the answer key is unreachable (C8)", () => {
     }
   })
 
-  it("hides the question bank itself from students", async () => {
+  it("hides questions and answer options from students (only the snapshot is visible)", async () => {
     const student = await member("key-bank", ORG_A, "STUDENT")
     const { fixture } = await scenario("Curso banco oculto")
 
-    const banks = await student.client.from("question_banks").select("id")
     const questions = await student.client.from("questions").select("id")
     const options = await student.client.from("question_options").select("id, is_correct")
 
-    expect(banks.data ?? []).toHaveLength(0)
     expect(questions.data ?? []).toHaveLength(0)
     expect(options.data ?? []).toHaveLength(0)
     expect(fixture.questions.length).toBeGreaterThan(0)

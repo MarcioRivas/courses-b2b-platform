@@ -108,11 +108,11 @@ describe("edition content catalog", () => {
     const triggers = psql(
       "select string_agg(distinct tgname, ',' order by tgname) from pg_trigger where not tgisinternal and tgname in (" +
         "'assert_block_assessment_same_edition','assert_dependency_same_edition','assert_module_edition_stable'," +
-        "'assert_assessment_edition_stable','assert_course_access_type_unlocked','assert_question_not_in_use_elsewhere');"
+        "'assert_assessment_edition_stable','assert_course_access_type_unlocked','assert_block_assessment_kind','questions_task_guard');"
     )
     expect(triggers).toBe(
-      "assert_assessment_edition_stable,assert_block_assessment_same_edition,assert_course_access_type_unlocked," +
-        "assert_dependency_same_edition,assert_module_edition_stable,assert_question_not_in_use_elsewhere"
+      "assert_assessment_edition_stable,assert_block_assessment_kind,assert_block_assessment_same_edition," +
+        "assert_course_access_type_unlocked,assert_dependency_same_edition,assert_module_edition_stable,questions_task_guard"
     )
   })
 })

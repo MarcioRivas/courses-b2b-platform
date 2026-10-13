@@ -17,12 +17,11 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const orgIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   if (orgIds.length > 0) {
     await supabaseAdmin.from("organizations").delete().in("id", orgIds)
   }
@@ -64,7 +63,6 @@ describe("seeded happy path produces the expected audit trail", () => {
       multipleChoice: 1,
       openEnded: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const { error: publishError } = await admin.client.rpc("publish_course", { p_course: course.courseId })
     expect(publishError).toBeNull()

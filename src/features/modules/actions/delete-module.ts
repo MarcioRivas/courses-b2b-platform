@@ -30,6 +30,9 @@ export async function deleteModule(input: DeleteModuleInput): Promise<ActionResu
   const { error } = await supabase.rpc("delete_module", { p_module: parsed.data.moduleId })
 
   if (error) {
+    if (error.message.includes("CONFLICT_HAS_DEPENDENCIES")) {
+      return { ok: false, code: "CONFLICT", message: contentMessages.errors.quizGatesModule }
+    }
     if (error.code === "23001") {
       return { ok: false, code: "CONFLICT", message: contentMessages.errors.contentInUse }
     }

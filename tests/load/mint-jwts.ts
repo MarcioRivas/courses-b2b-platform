@@ -67,7 +67,6 @@ interface SessionEntry {
 interface SessionsFile {
   organizationId: string
   courseId: string
-  bankId: string
   assessmentId: string
   createdAt: string
   students: SessionEntry[]
@@ -83,10 +82,9 @@ async function doCleanup() {
   await cleanupFixtures({
     users: file.students.map((s) => s.userId),
     courseIds: [file.courseId],
-    bankIds: [file.bankId],
   })
   unlinkSync(SESSIONS_PATH)
-  console.log(`Cleaned up ${file.students.length} students, course ${file.courseId}, bank ${file.bankId}.`)
+  console.log(`Cleaned up ${file.students.length} students, course ${file.courseId}, assessment ${file.assessmentId}.`)
 }
 
 async function doMint(args: Args) {
@@ -144,14 +142,13 @@ async function doMint(args: Args) {
   const file: SessionsFile = {
     organizationId: ORG_A,
     courseId: course.courseId,
-    bankId: fixture.bankId,
     assessmentId: fixture.assessmentId,
     createdAt: new Date().toISOString(),
     students,
   }
   writeFileSync(SESSIONS_PATH, JSON.stringify(file, null, 2))
   console.log(`Wrote ${students.length} sessions to ${SESSIONS_PATH}`)
-  console.log(`courseId=${course.courseId} bankId=${fixture.bankId} assessmentId=${fixture.assessmentId}`)
+  console.log(`courseId=${course.courseId} assessmentId=${fixture.assessmentId}`)
 }
 
 async function main() {

@@ -18,7 +18,6 @@ import { psqlBool } from "../helpers/sql"
  */
 
 let fx: SecurityFixture
-const extraBankIds: string[] = []
 const extraUserIds: string[] = []
 const extraCourseIds: string[] = []
 
@@ -28,7 +27,6 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await fx.cleanup()
-  if (extraBankIds.length > 0) await supabaseAdmin.from("question_banks").delete().in("id", extraBankIds)
   if (extraCourseIds.length > 0) await supabaseAdmin.from("courses").delete().in("id", extraCourseIds)
   for (const id of extraUserIds) await deleteUser(id)
 })
@@ -59,7 +57,6 @@ describe("start_attempt outside the availability window", () => {
       availableFrom: new Date(Date.now() - 7_200_000).toISOString(),
       availableUntil: new Date(Date.now() - 3_600_000).toISOString(),
     })
-    extraBankIds.push(expired.bankId)
 
     const { error } = await fx.users.studentA.client.rpc("start_attempt", {
       p_enrollment: fx.enrollmentA,
@@ -172,34 +169,38 @@ describe("analytics functions with a foreign entity id (D25)", () => {
   })
 })
 
-describe("replace_question_options: cross-course rejection", () => {
-  it("refuses profB replacing options on a question owned by courseA", async () => {
-    const { error } = await fx.users.profB.client.rpc("replace_question_options", {
-      p_question: fx.assessmentA.questions[0]!.questionId,
-      p_options: [{ label: "Hackeada", position: 1, is_correct: true }],
+describe("save_assessment_questions: cross-course rejection", () => {
+  const question = (prompt: string) => ({
+    type: "MULTIPLE_CHOICE",
+    prompt,
+    points: 1,
+    options: [
+      { label: "A", isCorrect: true },
+      { label: "B", isCorrect: false },
+    ],
+  })
+
+  it("refuses profB replacing the question list of courseA's assessment", async () => {
+    const { error } = await fx.users.profB.client.rpc("save_assessment_questions", {
+      p_assessment: fx.assessmentA.assessmentId,
+      p_questions: [question("Hackeada")],
     })
     expect(error?.code).toBe("42501")
   })
 
-  it("allows profA (the assigned professor) to replace options on their own question", async () => {
-    const { error } = await fx.users.profA.client.rpc("replace_question_options", {
-      p_question: fx.assessmentA.questions[0]!.questionId,
-      p_options: [
-        { label: "A", position: 1, is_correct: true },
-        { label: "B", position: 2, is_correct: false },
-      ],
+  it("allows profA (the assigned professor) to save questions on their own assessment", async () => {
+    const own = await makeAssessmentFixture({
+      offeringId: fx.courseA.offeringId,
+      organizationId: fx.orgA,
+      title: "Evaluación de profA",
+      kind: "QUIZ",
+    })
+    const { data, error } = await fx.users.profA.client.rpc("save_assessment_questions", {
+      p_assessment: own.assessmentId,
+      p_questions: [question("Propia")],
     })
     expect(error).toBeNull()
-  })
-})
-
-describe("set_assessment_questions: cross-course rejection", () => {
-  it("refuses profB setting the question list of assessmentA", async () => {
-    const { error } = await fx.users.profB.client.rpc("set_assessment_questions", {
-      p_assessment: fx.assessmentA.assessmentId,
-      p_items: [{ question_id: fx.spareQuestionA, position: 1, points: 1 }],
-    })
-    expect(error?.code).toBe("42501")
+    expect(data).toHaveLength(1)
   })
 })
 

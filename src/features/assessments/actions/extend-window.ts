@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidateOfferingAssessments } from "@/lib/courses/revalidate-offering-content"
+import { revalidateOfferingExams } from "@/lib/courses/revalidate-offering-content"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgRole } from "@/lib/auth/require-role"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
@@ -44,7 +44,7 @@ export async function extendWindow(input: ExtendWindowInput): Promise<ActionResu
   }
 
   if (existing) {
-    await revalidateOfferingAssessments(existing.offering_id, parsed.data.assessmentId)
+    await revalidateOfferingExams(existing.offering_id, parsed.data.assessmentId)
   }
 
   return { ok: true, data: { attemptsUpdated: data ?? 0 } }

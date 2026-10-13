@@ -9,10 +9,8 @@ import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { sanitizeHtml } from "@/lib/html/sanitize"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
-import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { updateContentBlockSchema, type UpdateContentBlockInput } from "../schemas/content-block-schemas"
-import { sanitizeBlockData, resolveBlockAssessmentId } from "../lib/sanitize-block-data"
-import { assertBlockAssessmentMatchesOffering } from "../lib/assert-block-assessment"
+import { sanitizeBlockData } from "../lib/sanitize-block-data"
 
 /** Re-validates `data` server-side unconditionally — the client payload is never trusted (requirement 6). */
 export async function updateBlock(input: UpdateContentBlockInput): Promise<ActionResult<void>> {
@@ -40,18 +38,12 @@ export async function updateBlock(input: UpdateContentBlockInput): Promise<Actio
   }
 
   const { block } = parsed.data
-  const assessmentId = resolveBlockAssessmentId(block)
-  if (assessmentId && (block.type === "QUIZ" || block.type === "TASK")) {
-    if (!(await assertBlockAssessmentMatchesOffering(assessmentId, offeringId, block.type))) {
-      return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.assessmentKindMismatch }
-    }
-  }
 
   const data = sanitizeBlockData(block, sanitizeHtml)
 
   const { error } = await supabase
     .from("lesson_content_blocks")
-    .update({ type: block.type, data, assessment_id: assessmentId, is_required: parsed.data.isRequired })
+    .update({ type: block.type, data, is_required: parsed.data.isRequired })
     .eq("id", parsed.data.blockId)
 
   if (error) {

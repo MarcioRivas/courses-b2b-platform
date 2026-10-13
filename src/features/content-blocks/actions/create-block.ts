@@ -9,10 +9,8 @@ import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { sanitizeHtml } from "@/lib/html/sanitize"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
-import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { createContentBlockSchema, type CreateContentBlockInput } from "../schemas/content-block-schemas"
-import { sanitizeBlockData, resolveBlockAssessmentId } from "../lib/sanitize-block-data"
-import { assertBlockAssessmentMatchesOffering } from "../lib/assert-block-assessment"
+import { sanitizeBlockData } from "../lib/sanitize-block-data"
 
 export async function createBlock(input: CreateContentBlockInput): Promise<ActionResult<{ id: string }>> {
   const parsed = createContentBlockSchema.safeParse(input)
@@ -32,12 +30,6 @@ export async function createBlock(input: CreateContentBlockInput): Promise<Actio
   }
 
   const { block } = parsed.data
-  const assessmentId = resolveBlockAssessmentId(block)
-  if (assessmentId && (block.type === "QUIZ" || block.type === "TASK")) {
-    if (!(await assertBlockAssessmentMatchesOffering(assessmentId, offeringId, block.type))) {
-      return { ok: false, code: "VALIDATION", message: teachAssessmentMessages.errors.assessmentKindMismatch }
-    }
-  }
 
   const { data: last } = await supabase
     .from("lesson_content_blocks")
@@ -55,7 +47,6 @@ export async function createBlock(input: CreateContentBlockInput): Promise<Actio
       lesson_id: parsed.data.lessonId,
       type: block.type,
       data,
-      assessment_id: assessmentId,
       is_required: parsed.data.isRequired,
       position: (last?.position ?? 0) + 1,
     })

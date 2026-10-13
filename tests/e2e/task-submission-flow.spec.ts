@@ -94,6 +94,6 @@ test("task submission: student uploads a PDF → professor grades after the dead
     if (paths.length > 0) {
       await supabaseAdmin.storage.from("task-submissions").remove(paths)
     }
-    await cleanupFixtures({ users: [student.id, professor.id], courseIds: [course.courseId], bankIds: [task.bankId] })
+    await cleanupFixtures({ users: [student.id, professor.id], courseIds: [course.courseId] })
   }
 })

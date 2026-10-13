@@ -15,11 +15,11 @@ export function editionPaths(area: EditionArea, { courseId, offeringId }: Editio
     area === "admin"
       ? `/admin/courses/${courseId}/offerings/${offeringId}`
       : `/teach/courses/${courseId}/editions/${offeringId}`
-  return { base, content: `${base}/content`, assessments: `${base}/assessments` }
+  return { base, content: `${base}/content`, exams: `${base}/exams` }
 }
 
 /**
- * Leading crumbs shared by the content builder and the evaluations screens:
+ * Leading crumbs shared by the content builder and the exams screens:
  * Cursos › {curso} › [Ediciones ›] {edición}. The edition crumb links to the
  * edition's content (the teach area has no edition detail page).
  */

@@ -130,6 +130,8 @@ export const contentMessages = {
     failed: "No se pudo subir el archivo. Intentá de nuevo.",
   },
   errors: {
+    quizGatesModule:
+      "No se puede eliminar: un cuestionario de este contenido es requisito para desbloquear un módulo. Quitá esa dependencia primero.",
     contentInUse:
       "No se puede eliminar: el curso está publicado con inscripciones activas o ya tiene progreso registrado. Archivá el curso u ocultá el contenido en su lugar.",
     cycleDetected: "Esa dependencia generaría un ciclo entre módulos.",

@@ -16,7 +16,6 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 const cleanup: string[] = []
 const courseIds: string[] = []
 const groupIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 let course: TwoEditionCourse
@@ -54,7 +53,6 @@ beforeAll(async () => {
     kind: "QUIZ",
     multipleChoice: 1,
   })
-  bankIds.push(draft.bankId, published.bankId)
   draftAssessmentB = draft.assessmentId
   publishedAssessmentB = published.assessmentId
 
@@ -68,7 +66,7 @@ beforeAll(async () => {
 }, 60_000)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   await deleteGroups(groupIds)
 })
 
@@ -89,7 +87,7 @@ describe("professor of edition A vs edition B's content", () => {
   it("cannot read draft or published evaluations of edition B", async () => {
     const rows = await profA.client.from("assessments").select("id").in("id", [draftAssessmentB, publishedAssessmentB])
     expect(rows.data).toEqual([])
-    const questions = await profA.client.from("assessment_questions").select("id").eq("assessment_id", draftAssessmentB)
+    const questions = await profA.client.from("questions").select("id").eq("assessment_id", draftAssessmentB)
     expect(questions.data).toEqual([])
   })
 
@@ -119,10 +117,10 @@ describe("professor of edition A vs edition B's content", () => {
     expect(update.data).toEqual([])
   })
 
-  it("cannot save checkpoints, set questions, extend or delete edition B's evaluations (RPCs)", async () => {
+  it("cannot save checkpoints, save questions, extend or delete edition B's evaluations (RPCs)", async () => {
     const save = await profA.client.rpc("save_video_checkpoints", { p_block: course.b.blockId, p_checkpoints: [] })
     expect(save.error?.code).toBe("42501")
-    const questions = await profA.client.rpc("set_assessment_questions", { p_assessment: draftAssessmentB, p_items: [] })
+    const questions = await profA.client.rpc("save_assessment_questions", { p_assessment: draftAssessmentB, p_questions: [] })
     expect(questions.error?.code).toBe("42501")
     const remove = await profA.client.rpc("delete_assessment", { p_assessment: draftAssessmentB })
     expect(remove.error?.code).toBe("42501")
@@ -236,7 +234,6 @@ describe("student_can_view_offering mirrors every guard", () => {
 describe("same-edition triggers", () => {
   it("refuses a block that points at another edition's evaluation", async () => {
     const quiz = await makeAssessmentFixture({ offeringId: course.a.offeringId, organizationId: ORG_A, title: "Quiz A", kind: "QUIZ", multipleChoice: 1 })
-    bankIds.push(quiz.bankId)
     const { error } = await supabaseAdmin
       .from("lesson_content_blocks")
       .insert({ lesson_id: course.b.lessonId, type: "QUIZ", position: 40, data: {}, assessment_id: quiz.assessmentId })

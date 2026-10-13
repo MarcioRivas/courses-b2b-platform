@@ -12,11 +12,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 const cleanup: string[] = []
 const courseIds: string[] = []
 const groupIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   await deleteGroups(groupIds)
 })
 
@@ -53,10 +52,10 @@ describe("cross-edition moves (editor of both editions)", () => {
   })
 })
 
-describe("question insert into a bank used by another edition's PUBLISHED random-draw exam", () => {
+describe("question insert into another edition's PUBLISHED random-draw exam", () => {
   it("is refused for the other edition's professor and leaves no orphan", async () => {
     const profB = await member("hd-prof-b", ORG_A, "PROFESSOR")
-    const course = await makeTwoEditionCourse(ORG_A, "Curso banco sorteo")
+    const course = await makeTwoEditionCourse(ORG_A, "Curso sorteo cruzado")
     courseIds.push(course.courseId)
     groupIds.push(course.groupId)
     await assignOfferingProfessor(course.b.offeringId, profB.id)
@@ -68,24 +67,22 @@ describe("question insert into a bank used by another edition's PUBLISHED random
       kind: "QUIZ",
       multipleChoice: 2,
     })
-    bankIds.push(fixture.bankId)
     const draw = await supabaseAdmin
       .from("assessments")
-      .update({ random_question_count: 1, question_bank_id: fixture.bankId })
+      .update({ random_question_count: 1 })
       .eq("id", fixture.assessmentId)
     expect(draw.error).toBeNull()
 
     const insert = await profB.client.from("questions").insert({
-      question_bank_id: fixture.bankId,
-      organization_id: ORG_A,
+      assessment_id: fixture.assessmentId,
       type: "MULTIPLE_CHOICE",
       prompt: "Intrusa",
-      default_points: 1,
-      is_active: false,
+      points: 1,
+      position: 99,
     })
-    expect(insert.error?.message).toContain("QUESTION_IN_USE_ELSEWHERE")
+    expect(insert.error?.code).toBe("42501")
 
-    const orphans = await supabaseAdmin.from("questions").select("id").eq("question_bank_id", fixture.bankId).eq("prompt", "Intrusa")
+    const orphans = await supabaseAdmin.from("questions").select("id").eq("assessment_id", fixture.assessmentId).eq("prompt", "Intrusa")
     expect(orphans.data).toEqual([])
   }, 60_000)
 })

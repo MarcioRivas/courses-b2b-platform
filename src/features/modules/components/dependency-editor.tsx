@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/shared/empty-state"
-import { listAssessmentsForBlock } from "@/features/assessments/actions/list-assessments-for-block"
+import { listQuizzesForDependency } from "@/features/assessments/actions/list-quizzes-for-dependency"
 import type { AssessmentPickerOption } from "@/features/assessments/types"
 import { upsertDependency } from "../actions/upsert-dependency"
 import { deleteDependency } from "../actions/delete-dependency"
@@ -51,7 +51,7 @@ export function DependencyEditor({ trigger, offeringId, moduleId, dependencies, 
 
   useEffect(() => {
     if (!open) return
-    listAssessmentsForBlock(offeringId, "QUIZ")
+    listQuizzesForDependency(offeringId)
       .then((options) => {
         setQuizzes(options)
         setSelectedAssessment((current) => current ?? options[0]?.id ?? null)
