@@ -179,7 +179,7 @@ export async function deleteCourses(courseIds: string[]): Promise<void> {
 }
 
 export interface AssessmentSpec {
-  /** Evaluations belong to an edition; the course (for the question bank) is derived from it. */
+  /** Evaluations belong to an edition. */
   offeringId: string
   organizationId: string
   title: string
@@ -205,82 +205,20 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export interface AssessmentFixture {
   assessmentId: string
-  bankId: string
   /** Correct option id per question, in the order the questions were created. */
   questions: { questionId: string; correctOptionId: string | null }[]
 }
 
 /**
- * Builds a bank + questions + a PUBLISHED assessment with a fixed question
- * list. A TASK gets no questions (the DB refuses them) and the TASK-only
- * columns its shape check requires. Service role throughout: these suites exercise the attempt RPCs, not
- * the authoring write paths.
+ * Builds a PUBLISHED assessment with its own questions (MC first, then open
+ * ended). A TASK gets no questions (the DB refuses them) and the TASK-only
+ * columns its shape check requires. Service role throughout: these suites
+ * exercise the attempt RPCs, not the authoring write paths.
  */
 export async function makeAssessmentFixture(spec: AssessmentSpec): Promise<AssessmentFixture> {
   const isTask = spec.kind === "TASK"
   if (isTask && ((spec.multipleChoice ?? 0) > 0 || (spec.openEnded ?? 0) > 0)) {
     throw new Error("A TASK has no questions; use QUIZ or EXAM for question fixtures")
-  }
-
-  const { data: offering } = await supabaseAdmin
-    .from("course_offerings")
-    .select("course_id")
-    .eq("id", spec.offeringId)
-    .single()
-  if (!offering) throw new Error("offering not found")
-
-  const { data: bank, error: bankError } = await supabaseAdmin
-    .from("question_banks")
-    .insert({ organization_id: spec.organizationId, course_id: offering.course_id, name: `${spec.title} — banco` })
-    .select("id")
-    .single()
-  if (bankError || !bank) throw bankError ?? new Error("bank not created")
-
-  const questions: AssessmentFixture["questions"] = []
-
-  for (let i = 0; i < (spec.multipleChoice ?? 0); i++) {
-    const { data: question } = await supabaseAdmin
-      .from("questions")
-      .insert({
-        question_bank_id: bank.id,
-        organization_id: spec.organizationId,
-        type: "MULTIPLE_CHOICE",
-        prompt: `Pregunta MC ${i + 1}`,
-        default_points: 1,
-      })
-      .select("id")
-      .single()
-    if (!question) throw new Error("question not created")
-
-    const { data: options } = await supabaseAdmin
-      .from("question_options")
-      .insert(
-        [0, 1, 2].map((n) => ({
-          question_id: question.id,
-          label: `Opción ${n + 1}`,
-          position: n + 1,
-          is_correct: n === 0,
-        }))
-      )
-      .select("id, is_correct")
-    const correct = (options ?? []).find((o) => o.is_correct)
-    questions.push({ questionId: question.id, correctOptionId: correct?.id ?? null })
-  }
-
-  for (let i = 0; i < (spec.openEnded ?? 0); i++) {
-    const { data: question } = await supabaseAdmin
-      .from("questions")
-      .insert({
-        question_bank_id: bank.id,
-        organization_id: spec.organizationId,
-        type: "OPEN_ENDED",
-        prompt: `Pregunta abierta ${i + 1}`,
-        default_points: 1,
-      })
-      .select("id")
-      .single()
-    if (!question) throw new Error("question not created")
-    questions.push({ questionId: question.id, correctOptionId: null })
   }
 
   const { data: assessment, error: assessmentError } = await supabaseAdmin
@@ -306,33 +244,61 @@ export async function makeAssessmentFixture(spec: AssessmentSpec): Promise<Asses
     .single()
   if (assessmentError || !assessment) throw assessmentError ?? new Error("assessment not created")
 
-  if (questions.length > 0) {
-    const { error } = await supabaseAdmin.from("assessment_questions").insert(
-      questions.map((q, index) => ({
+  const questions: AssessmentFixture["questions"] = []
+  let position = 0
+
+  for (let i = 0; i < (spec.multipleChoice ?? 0); i++) {
+    const { data: question, error } = await supabaseAdmin
+      .from("questions")
+      .insert({
         assessment_id: assessment.id,
-        question_id: q.questionId,
-        position: index + 1,
+        type: "MULTIPLE_CHOICE",
+        prompt: `Pregunta MC ${i + 1}`,
         points: 1,
-      }))
-    )
-    if (error) throw error
+        position: ++position,
+      })
+      .select("id")
+      .single()
+    if (error || !question) throw error ?? new Error("question not created")
+
+    const { data: options } = await supabaseAdmin
+      .from("question_options")
+      .insert(
+        [0, 1, 2].map((n) => ({
+          question_id: question.id,
+          label: `Opción ${n + 1}`,
+          position: n + 1,
+          is_correct: n === 0,
+        }))
+      )
+      .select("id, is_correct")
+    const correct = (options ?? []).find((o) => o.is_correct)
+    questions.push({ questionId: question.id, correctOptionId: correct?.id ?? null })
   }
 
-  return { assessmentId: assessment.id, bankId: bank.id, questions }
-}
-
-/** Deleting the bank cascades to questions and options. */
-export async function deleteBanks(bankIds: string[]): Promise<void> {
-  if (bankIds.length > 0) {
-    await supabaseAdmin.from("question_banks").delete().in("id", bankIds)
+  for (let i = 0; i < (spec.openEnded ?? 0); i++) {
+    const { data: question, error } = await supabaseAdmin
+      .from("questions")
+      .insert({
+        assessment_id: assessment.id,
+        type: "OPEN_ENDED",
+        prompt: `Pregunta abierta ${i + 1}`,
+        points: 1,
+        position: ++position,
+      })
+      .select("id")
+      .single()
+    if (error || !question) throw error ?? new Error("question not created")
+    questions.push({ questionId: question.id, correctOptionId: null })
   }
+
+  return { assessmentId: assessment.id, questions }
 }
 
 export interface FixtureCleanup {
   /** Test user ids to remove. */
   users?: string[]
   courseIds?: string[]
-  bankIds?: string[]
 }
 
 /**
@@ -341,14 +307,15 @@ export interface FixtureCleanup {
  * Order matters and used to be wrong: deleting a course while its attempts
  * still existed hit the `assessment_attempts.assessment_id` RESTRICT FK, the
  * error was discarded, and the course survived. Rows piled up across runs
- * (252 courses, 140 banks) until the shared database was slow enough to make
+ * (252 courses) until the shared database was slow enough to make
  * time-sensitive suites fail.
  *
  * Users go first: removing `auth.users` cascades through profiles ->
  * enrollments -> attempts -> attempt questions, which is exactly what the
- * RESTRICT FKs are waiting on. Courses and banks can then go cleanly.
+ * RESTRICT FKs are waiting on. Courses (cascading to assessments and their
+ * questions) can then go cleanly.
  */
-export async function cleanupFixtures({ users, courseIds, bankIds }: FixtureCleanup): Promise<void> {
+export async function cleanupFixtures({ users, courseIds }: FixtureCleanup): Promise<void> {
   for (const id of users ?? []) {
     await supabaseAdmin.auth.admin.deleteUser(id)
   }
@@ -356,10 +323,5 @@ export async function cleanupFixtures({ users, courseIds, bankIds }: FixtureClea
   if (courseIds && courseIds.length > 0) {
     const { error } = await supabaseAdmin.from("courses").delete().in("id", courseIds)
     if (error) throw new Error(`fixture cleanup failed for courses: ${error.message}`)
-  }
-
-  if (bankIds && bankIds.length > 0) {
-    const { error } = await supabaseAdmin.from("question_banks").delete().in("id", bankIds)
-    if (error) throw new Error(`fixture cleanup failed for banks: ${error.message}`)
   }
 }

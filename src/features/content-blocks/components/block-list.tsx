@@ -14,8 +14,10 @@ import type { Json } from "@/types/database.types"
 import { reorderBlocks } from "../actions/reorder-blocks"
 import { deleteBlock } from "../actions/delete-block"
 import type { OfferableBlockType } from "../schemas/content-block-schemas"
+import type { AssessmentStatus } from "@/features/assessments/types"
 import { BlockEditorPanel } from "./block-editor-panel"
 import { BlockRenderer } from "./block-renderer"
+import { AssessmentBlockSummary } from "./assessment-block-summary"
 
 export interface BlockListItem {
   id: string
@@ -23,6 +25,9 @@ export interface BlockListItem {
   data: Json
   isRequired: boolean
   checkpointCount?: number
+  /** QUIZ/TASK: the block's own assessment. */
+  assessmentId?: string | null
+  assessment?: { title: string; status: AssessmentStatus; questionCount: number } | null
 }
 
 interface BlockListProps {
@@ -130,7 +135,11 @@ export function BlockList({ organizationId, courseId, offeringId, lessonId, bloc
                   </div>
                 )}
               </div>
-              <BlockRenderer block={block} />
+              {(block.type === "QUIZ" || block.type === "TASK") && block.assessment ? (
+                <AssessmentBlockSummary type={block.type} assessment={block.assessment} />
+              ) : (
+                <BlockRenderer block={block} />
+              )}
             </li>
           ))}
         </ul>

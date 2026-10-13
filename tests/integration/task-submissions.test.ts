@@ -17,7 +17,6 @@ const PDF = new Blob(["%PDF-1.4 tarea"], { type: "application/pdf" })
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const storedPaths: string[] = []
 const member = createMemberFactory(cleanup)
 
@@ -25,7 +24,7 @@ afterAll(async () => {
   if (storedPaths.length > 0) {
     await supabaseAdmin.storage.from(BUCKET).remove(storedPaths)
   }
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 })
 
 interface TaskSetup {
@@ -56,7 +55,6 @@ async function setupTask(label: string, options: { maxFiles?: number; allowLate?
     maxFiles: options.maxFiles ?? 1,
     allowLateSubmissions: options.allowLate ?? false,
   })
-  bankIds.push(fixture.bankId)
 
   const { data: block } = await supabaseAdmin
     .from("lesson_content_blocks")
@@ -258,17 +256,14 @@ describe("TASK guards", () => {
     })
     expect(start.error?.message).toContain("USE_TASK_SUBMISSION")
 
-    const { data: question } = await supabaseAdmin
-      .from("questions")
-      .select("id")
-      .limit(1)
-      .maybeSingle()
-    if (question) {
-      const { error } = await supabaseAdmin
-        .from("assessment_questions")
-        .insert({ assessment_id: setup.assessmentId, question_id: question.id, position: 1, points: 1 })
-      expect(error?.message).toContain("TASK_HAS_NO_QUESTIONS")
-    }
+    const { error } = await supabaseAdmin.from("questions").insert({
+      assessment_id: setup.assessmentId,
+      type: "OPEN_ENDED",
+      prompt: "Pregunta en una tarea",
+      points: 1,
+      position: 1,
+    })
+    expect(error?.message).toContain("TASK_HAS_NO_QUESTIONS")
   })
 })
 

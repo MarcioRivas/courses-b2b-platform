@@ -6,11 +6,8 @@ import { z } from "zod"
  * against this same union — the action re-validates `data` unconditionally
  * because the client payload is never trusted.
  *
- * QUIZ/TASK carry `{ assessmentId }` in `data` for validation purposes only:
- * the write path (`create-block`/`update-block`) copies it into the
- * `assessment_id` column and persists `data: {}` — the DB CHECK
- * (`type in ('QUIZ','TASK') = (assessment_id is not null)`) is keyed off the
- * column, not the JSON blob (Phase 5).
+ * QUIZ/TASK are not in this union: those blocks are created and edited by the
+ * assessment wizard (`create_assessment_block`), which owns their assessment.
  */
 export const youtubeBlockDataSchema = z.object({
   videoId: z.string().regex(/^[A-Za-z0-9_-]{11}$/, "Id de video inválido."),
@@ -44,21 +41,22 @@ export const externalLinkBlockDataSchema = z.object({
   title: z.string().trim().min(1, "Ingresá un título.").max(200),
 })
 
-export const assessmentBlockDataSchema = z.object({
-  assessmentId: z.guid("Elegí una evaluación."),
-})
-
 export const contentBlockDataSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("YOUTUBE_VIDEO"), data: youtubeBlockDataSchema }),
   z.object({ type: z.literal("RICH_TEXT"), data: richTextBlockDataSchema }),
   z.object({ type: z.literal("PDF"), data: pdfBlockDataSchema }),
   z.object({ type: z.literal("IMAGE"), data: imageBlockDataSchema }),
   z.object({ type: z.literal("EXTERNAL_LINK"), data: externalLinkBlockDataSchema }),
-  z.object({ type: z.literal("QUIZ"), data: assessmentBlockDataSchema }),
-  z.object({ type: z.literal("TASK"), data: assessmentBlockDataSchema }),
 ])
 export type ContentBlockData = z.infer<typeof contentBlockDataSchema>
-export type OfferableBlockType = ContentBlockData["type"]
+export type DataBlockType = ContentBlockData["type"]
+/** Blocks whose content is an assessment authored inline by the wizard. */
+export type AssessmentBlockType = "QUIZ" | "TASK"
+export type OfferableBlockType = DataBlockType | AssessmentBlockType
+
+export function isAssessmentBlockType(type: OfferableBlockType): type is AssessmentBlockType {
+  return type === "QUIZ" || type === "TASK"
+}
 
 export const createContentBlockSchema = z.object({
   lessonId: z.guid(),
@@ -83,7 +81,7 @@ export const reorderContentBlocksSchema = z.object({
 })
 export type ReorderContentBlocksInput = z.infer<typeof reorderContentBlocksSchema>
 
-/** All 7 DB enum values (Phase 5 enables QUIZ/TASK). */
+/** All 7 DB enum values. */
 export const OFFERABLE_BLOCK_TYPES: OfferableBlockType[] = [
   "YOUTUBE_VIDEO",
   "RICH_TEXT",

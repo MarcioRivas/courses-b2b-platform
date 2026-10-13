@@ -79,7 +79,7 @@ test("admin creates 'Edición 2' copying 'Edición 1', assigns a professor; the 
     await expect(studentPage.getByText("Módulo solo de edición 2", { exact: true })).toBeVisible()
     await expect(studentPage.getByText("Módulo original", { exact: true })).toBeHidden()
   } finally {
-    await cleanupFixtures({ users: [admin.id, professor.id, student.id], courseIds: [course.courseId], bankIds: [] })
+    await cleanupFixtures({ users: [admin.id, professor.id, student.id], courseIds: [course.courseId] })
     await deleteGroups(group ? [group.id] : [])
   }
 })

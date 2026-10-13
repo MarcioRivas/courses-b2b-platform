@@ -77,7 +77,7 @@ export type Database = {
           points: number
           position: number
           prompt: string
-          question_id: string
+          question_id: string | null
           saved_at: string | null
           selected_option_id: string | null
           text_answer: string | null
@@ -92,7 +92,7 @@ export type Database = {
           points: number
           position: number
           prompt: string
-          question_id: string
+          question_id?: string | null
           saved_at?: string | null
           selected_option_id?: string | null
           text_answer?: string | null
@@ -107,7 +107,7 @@ export type Database = {
           points?: number
           position?: number
           prompt?: string
-          question_id?: string
+          question_id?: string | null
           saved_at?: string | null
           selected_option_id?: string | null
           text_answer?: string | null
@@ -340,48 +340,6 @@ export type Database = {
           },
         ]
       }
-      assessment_questions: {
-        Row: {
-          assessment_id: string
-          created_at: string
-          id: string
-          points: number
-          position: number
-          question_id: string
-        }
-        Insert: {
-          assessment_id: string
-          created_at?: string
-          id?: string
-          points?: number
-          position: number
-          question_id: string
-        }
-        Update: {
-          assessment_id?: string
-          created_at?: string
-          id?: string
-          points?: number
-          position?: number
-          question_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assessment_questions_assessment_id_fkey"
-            columns: ["assessment_id"]
-            isOneToOne: false
-            referencedRelation: "assessments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_questions_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "questions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       assessment_submission_files: {
         Row: {
           attempt_id: string
@@ -451,7 +409,6 @@ export type Database = {
           offering_id: string
           organization_id: string
           passing_score: number | null
-          question_bank_id: string | null
           random_question_count: number | null
           status: Database["public"]["Enums"]["assessment_status"]
           title: string
@@ -474,7 +431,6 @@ export type Database = {
           offering_id: string
           organization_id: string
           passing_score?: number | null
-          question_bank_id?: string | null
           random_question_count?: number | null
           status?: Database["public"]["Enums"]["assessment_status"]
           title: string
@@ -497,7 +453,6 @@ export type Database = {
           offering_id?: string
           organization_id?: string
           passing_score?: number | null
-          question_bank_id?: string | null
           random_question_count?: number | null
           status?: Database["public"]["Enums"]["assessment_status"]
           title?: string
@@ -530,13 +485,6 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessments_question_bank_id_fkey"
-            columns: ["question_bank_id"]
-            isOneToOne: false
-            referencedRelation: "question_banks"
             referencedColumns: ["id"]
           },
         ]
@@ -1016,7 +964,7 @@ export type Database = {
           {
             foreignKeyName: "lesson_content_blocks_assessment_id_fkey"
             columns: ["assessment_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "assessments"
             referencedColumns: ["id"]
           },
@@ -1553,61 +1501,6 @@ export type Database = {
         }
         Relationships: []
       }
-      question_banks: {
-        Row: {
-          course_id: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          id: string
-          name: string
-          organization_id: string
-          updated_at: string
-        }
-        Insert: {
-          course_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          organization_id: string
-          updated_at?: string
-        }
-        Update: {
-          course_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          organization_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "question_banks_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_banks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_banks_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       question_options: {
         Row: {
           created_at: string
@@ -1645,61 +1538,41 @@ export type Database = {
       }
       questions: {
         Row: {
+          assessment_id: string
           created_at: string
-          created_by: string | null
-          default_points: number
           id: string
-          is_active: boolean
-          organization_id: string
+          points: number
+          position: number
           prompt: string
-          question_bank_id: string
           type: Database["public"]["Enums"]["question_type"]
           updated_at: string
         }
         Insert: {
+          assessment_id: string
           created_at?: string
-          created_by?: string | null
-          default_points?: number
           id?: string
-          is_active?: boolean
-          organization_id: string
+          points?: number
+          position: number
           prompt: string
-          question_bank_id: string
           type: Database["public"]["Enums"]["question_type"]
           updated_at?: string
         }
         Update: {
+          assessment_id?: string
           created_at?: string
-          created_by?: string | null
-          default_points?: number
           id?: string
-          is_active?: boolean
-          organization_id?: string
+          points?: number
+          position?: number
           prompt?: string
-          question_bank_id?: string
           type?: Database["public"]["Enums"]["question_type"]
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "questions_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "questions_assessment_id_fkey"
+            columns: ["assessment_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "questions_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "questions_question_bank_id_fkey"
-            columns: ["question_bank_id"]
-            isOneToOne: false
-            referencedRelation: "question_banks"
+            referencedRelation: "assessments"
             referencedColumns: ["id"]
           },
         ]
@@ -2097,7 +1970,6 @@ export type Database = {
         }[]
       }
       can_edit_offering: { Args: { p_offering: string }; Returns: boolean }
-      can_edit_question_bank: { Args: { p_bank: string }; Returns: boolean }
       can_grade_attempt: { Args: { p_attempt: string }; Returns: boolean }
       can_staff_view_enrollment: {
         Args: { p_enrollment: string }
@@ -2134,6 +2006,15 @@ export type Database = {
         Returns: undefined
       }
       course_id_of_offering: { Args: { p_offering: string }; Returns: string }
+      create_assessment_block: {
+        Args: {
+          p_config: Json
+          p_is_required: boolean
+          p_kind: Database["public"]["Enums"]["assessment_kind"]
+          p_lesson: string
+        }
+        Returns: Json
+      }
       create_course: {
         Args: {
           p_access_type: Database["public"]["Enums"]["course_access"]
@@ -2388,6 +2269,7 @@ export type Database = {
       offering_id_of_block: { Args: { p_block: string }; Returns: string }
       offering_id_of_lesson: { Args: { p_lesson: string }; Returns: string }
       offering_id_of_module: { Args: { p_module: string }; Returns: string }
+      offering_id_of_question: { Args: { p_question: string }; Returns: string }
       org_assessment_stats: {
         Args: { p_org: string }
         Returns: {
@@ -2496,10 +2378,6 @@ export type Database = {
         }[]
       }
       publish_course: { Args: { p_course: string }; Returns: undefined }
-      question_bank_id_of_question: {
-        Args: { p_question: string }
-        Returns: string
-      }
       recalc_enrollment_progress: {
         Args: { p_enrollment: string }
         Returns: undefined
@@ -2532,10 +2410,6 @@ export type Database = {
         Args: { p_offering: string; p_ordered_ids: string[] }
         Returns: undefined
       }
-      replace_question_options: {
-        Args: { p_options: Json; p_question: string }
-        Returns: undefined
-      }
       required_block_count_for_offering: {
         Args: { p_offering: string }
         Returns: number
@@ -2555,6 +2429,14 @@ export type Database = {
           server_now: string
           status: Database["public"]["Enums"]["attempt_status"]
         }[]
+      }
+      save_assessment_questions: {
+        Args: {
+          p_assessment: string
+          p_questions: Json
+          p_random_count?: number
+        }
+        Returns: string[]
       }
       save_video_checkpoints: {
         Args: { p_block: string; p_checkpoints: Json }
@@ -2587,10 +2469,6 @@ export type Database = {
           id: string
           sender_id: string
         }[]
-      }
-      set_assessment_questions: {
-        Args: { p_assessment: string; p_items: Json }
-        Returns: undefined
       }
       set_membership_role: {
         Args: {

@@ -120,7 +120,7 @@ export const landingMessages = {
         icon: "teacher",
         title: "Profesor",
         description: "Enseñá y evaluá con herramientas simples.",
-        bullets: ["Contenido de tus ediciones", "Evaluaciones y bancos de preguntas", "Corrección de entregas y tareas"],
+        bullets: ["Contenido de tus ediciones", "Cuestionarios, tareas y exámenes", "Corrección de entregas y tareas"],
       },
       {
         icon: "student",

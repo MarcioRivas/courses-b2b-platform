@@ -34,7 +34,7 @@ pnpm tsx tests/load/mint-jwts.ts --count=500 --duration-minutes=3
 Flags: `--count=N` (default 500), `--duration-minutes=N` (default 60,
 this is the EXAM's `duration_seconds` — the availability window itself is
 always a generous 24h so the fixture doesn't expire mid-run), `--cleanup`
-(deletes the users/course/bank recorded in `.sessions.json`).
+(deletes the users/course recorded in `.sessions.json`).
 
 ## 2. Build + start the app
 

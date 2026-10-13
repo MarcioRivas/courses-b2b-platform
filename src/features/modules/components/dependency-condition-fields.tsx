@@ -75,7 +75,7 @@ export function DependencyConditionFields({
           </>
         )
       ) : quizzes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{teachAssessmentMessages.block.pickerEmpty}</p>
+        <p className="text-sm text-muted-foreground">{teachAssessmentMessages.dependency.pickerEmpty}</p>
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <div className="flex-1">

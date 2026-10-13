@@ -37,9 +37,6 @@ export interface SecurityFixture {
   progressB: string
   assessmentA: AssessmentFixture
   assessmentB: AssessmentFixture
-  /** MULTIPLE_CHOICE question in bankA/bankB not attached to assessmentA/B — a fresh assessment_questions insert target. */
-  spareQuestionA: string
-  spareQuestionB: string
   attemptA: string
   attemptB: string
   /** attempt-question ids for the graded OPEN_ENDED and MULTIPLE_CHOICE questions. */
@@ -158,7 +155,6 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
   const studentB = await member("sec-student-b", orgB, "STUDENT")
 
   const courseIds: string[] = []
-  const bankIds: string[] = []
 
   async function buildSide(org: string, professor: TestUser, student: TestUser) {
     const course = await makeCourseFixture({
@@ -202,20 +198,6 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
       availableFrom: new Date(Date.now() - 60_000).toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(assessment.bankId)
-
-    const { data: spareQuestion, error: spareQuestionError } = await supabaseAdmin
-      .from("questions")
-      .insert({
-        question_bank_id: assessment.bankId,
-        organization_id: org,
-        type: "MULTIPLE_CHOICE",
-        prompt: "Pregunta de repuesto",
-        default_points: 1,
-      })
-      .select("id")
-      .single()
-    if (spareQuestionError || !spareQuestion) throw spareQuestionError ?? new Error("spare question not created")
 
     const { attemptId, openAttemptQuestionId, mcAttemptQuestionId } = await submitFullAttempt(
       student,
@@ -265,7 +247,6 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
       membershipId: membership.id,
       progressId: progress.id,
       assessment,
-      spareQuestionId: spareQuestion.id,
       attemptId,
       openAttemptQuestionId,
       mcAttemptQuestionId,
@@ -372,8 +353,6 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     progressB: sideB.progressId,
     assessmentA: sideA.assessment,
     assessmentB: sideB.assessment,
-    spareQuestionA: sideA.spareQuestionId,
-    spareQuestionB: sideB.spareQuestionId,
     attemptA: sideA.attemptId,
     attemptB: sideB.attemptId,
     attemptQuestionOpenA: sideA.openAttemptQuestionId,
@@ -402,7 +381,6 @@ export async function buildSecurityFixture(): Promise<SecurityFixture> {
     cleanup: async () => {
       for (const id of userIds) await deleteUser(id)
       if (courseIds.length > 0) await supabaseAdmin.from("courses").delete().in("id", courseIds)
-      if (bankIds.length > 0) await supabaseAdmin.from("question_banks").delete().in("id", bankIds)
       await supabaseAdmin.from("organizations").delete().in("id", [orgA, orgB])
     },
   }

@@ -9,6 +9,7 @@ import { getOfferingOrganizationId } from "@/lib/courses/get-offering-context"
 import { toActionError, type ActionResult } from "@/lib/errors"
 import { messages } from "@/lib/messages/es"
 import { contentMessages } from "@/lib/messages/admin-content"
+import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { deleteContentBlockSchema, type DeleteContentBlockInput } from "../schemas/content-block-schemas"
 
 /**
@@ -41,12 +42,20 @@ export async function deleteBlock(input: DeleteContentBlockInput): Promise<Actio
 
   // Deleting the row cascades into `content_progress`, so it goes through the
   // guarded RPC like module and lesson deletion (C10). The RPC refuses with
-  // CONTENT_IN_USE when a student has already completed the block.
+  // CONTENT_IN_USE when a student has already completed the block, and — for a
+  // QUIZ/TASK block, which takes its assessment with it — CONFLICT_HAS_ATTEMPTS
+  // once students have attempts or submissions.
   const { error } = await supabase.rpc("delete_content_block", {
     p_block: parsed.data.blockId,
   })
 
   if (error) {
+    if (error.message.includes("CONFLICT_HAS_DEPENDENCIES")) {
+      return { ok: false, code: "CONFLICT", message: contentMessages.errors.quizGatesModule }
+    }
+    if (error.message.includes("CONFLICT_HAS_ATTEMPTS")) {
+      return { ok: false, code: "CONFLICT", message: teachAssessmentMessages.errors.deleteHasAttempts }
+    }
     if (error.code === "23001") {
       return { ok: false, code: "CONFLICT", message: contentMessages.blocks.deleteInUse }
     }

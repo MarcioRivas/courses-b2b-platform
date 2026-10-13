@@ -19,11 +19,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -220,7 +219,6 @@ describe("complete_content_block: refusals", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(assessment.bankId)
 
     const { data: quizBlock } = await supabaseAdmin
       .from("lesson_content_blocks")

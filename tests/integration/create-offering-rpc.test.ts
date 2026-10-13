@@ -15,13 +15,12 @@ const PDF_BYTES = Buffer.from("%PDF-1.4 create offering test")
 const cleanup: string[] = []
 const courseIds: string[] = []
 const groupIds: string[] = []
-const bankIds: string[] = []
 const uploaded: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
   if (uploaded.length > 0) await supabaseAdmin.storage.from(COURSE_FILES_BUCKET).remove(uploaded)
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   await deleteGroups(groupIds)
 })
 
@@ -35,7 +34,7 @@ async function newGroup(org = ORG_A): Promise<string> {
   return data!.id
 }
 
-/** A source edition with two modules, EXAM + TASK (dates), QUIZ block, dependencies, a video checkpoint and a shared PDF. */
+/** A source edition with two modules, QUIZ + TASK (dates), QUIZ block, dependencies, a video checkpoint and a shared PDF. */
 async function sourceCourse(
   title: string
 ): Promise<{ fixture: CourseFixture; examId: string; taskId: string; pdfPath: string; pdfBlock: string }> {
@@ -51,10 +50,9 @@ async function sourceCourse(
   const from = new Date(Date.now() - 3_600_000).toISOString()
   const until = new Date(Date.now() + 3_600_000).toISOString()
   const exam = await makeAssessmentFixture({
-    offeringId: fixture.offeringId, organizationId: ORG_A, title: `Examen ${title}`, kind: "EXAM",
+    offeringId: fixture.offeringId, organizationId: ORG_A, title: `Cuestionario ${title}`, kind: "QUIZ",
     multipleChoice: 1, durationSeconds: 600, availableFrom: from, availableUntil: until,
   })
-  bankIds.push(exam.bankId)
   const task = await makeAssessmentFixture({
     offeringId: fixture.offeringId, organizationId: ORG_A, title: `Tarea ${title}`, kind: "TASK", availableUntil: until,
   })
@@ -87,7 +85,7 @@ async function sourceCourse(
 }
 
 describe("create_offering", () => {
-  it("copies into an independent tree: DRAFT EXAM/TASK with dates, remapped links, shared file path", async () => {
+  it("copies into an independent tree: DRAFT QUIZ/TASK with dates, remapped links, shared file path", async () => {
     const admin = await member("co-admin", ORG_A, "ADMIN")
     const src = await sourceCourse("Copia B3")
     const group = await newGroup()
@@ -112,8 +110,8 @@ describe("create_offering", () => {
         original.available_from === null ? null : new Date(original.available_from).getTime()
       )
     }
-    expect(assessments.data!.map((a) => a.kind).sort()).toEqual(["EXAM", "TASK"])
-    const copiedExam = assessments.data!.find((a) => a.kind === "EXAM")!
+    expect(assessments.data!.map((a) => a.kind).sort()).toEqual(["QUIZ", "TASK"])
+    const copiedExam = assessments.data!.find((a) => a.kind === "QUIZ")!
 
     const modules = await supabaseAdmin.from("modules").select("id").eq("offering_id", copyId)
     const moduleIds = modules.data!.map((m) => m.id)

@@ -17,7 +17,7 @@ export const offeringMessages = {
   tabs: {
     detail: "Detalle",
     content: "Contenido",
-    assessments: "Evaluaciones",
+    exams: "Exámenes",
     professors: "Profesores",
   },
   detail: {

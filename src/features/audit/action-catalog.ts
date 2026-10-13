@@ -77,6 +77,7 @@ export const ACTION_ENTITY_TYPES: Record<string, string> = {
 
   "enrollment.self_enrolled": "course_enrollment",
 
+  // Historical (question banks were removed); kept so old audit rows still render.
   "question_bank.created": "question_bank",
   "question_bank.updated": "question_bank",
   "question.created": "question",
@@ -91,6 +92,7 @@ export const ACTION_ENTITY_TYPES: Record<string, string> = {
   "assessment.deleted": "assessment",
   "assessment.published": "assessment",
   "assessment.questions_set": "assessment",
+  "assessment.questions_saved": "assessment",
   "assessment.window_extended": "assessment",
   "assessment.started": "assessment_attempt",
   "assessment.submitted": "assessment_attempt",

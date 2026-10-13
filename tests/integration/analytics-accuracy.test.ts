@@ -26,7 +26,6 @@ interface ScoreRange {
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const groupIds: string[] = []
 const member = createMemberFactory(cleanup)
 
@@ -42,7 +41,7 @@ let ranges: ScoreRange[]
 let baseline: Record<string, number>
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   // Groups go last: an edition's `group_id` restricts their deletion.
   if (groupIds.length > 0) await supabaseAdmin.from("groups").delete().in("id", groupIds)
 })
@@ -157,7 +156,6 @@ beforeAll(async () => {
     kind: "QUIZ",
     multipleChoice: 2,
   })
-  bankIds.push(mcFixture.bankId)
   mcAssessmentId = mcFixture.assessmentId
 
   const { data: wrongOption } = await supabaseAdmin
@@ -188,7 +186,6 @@ beforeAll(async () => {
     availableFrom: new Date().toISOString(),
     availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
-  bankIds.push(openFixture.bankId)
   openAssessmentId = openFixture.assessmentId
 
   // Student1's open answer gets graded (100%); student2's stays SUBMITTED (pending).
@@ -311,7 +308,6 @@ describe("assessment_score_distribution", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fracFixture.bankId)
 
     const student3 = await member("acc-student3", ORG_A, "STUDENT")
     const enrollmentId = await enrollStudent(fracCourse, ORG_A, student3.id)
@@ -354,7 +350,6 @@ describe("assessment_score_distribution", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(outFixture.bankId)
 
     const student4 = await member("acc-student4", ORG_A, "STUDENT")
     const enrollmentId = await enrollStudent(outCourse, ORG_A, student4.id)
@@ -460,7 +455,6 @@ describe("per-edition stats (two editions of one course)", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(exam.bankId)
     await submitOpenAttempt(a1.student, a1.enrollmentId, exam.assessmentId)
 
     // Set progress last: submitting an attempt recalculates the enrollment's progress.

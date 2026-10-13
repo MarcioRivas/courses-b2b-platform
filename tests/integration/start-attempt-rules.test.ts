@@ -15,11 +15,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -39,7 +38,6 @@ async function scenario(title: string, assessment: Partial<Parameters<typeof mak
     multipleChoice: 2,
     ...assessment,
   })
-  bankIds.push(fixture.bankId)
 
   return { course, fixture }
 }
@@ -208,7 +206,6 @@ describe("start_attempt: admission", () => {
       availableFrom: new Date(Date.now() - 60_000).toISOString(),
       availableUntil: new Date(Date.now() + 3_600_000).toISOString(),
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const { error } = await student.client.rpc("start_attempt", {

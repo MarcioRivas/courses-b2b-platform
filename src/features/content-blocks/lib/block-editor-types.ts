@@ -1,11 +1,10 @@
 import type {
-  assessmentBlockDataSchema,
   externalLinkBlockDataSchema,
   imageBlockDataSchema,
   pdfBlockDataSchema,
   richTextBlockDataSchema,
   youtubeBlockDataSchema,
-  OfferableBlockType,
+  DataBlockType,
 } from "../schemas/content-block-schemas"
 import { z } from "zod"
 
@@ -14,12 +13,11 @@ export type RichTextBlockData = z.infer<typeof richTextBlockDataSchema>
 export type PdfBlockData = z.infer<typeof pdfBlockDataSchema>
 export type ImageBlockData = z.infer<typeof imageBlockDataSchema>
 export type ExternalLinkBlockData = z.infer<typeof externalLinkBlockDataSchema>
-export type AssessmentBlockData = z.infer<typeof assessmentBlockDataSchema>
 
 /** Sensible empty starting point for a freshly picked block type. */
 export function defaultBlockData(
-  type: OfferableBlockType
-): YoutubeBlockData | RichTextBlockData | PdfBlockData | ImageBlockData | ExternalLinkBlockData | AssessmentBlockData {
+  type: DataBlockType
+): YoutubeBlockData | RichTextBlockData | PdfBlockData | ImageBlockData | ExternalLinkBlockData {
   switch (type) {
     case "YOUTUBE_VIDEO":
       return { videoId: "" }
@@ -31,8 +29,5 @@ export function defaultBlockData(
       return { path: "" }
     case "EXTERNAL_LINK":
       return { url: "", title: "" }
-    case "QUIZ":
-    case "TASK":
-      return { assessmentId: "" }
   }
 }

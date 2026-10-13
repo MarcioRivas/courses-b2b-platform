@@ -20,14 +20,13 @@ const ORG_A = "11111111-1111-1111-1111-111111111111"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const orgIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 type Member = Awaited<ReturnType<typeof member>>
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
   for (const id of orgIds) await supabaseAdmin.from("organizations").delete().eq("id", id)
 })
 
@@ -115,7 +114,6 @@ describe("edition A professor vs edition B", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fixture.bankId)
     assessmentId = fixture.assessmentId
 
     // Evaluations belong to an edition: edition 2 has its own.
@@ -129,7 +127,6 @@ describe("edition A professor vs edition B", () => {
       availableFrom: new Date().toISOString(),
       availableUntil: new Date(Date.now() + 3600000).toISOString(),
     })
-    bankIds.push(fixture2.bankId)
     assessmentId2 = fixture2.assessmentId
 
     const { data: video } = await supabaseAdmin

@@ -93,7 +93,7 @@ export const learnAssessmentMessages = {
     noAttemptsLeft: "No te quedan intentos.",
   },
   courseSection: {
-    title: "Evaluaciones",
+    title: "Exámenes",
     empty: "Este curso todavía no tiene exámenes.",
     stateUpcoming: "Próximamente",
     stateOpen: "Abierto",

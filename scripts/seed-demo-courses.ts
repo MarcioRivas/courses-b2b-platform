@@ -301,6 +301,69 @@ async function seedDemoTask(offeringId: string): Promise<void> {
   if (blockError) throw blockError
 }
 
+/** A published QUIZ owned by a block in the edition's first lesson, with its own questions. */
+async function seedDemoQuiz(offeringId: string): Promise<void> {
+  const { data: quiz, error } = await admin
+    .from("assessments")
+    .insert({
+      organization_id: ORG_A,
+      offering_id: offeringId,
+      kind: "QUIZ",
+      status: "PUBLISHED",
+      title: "Repaso: fundamentos de la preparación física",
+      passing_score: 60,
+    })
+    .select("id")
+    .single()
+  if (error || !quiz) throw error ?? new Error("quiz not created")
+
+  const questions = [
+    { prompt: "¿Qué capacidad se trabaja principalmente con series largas a ritmo moderado?", options: ["Resistencia aeróbica", "Fuerza máxima", "Velocidad de reacción"] },
+    { prompt: "¿Cuál es una señal de sobreentrenamiento?", options: ["Fatiga persistente y bajo rendimiento", "Mejora constante de marcas", "Más ganas de entrenar"] },
+  ]
+
+  for (const [index, item] of questions.entries()) {
+    const { data: question, error: questionError } = await admin
+      .from("questions")
+      .insert({ assessment_id: quiz.id, type: "MULTIPLE_CHOICE", prompt: item.prompt, points: 1, position: index + 1 })
+      .select("id")
+      .single()
+    if (questionError || !question) throw questionError ?? new Error("quiz question not created")
+
+    await admin.from("question_options").insert(
+      item.options.map((label, n) => ({ question_id: question.id, label, is_correct: n === 0, position: n + 1 }))
+    )
+  }
+
+  const { error: openError } = await admin.from("questions").insert({
+    assessment_id: quiz.id,
+    type: "OPEN_ENDED",
+    prompt: "Contá en pocas líneas cómo organizarías una entrada en calor para tu categoría.",
+    points: 2,
+    position: questions.length + 1,
+  })
+  if (openError) throw openError
+
+  const { data: lesson } = await admin
+    .from("lessons")
+    .select("id, modules!inner(offering_id, position)")
+    .eq("modules.offering_id", offeringId)
+    .order("position", { ascending: true })
+    .limit(1)
+    .single()
+  if (!lesson) throw new Error("lesson not found")
+
+  const { error: blockError } = await admin.from("lesson_content_blocks").insert({
+    lesson_id: lesson.id,
+    type: "QUIZ",
+    position: 98,
+    data: {},
+    is_required: true,
+    assessment_id: quiz.id,
+  })
+  if (blockError) throw blockError
+}
+
 /** Two checkpoints on the edition's first video, so the in-video quiz flow can be tried right away. */
 async function seedDemoVideoCheckpoints(offeringId: string): Promise<void> {
   const { data: block } = await admin
@@ -355,7 +418,8 @@ async function main(): Promise<void> {
   const editionId = offeringId!
   console.log("seeded PUBLISHED course 'Preparación Física Base' (3 módulos, 4 lecciones, 6 bloques) in its edition 'Cohorte 2026'")
 
-  await seedDemoTask(editionId)
+  await seedDemoQuiz(editionId)
+await seedDemoTask(editionId)
   await seedDemoVideoCheckpoints(editionId)
   console.log("seeded 2 in-video checkpoints (0:20, 0:45) on the edition's first video")
   console.log("seeded PUBLISHED task 'Plan semanal de entrenamiento' (hasta 2 archivos, fecha límite en 14 días)")

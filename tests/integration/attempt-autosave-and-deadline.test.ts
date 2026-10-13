@@ -20,11 +20,10 @@ const ORG_A = "11111111-1111-1111-1111-111111111111"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 
 })
 
@@ -62,7 +61,6 @@ async function startAttempt(
     openEnded: options.openEnded ?? 0,
     durationSeconds: options.durationSeconds ?? null,
   })
-  bankIds.push(fixture.bankId)
 
   const enrollmentId = await enrollStudent(course, ORG_A, student.id)
   const { data: attemptId, error } = await student.client.rpc("start_attempt", {

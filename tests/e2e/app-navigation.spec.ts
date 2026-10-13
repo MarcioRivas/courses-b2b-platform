@@ -41,18 +41,18 @@ test("desktop: the sidebar collapses to icons with names on hover, and remembers
   await loginViaOtp(page, professor.email, "/teach")
 
   const sidebar = page.getByRole("complementary")
-  await expect(sidebar.getByText("Bancos de preguntas")).toBeVisible()
+  await expect(sidebar.getByText("Correcciones")).toBeVisible()
 
   await sidebar.getByRole("button", { name: "Contraer menú" }).click()
-  await expect(sidebar.getByText("Bancos de preguntas")).toBeHidden()
+  await expect(sidebar.getByText("Correcciones")).toBeHidden()
   await expect.poll(async () => (await sidebar.boundingBox())!.width).toBeLessThan(80)
 
-  await sidebar.getByRole("link", { name: "Bancos de preguntas" }).hover()
-  await expect(page.getByText("Bancos de preguntas")).toBeVisible()
+  await sidebar.getByRole("link", { name: "Correcciones" }).hover()
+  await expect(page.getByText("Correcciones")).toBeVisible()
 
   // The state survives a reload (cookie read on the server).
   await page.reload()
   await expect(sidebar.getByRole("button", { name: "Expandir menú" })).toBeVisible()
   await sidebar.getByRole("button", { name: "Expandir menú" }).click()
-  await expect(sidebar.getByText("Bancos de preguntas")).toBeVisible()
+  await expect(sidebar.getByText("Correcciones")).toBeVisible()
 })

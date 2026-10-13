@@ -20,11 +20,10 @@ const ORG_A = "11111111-1111-1111-1111-111111111111"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 })
 
 interface Setup {
@@ -57,7 +56,6 @@ async function setup(label: string, openEnded: number, multipleChoice = 1): Prom
     availableFrom: new Date().toISOString(),
     availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
-  bankIds.push(fixture.bankId)
 
   const enrollmentId = await enrollStudent(course, ORG_A, student.id)
   return { professor, student, enrollmentId, assessmentId: fixture.assessmentId }

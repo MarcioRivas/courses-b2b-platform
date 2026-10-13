@@ -10,6 +10,7 @@ import type { Database, Json } from "@/types/database.types"
 type ContentBlockType = Database["public"]["Enums"]["content_block_type"]
 type DependencyCondition = Database["public"]["Enums"]["dependency_condition"]
 type CourseStatus = Database["public"]["Enums"]["course_status"]
+type AssessmentStatus = Database["public"]["Enums"]["assessment_status"]
 
 export interface OfferingTreeBlock {
   id: string
@@ -19,6 +20,9 @@ export interface OfferingTreeBlock {
   isRequired: boolean
   /** YOUTUBE_VIDEO only: in-video checkpoints (0 for other types; RLS shows them to editors only). */
   checkpointCount: number
+  /** QUIZ/TASK only: the block's own assessment (NULL for other types). */
+  assessmentId: string | null
+  assessment: { title: string; status: AssessmentStatus; questionCount: number } | null
 }
 
 export interface OfferingTreeLesson {
@@ -76,7 +80,8 @@ export async function getOfferingTree(offeringId: string): Promise<OfferingTree 
     .select(
       `id, title, description, position,
        lessons ( id, title, description, position,
-         lesson_content_blocks ( id, type, position, data, is_required, video_checkpoints ( count ) ) ),
+         lesson_content_blocks ( id, type, position, data, is_required, assessment_id, video_checkpoints ( count ),
+           assessments ( title, status, questions ( count ) ) ) ),
        module_dependencies!module_dependencies_module_id_fkey ( id, condition, depends_on_module_id, assessment_id, min_score )`
     )
     .eq("offering_id", offeringId)
@@ -110,6 +115,14 @@ export async function getOfferingTree(offeringId: string): Promise<OfferingTree 
           data: block.data,
           isRequired: block.is_required,
           checkpointCount: block.video_checkpoints?.[0]?.count ?? 0,
+          assessmentId: block.assessment_id,
+          assessment: block.assessments
+            ? {
+                title: block.assessments.title,
+                status: block.assessments.status,
+                questionCount: block.assessments.questions?.[0]?.count ?? 0,
+              }
+            : null,
         })),
       })),
       dependencies: (module.module_dependencies ?? []).map((dependency) => ({

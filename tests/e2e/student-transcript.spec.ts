@@ -24,7 +24,6 @@ interface TranscriptScene {
   enrollmentId: string
   courseTitle: string
   studentName: string
-  bankId: string
 }
 
 /**
@@ -85,7 +84,6 @@ async function buildScene(label: string, submitExam: boolean): Promise<Transcrip
     enrollmentId,
     courseTitle,
     studentName: `Alumna ${studentLast}`,
-    bankId: exam.bankId,
   }
 }
 
@@ -93,7 +91,6 @@ async function cleanupScene(scene: TranscriptScene): Promise<void> {
   await cleanupFixtures({
     users: [scene.admin.id, scene.professor.id, scene.student.id],
     courseIds: [scene.course.courseId],
-    bankIds: [scene.bankId],
   })
 }
 

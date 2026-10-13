@@ -7,7 +7,7 @@ import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
 import { Button } from "@/components/ui/button"
 import { publishAssessment } from "../actions/publish-assessment"
 
-export function PublishButton({ assessmentId }: { assessmentId: string }) {
+export function PublishButton({ assessmentId, onPublished }: { assessmentId: string; onPublished?: () => void }) {
   const [isPending, startTransition] = useTransition()
   const labels = teachAssessmentMessages.assessments
 
@@ -19,6 +19,7 @@ export function PublishButton({ assessmentId }: { assessmentId: string }) {
         return
       }
       toast.success(labels.published)
+      onPublished?.()
     })
   }
 

@@ -2,19 +2,20 @@
 
 import type { Control } from "react-hook-form"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { teachAssessmentMessages } from "@/lib/messages/teach-assessments"
-import type { UpdateAssessmentInput } from "../schemas/assessment-schemas"
+import type { AssessmentConfigInput } from "../schemas/assessment-schemas"
 
 interface WindowFieldsProps {
-  control: Control<UpdateAssessmentInput>
-  kind: UpdateAssessmentInput["kind"]
+  control: Control<AssessmentConfigInput>
+  kind: AssessmentConfigInput["kind"]
   /** PUBLISHED EXAM (M3): edit through "Extender ventana" instead. */
   disabled?: boolean
 }
 
 /**
- * Duration + availability window (5B step 3): hidden entirely for QUIZ
+ * Duration + availability window (wizard step 1): hidden entirely for QUIZ
  * (D12 — untimed, no window); TASK has no duration and a required deadline;
  * EXAM requires everything (the schema's `superRefine` enforces that; this
  * only controls visibility and labels).
@@ -28,7 +29,8 @@ export function WindowFields({ control, kind, disabled }: WindowFieldsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    // Top-aligned: the deadline's hint must not push the "from" field down.
+    <div className={cn("grid grid-cols-1 items-start gap-4", isTask ? "sm:grid-cols-2" : "sm:grid-cols-3")}>
       {!isTask && (
         <FormField
           control={control}

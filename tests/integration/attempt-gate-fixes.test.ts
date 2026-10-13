@@ -22,11 +22,10 @@ const ORG_B = "22222222-2222-2222-2222-222222222222"
 
 const cleanup: string[] = []
 const courseIds: string[] = []
-const bankIds: string[] = []
 const member = createMemberFactory(cleanup)
 
 afterAll(async () => {
-  await cleanupFixtures({ users: cleanup, courseIds, bankIds })
+  await cleanupFixtures({ users: cleanup, courseIds })
 })
 
 async function openAttempt(student: TestUser, title: string, openEnded = 1) {
@@ -48,7 +47,6 @@ async function openAttempt(student: TestUser, title: string, openEnded = 1) {
     availableFrom: new Date().toISOString(),
     availableUntil: new Date(Date.now() + 3600000).toISOString(),
   })
-  bankIds.push(fixture.bankId)
 
   const enrollmentId = await enrollStudent(course, ORG_A, student.id)
   const { data: attemptId, error } = await student.client.rpc("start_attempt", {
@@ -220,7 +218,6 @@ describe("H1: concurrent finalizes on one enrollment do not deadlock", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(first.bankId, second.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const sessionOne = randomUUID()
@@ -279,7 +276,6 @@ describe("M2: completion never crosses tenants", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     // A block in ORG_B's edition pointing at ORG_A's assessment: the same-edition
     // trigger refuses it outright (B2), which is stronger than ignoring it later.
@@ -386,7 +382,6 @@ describe("B4: submit_attempt does not return a score before GRADED", () => {
       kind: "QUIZ",
       multipleChoice: 1,
     })
-    bankIds.push(fixture.bankId)
 
     const enrollmentId = await enrollStudent(course, ORG_A, student.id)
     const session = randomUUID()

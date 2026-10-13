@@ -9,7 +9,12 @@ import { contentMessages } from "@/lib/messages/admin-content"
 import { messages } from "@/lib/messages/es"
 import { createBlock } from "../actions/create-block"
 import { updateBlock } from "../actions/update-block"
-import { contentBlockDataSchema, type ContentBlockData, type OfferableBlockType } from "../schemas/content-block-schemas"
+import {
+  contentBlockDataSchema,
+  isAssessmentBlockType,
+  type ContentBlockData,
+  type OfferableBlockType,
+} from "../schemas/content-block-schemas"
 import { defaultBlockData } from "../lib/block-editor-types"
 import { BlockTypePicker } from "./block-type-picker"
 import { YoutubeEditor } from "../editors/youtube-editor"
@@ -17,7 +22,7 @@ import { RichTextEditor } from "../editors/rich-text-editor"
 import { PdfEditor } from "../editors/pdf-editor"
 import { ImageEditor } from "../editors/image-editor"
 import { LinkEditor } from "../editors/link-editor"
-import { AssessmentBlockEditor } from "../editors/assessment-block-editor"
+import { AssessmentBlockWizard } from "./assessment-block-wizard"
 import { VideoCheckpointsSection } from "@/features/video-checkpoints/components/video-checkpoints-section"
 import { videoCheckpointMessages } from "@/lib/messages/video-checkpoints"
 
@@ -26,7 +31,14 @@ interface BlockEditorPanelProps {
   courseId: string
   offeringId: string
   lessonId: string
-  existingBlock?: { id: string; type: OfferableBlockType; data: unknown; isRequired: boolean; checkpointCount?: number }
+  existingBlock?: {
+    id: string
+    type: OfferableBlockType
+    data: unknown
+    isRequired: boolean
+    checkpointCount?: number
+    assessmentId?: string | null
+  }
   onSaved: () => void
   onCancel: () => void
 }
@@ -49,8 +61,21 @@ export function BlockEditorPanel({ organizationId, courseId, offeringId, lessonI
       <BlockTypePicker
         onSelect={(picked) => {
           setType(picked)
-          setData(defaultBlockData(picked))
+          if (!isAssessmentBlockType(picked)) setData(defaultBlockData(picked))
         }}
+      />
+    )
+  }
+
+  // QUIZ/TASK: the assessment wizard owns creation, editing and saving.
+  if (isAssessmentBlockType(type)) {
+    return (
+      <AssessmentBlockWizard
+        offeringId={offeringId}
+        lessonId={lessonId}
+        kind={type}
+        assessmentId={existingBlock?.assessmentId}
+        onClose={onSaved}
       />
     )
   }
@@ -98,9 +123,6 @@ export function BlockEditorPanel({ organizationId, courseId, offeringId, lessonI
         <ImageEditor organizationId={organizationId} courseId={courseId} offeringId={offeringId} value={data as never} onChange={setData} errors={fieldErrors} />
       )}
       {type === "EXTERNAL_LINK" && <LinkEditor value={data as never} onChange={setData} errors={fieldErrors} />}
-      {(type === "QUIZ" || type === "TASK") && (
-        <AssessmentBlockEditor offeringId={offeringId} kind={type} value={data as never} onChange={setData} errors={fieldErrors} />
-      )}
 
       <div className="flex items-center gap-2">
         <Checkbox id="is-required" checked={isRequired} onCheckedChange={(checked) => setIsRequired(checked === true)} />
