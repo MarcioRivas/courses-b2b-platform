@@ -14,7 +14,8 @@
     "db:reset": "supabase db reset && tsx scripts/seed-users.ts",
     "db:new": "supabase migration new",
     "gen:types": "supabase gen types typescript --local > src/types/database.types.ts",
-    "seed:demo": "tsx scripts/seed-demo-courses.ts"
+    "seed:demo": "tsx scripts/seed-demo-courses.ts",
+    "admin:create": "tsx scripts/create-platform-admin.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
