@@ -117,7 +117,7 @@ create table organization_registration_links (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references organizations (id) on delete cascade,
   token text not null unique default (
-    rtrim(translate(encode(gen_random_bytes(32), 'base64'), '+/', '-_'), '=')
+    rtrim(translate(encode(extensions.gen_random_bytes(32), 'base64'), '+/', '-_'), '=')
   ),
   label text,
   default_role membership_role not null default 'STUDENT',
