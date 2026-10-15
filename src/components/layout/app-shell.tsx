@@ -12,11 +12,21 @@ interface AppShellProps {
   userEmail: string
   /** Org roles only: header chats + bottom chat windows. Absent for platform admins. */
   messenger?: { currentUserId: string; initialUnread: number; timeZone: string }
+  /** Students and professors: header bell. Absent for admins and platform admins. */
+  notifications?: { currentUserId: string; initialUnread: number; timeZone: string }
   children: ReactNode
 }
 
 /** Mobile-first shell: top bar + drop-down menu under `md`, collapsible sidebar at `md` and up. */
-export async function AppShell({ role, organizationName, userName, userEmail, messenger, children }: AppShellProps) {
+export async function AppShell({
+  role,
+  organizationName,
+  userName,
+  userEmail,
+  messenger,
+  notifications,
+  children,
+}: AppShellProps) {
   const sidebarCollapsed = (await cookies()).get(SIDEBAR_COLLAPSED_COOKIE)?.value === "1"
 
   const shell = (
@@ -29,6 +39,7 @@ export async function AppShell({ role, organizationName, userName, userEmail, me
           userName={userName}
           userEmail={userEmail}
           showMessenger={messenger !== undefined}
+          notifications={notifications}
         />
         <main className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-8">{children}</main>
       </div>
