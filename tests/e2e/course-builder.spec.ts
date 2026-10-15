@@ -222,10 +222,10 @@ test("a professor cannot reach the admin course screens", async ({ page: profess
   await professorPage.goto("/teach/courses")
   await expect(professorPage.getByRole("heading", { name: "Cursos" })).toBeVisible()
 
-  // Phase 6: the professor overview renders its analytics summary.
+  // Professor home is a welcome only (like the admin home).
   await professorPage.goto("/teach")
   await expect(professorPage.getByRole("heading", { level: 1 })).toBeVisible()
-  await expect(professorPage.getByText("Resumen de tus ediciones asignadas.")).toBeVisible()
+  await expect(professorPage.getByText("Profesor", { exact: true })).toBeVisible()
 })
 
 async function courseIdByTitle(title: string): Promise<string> {

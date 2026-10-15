@@ -102,17 +102,3 @@ export interface OfferingStatsRow {
   pendingGradingCount: number
 }
 
-/** `professor_overview_stats` RPC — one row per edition the professor teaches (B12). */
-export interface ProfessorOverviewRow {
-  offeringId: string
-  offeringName: string
-  courseId: string
-  courseTitle: string
-  enrolledCount: number
-  avgProgressPercent: number
-  attemptsInProgress: number
-  attemptsSubmitted: number
-  attemptsAutoSubmitted: number
-  attemptsGraded: number
-  pendingGradingCount: number
-}

@@ -96,17 +96,6 @@ export const analyticsMessages = {
     AUTO_SUBMITTED: "Auto-entregados",
     GRADED: "Corregidos",
   },
-  professor: {
-    pageDescriptionSuffix: "Resumen de tus ediciones asignadas.",
-    tableTitleHeader: "Edición",
-    course: "Curso",
-    enrolled: "Inscriptos",
-    avgProgress: "Progreso prom.",
-    pendingGrading: "Pendientes de corregir",
-    attemptsChartTitle: "Intentos por estado",
-    emptyTitle: "Todavía no tenés ediciones asignadas.",
-    emptyDescription: "Un administrador debe asignarte a una edición para ver estadísticas acá.",
-  },
   platform: {
     totalsSectionTitle: "Totales de la plataforma",
     organizations: "Organizaciones",
