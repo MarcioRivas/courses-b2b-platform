@@ -19,16 +19,16 @@ export interface StudentEnrollment {
   endsAt: string | null
   /** The course is ARCHIVED or the offering CANCELLED: visible, but read-only. */
   closed: boolean
+  /** Last completed block, else started/enrolled date: orders in-progress courses. */
+  lastActivityAt: string
+  /** Lesson of the most recently completed block, for the "Continuar" deep link. */
+  resumeLessonId: string | null
 }
 
-/** Dashboard buckets: assigned vs free, each split into active and finished (§37). */
-export interface EnrollmentBuckets {
-  assigned: { active: StudentEnrollment[]; finished: StudentEnrollment[] }
-  free: { active: StudentEnrollment[]; finished: StudentEnrollment[] }
-}
-
-export interface FreeCourse {
+/** A FREE course of the student's organization they can enroll in now (open, active edition). */
+export interface AvailableCourse {
   id: string
   title: string
   description: string | null
+  moduleCount: number
 }

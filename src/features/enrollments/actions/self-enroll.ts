@@ -42,7 +42,6 @@ export async function selfEnroll(input: SelfEnrollInput): Promise<ActionResult<{
   })
 
   revalidatePath("/learn")
-  revalidatePath("/learn/catalog")
 
   return { ok: true, data: { enrollmentId: data } }
 }

@@ -4,7 +4,6 @@ import {
   BookOpenIcon,
   Building2Icon,
   ClipboardCheckIcon,
-  CompassIcon,
   GraduationCapIcon,
   LayoutDashboardIcon,
   Link2Icon,
@@ -83,8 +82,7 @@ export const NAV_SECTIONS: Record<AppRole, NavSection[]> = {
   STUDENT: [
     {
       items: [
-        { label: learnMessages.nav.myCourses, href: "/learn", icon: BookOpenIcon, exact: true },
-        { label: learnMessages.nav.catalog, href: "/learn/catalog", icon: CompassIcon },
+        { label: learnMessages.nav.courses, href: "/learn", icon: BookOpenIcon, exact: true },
       ],
     },
   ],

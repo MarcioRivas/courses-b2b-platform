@@ -75,7 +75,7 @@ export default async function StudentLessonPage({ params }: PageProps) {
           <header className="mb-6 flex flex-col gap-2">
             <Breadcrumb
               items={[
-                { label: learnMessages.dashboard.title, href: "/learn" },
+                { label: learnMessages.nav.courses, href: "/learn" },
                 { label: enrollment.courseTitle, href: `/learn/courses/${enrollment.id}` },
                 { label: courseModule.title },
                 { label: lesson.title },

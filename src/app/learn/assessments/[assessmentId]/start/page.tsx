@@ -52,7 +52,7 @@ export default async function AssessmentStartPage({ params, searchParams }: Page
 
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
   const breadcrumb = [
-    { label: learnMessages.dashboard.title, href: "/learn" },
+    { label: learnMessages.nav.courses, href: "/learn" },
     { label: enrollment.courseTitle, href: `/learn/courses/${enrollmentId}` },
     { label: assessment.title },
   ]

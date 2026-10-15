@@ -1,30 +1,7 @@
 /** Copy for the student experience (`src/features/{enrollments,progress}/**`, `/learn`). */
 export const learnMessages = {
   nav: {
-    myCourses: "Mis cursos",
-    catalog: "Cursos gratuitos",
-  },
-  dashboard: {
-    title: "Mis cursos",
-    description: "Tus cursos asignados y los que elegiste del catálogo.",
-    assignedTitle: "Cursos asignados",
-    freeTitle: "Cursos gratuitos",
-    activeTitle: "En curso",
-    finishedTitle: "Finalizados",
-    emptyAssigned: "Todavía no tenés cursos asignados.",
-    emptyFree: "Todavía no te inscribiste a ningún curso gratuito.",
-    emptyAll: "Todavía no tenés cursos.",
-    browseCatalog: "Ver cursos gratuitos",
-    continueAction: "Continuar",
-    reviewAction: "Repasar",
-  },
-  catalog: {
-    title: "Cursos gratuitos",
-    description: "Cursos abiertos de tu organización a los que podés inscribirte.",
-    empty: "No hay cursos gratuitos disponibles por ahora.",
-    enrollAction: "Inscribirme",
-    enrolled: "Te inscribiste al curso.",
-    backToCourses: "Volver a mis cursos",
+    courses: "Cursos",
   },
   progress: {
     /** "12 de 30 bloques" — the denominator is a live count, not a contract (D14). */
@@ -41,7 +18,6 @@ export const learnMessages = {
     lessonsTitle: "Lecciones",
     emptyModules: "Este curso todavía no tiene contenido.",
     emptyLessons: "Este módulo todavía no tiene lecciones.",
-    backToCourses: "Volver a mis cursos",
     availableFromPrefix: "Disponible desde el",
     availableUntilPrefix: "Disponible hasta el",
     lessonBlocksLabel: (total: number) => (total === 1 ? "1 bloque" : `${total} bloques`),

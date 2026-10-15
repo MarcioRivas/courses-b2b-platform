@@ -41,7 +41,7 @@ test("logged-in student visiting / is redirected to /learn", async ({ page }) =>
   await loginViaOtp(page, "alum2@fed-b.test", "/learn")
   await page.goto("/")
   await page.waitForURL("/learn")
-  await expect(page.getByRole("heading", { name: "Mis cursos" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Cursos", exact: true })).toBeVisible()
 })
 
 test("new sections render and the final CTA leads to /login", async ({ page }) => {

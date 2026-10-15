@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
 import { loginViaOtp } from "../helpers/e2e-login"
 import { deleteUser, makeUser } from "../helpers/make-user"
+import { deleteCourses, enrollStudent, makeCourseFixture } from "../helpers/course-fixtures"
 
 const ORG_A = "11111111-1111-1111-1111-111111111111"
 
@@ -21,6 +22,13 @@ test("direct messaging: header chats panel, docked window, live badge and reply"
     firstName: "Profe",
     lastName: `Chat${stamp}`,
   })
+  // One course the student is enrolled in: gives "Cursos" a course page to navigate away to.
+  const course = await makeCourseFixture({
+    organizationId: ORG_A,
+    title: `Curso chat ${stamp}`,
+    modules: [{ title: "Módulo chat", requiredBlocks: 1 }],
+  })
+  await enrollStudent(course, ORG_A, student.id)
   const professorName = `Profe Chat${stamp}`
   const studentName = `Alumna Chat${stamp}`
   const question = "Hola profe, ¿mañana hay entrenamiento?"
@@ -86,14 +94,20 @@ test("direct messaging: header chats panel, docked window, live badge and reply"
     await studentPage.getByRole("button", { name: `Abrir chat con ${professorName}` }).click()
     await expect(studentWindow.getByText(answer, { exact: true })).toBeVisible()
 
-    // The chat window survives navigation inside the area.
-    await studentPage.getByRole("link", { name: "Cursos gratuitos", exact: true }).click()
-    await studentPage.waitForURL(/\/learn\/catalog/)
+    // The chat window survives navigation inside the area: open the course, then back to "Cursos".
+    await studentPage.getByRole("button", { name: "Empezar", exact: true }).click()
+    await studentPage.waitForURL(/\/learn\/courses\//)
+    await expect(studentWindow.getByText(answer, { exact: true })).toBeVisible()
+
+    // Sidebar entry only: the breadcrumb on the course page is also named "Cursos".
+    await studentPage.getByRole("complementary").getByRole("link", { name: "Cursos", exact: true }).click()
+    await studentPage.waitForURL(/\/learn$/)
     await expect(studentWindow.getByText(answer, { exact: true })).toBeVisible()
 
     await studentContext.close()
     await professorContext.close()
   } finally {
+    await deleteCourses([course.courseId])
     await deleteUser(student.id)
     await deleteUser(professor.id)
   }

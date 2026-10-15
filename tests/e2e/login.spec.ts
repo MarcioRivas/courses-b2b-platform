@@ -42,7 +42,7 @@ test("org admin logs in via OTP, lands on /admin, and the session survives reloa
 test("student logs in via OTP and lands on /learn", async ({ page }) => {
   await loginViaOtp(page, "alum1@club-a.test")
   await page.waitForURL("/learn")
-  await expect(page.getByRole("heading", { name: "Mis cursos" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Cursos", exact: true })).toBeVisible()
 })
 
 test("student visiting an admin-only URL is redirected to /forbidden", async ({ page }) => {

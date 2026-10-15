@@ -13,7 +13,7 @@ export function CourseProgressHeader({ enrollment, timeZone }: CourseProgressHea
   return (
     <header className="mb-6 flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-card">
       <Breadcrumb
-        items={[{ label: learnMessages.dashboard.title, href: "/learn" }, { label: enrollment.courseTitle }]}
+        items={[{ label: learnMessages.nav.courses, href: "/learn" }, { label: enrollment.courseTitle }]}
       />
 
       <div>

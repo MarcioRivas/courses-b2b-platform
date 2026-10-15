@@ -72,12 +72,13 @@ test.afterAll(async () => {
   if (studentUserId) await deleteUser(studentUserId)
 })
 
-test("the dashboard lists the assigned course with its progress", async () => {
+test("the dashboard lists the assigned course as not started", async () => {
   await page.goto("/learn")
-  await expect(page.getByRole("heading", { name: "Mis cursos" })).toBeVisible()
-  await expect(page.getByRole("heading", { name: "Cursos asignados" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Cursos", exact: true })).toBeVisible()
   await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible()
-  await expect(page.getByText("0% completado")).toBeVisible()
+  await expect(page.getByText("Asignado", { exact: true })).toBeVisible()
+  // Not started: no progress line yet, the card offers its start action.
+  await expect(page.getByRole("button", { name: "Empezar", exact: true })).toBeVisible()
 })
 
 test("the second module is locked until the first one is completed", async () => {
@@ -124,7 +125,10 @@ test("completing the last module finishes the course", async () => {
   await expect(page.getByRole("button", { name: "Completado" })).toBeVisible()
   await waitForProgress(100)
 
+  // Finished courses sit outside "Todos"; "Mis cursos" lists them with a "Finalizado" badge and no action.
   await page.goto("/learn")
-  await expect(page.getByRole("heading", { name: "Finalizados" })).toBeVisible()
-  await expect(page.getByText("100% completado")).toBeVisible()
+  await page.getByRole("button", { name: "Mis cursos", exact: true }).click()
+  const card = page.getByRole("article").filter({ has: page.getByRole("heading", { name: courseTitle }) })
+  await expect(card.getByText("Finalizado", { exact: true })).toBeVisible()
+  await expect(card.getByRole("button")).toHaveCount(0)
 })

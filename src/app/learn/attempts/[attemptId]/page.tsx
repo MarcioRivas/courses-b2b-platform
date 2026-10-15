@@ -40,7 +40,7 @@ export default async function AttemptPage({ params }: PageProps) {
     <div className="mb-4">
       <Breadcrumb
         items={[
-          { label: learnMessages.dashboard.title, href: "/learn" },
+          { label: learnMessages.nav.courses, href: "/learn" },
           ...(enrollment
             ? [{ label: enrollment.courseTitle, href: `/learn/courses/${enrollment.id}` }]
             : []),

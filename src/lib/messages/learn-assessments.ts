@@ -104,13 +104,6 @@ export const learnAssessmentMessages = {
     newAttemptAction: "Nuevo intento",
     reviewAction: "Ver resultado",
   },
-  pendingStrip: {
-    title: "Pendientes y resultados",
-    pendingLabel: "Para rendir",
-    resultsLabel: "Resultados recientes",
-    goToAssessment: "Ir",
-    seeResult: "Ver resultado",
-  },
   errors: {
     ASSESSMENT_NOT_AVAILABLE: "Esta evaluación no está disponible.",
     ASSESSMENT_EXPIRED: "La ventana de esta evaluación ya cerró.",

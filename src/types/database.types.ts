@@ -2225,6 +2225,15 @@ export type Database = {
         Args: { p_course: string }
         Returns: boolean
       }
+      list_available_free_courses: {
+        Args: { p_organization: string }
+        Returns: {
+          course_id: string
+          description: string
+          module_count: number
+          title: string
+        }[]
+      }
       list_my_attempts: {
         Args: { p_enrollment: string }
         Returns: {
@@ -2311,10 +2320,13 @@ export type Database = {
           course_title: string
           ends_at: string
           enrollment_id: string
+          last_activity_at: string
           offering_id: string
           offering_name: string
           offering_status: Database["public"]["Enums"]["offering_status"]
           progress_percent: number
+          resume_lesson_id: string
+          resume_module_title: string
           source: Database["public"]["Enums"]["enrollment_source"]
           status: Database["public"]["Enums"]["enrollment_status"]
           total_blocks: number
