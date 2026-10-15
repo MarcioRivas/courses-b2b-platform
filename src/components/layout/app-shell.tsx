@@ -4,6 +4,7 @@ import { SideNav } from "./side-nav"
 import { TopNav } from "./top-nav"
 import { SIDEBAR_COLLAPSED_COOKIE, type AppRole } from "./nav-config"
 import { MessengerProvider } from "@/features/messaging/components/messenger-provider"
+import { GradingNavBadgeProvider } from "./nav-badges"
 
 interface AppShellProps {
   role: AppRole
@@ -14,6 +15,8 @@ interface AppShellProps {
   messenger?: { currentUserId: string; initialUnread: number; timeZone: string }
   /** Students and professors: header bell. Absent for admins and platform admins. */
   notifications?: { currentUserId: string; initialUnread: number; timeZone: string }
+  /** Professors: pending-grading count on "Correcciones" (first-paint value; kept live client-side). */
+  pendingGrading?: number
   children: ReactNode
 }
 
@@ -25,6 +28,7 @@ export async function AppShell({
   userEmail,
   messenger,
   notifications,
+  pendingGrading,
   children,
 }: AppShellProps) {
   const sidebarCollapsed = (await cookies()).get(SIDEBAR_COLLAPSED_COOKIE)?.value === "1"
@@ -46,5 +50,8 @@ export async function AppShell({
     </div>
   )
 
-  return messenger ? <MessengerProvider {...messenger}>{shell}</MessengerProvider> : shell
+  const withBadges =
+    pendingGrading === undefined ? shell : <GradingNavBadgeProvider initial={pendingGrading}>{shell}</GradingNavBadgeProvider>
+
+  return messenger ? <MessengerProvider {...messenger}>{withBadges}</MessengerProvider> : withBadges
 }

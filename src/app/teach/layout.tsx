@@ -5,12 +5,14 @@ import { DEFAULT_TIME_ZONE } from "@/lib/dates/end-of-day-in-time-zone"
 import { getOrgSettings } from "@/features/organizations/queries/get-org-settings"
 import { getUnreadMessageCount } from "@/features/messaging/queries/get-unread-message-count"
 import { getUnreadNotificationCount } from "@/features/notifications/queries/get-unread-notification-count"
+import { getPendingGradingCount } from "@/features/grading/queries/get-pending-grading-count"
 
 export default async function TeachLayout({ children }: { children: ReactNode }) {
   const ctx = await requireOrgRole(["PROFESSOR"])
-  const [unreadMessages, unreadNotifications, settings] = await Promise.all([
+  const [unreadMessages, unreadNotifications, pendingGrading, settings] = await Promise.all([
     getUnreadMessageCount(),
     getUnreadNotificationCount(),
+    getPendingGradingCount(),
     getOrgSettings(ctx.organizationId),
   ])
   const timeZone = settings?.timezone ?? DEFAULT_TIME_ZONE
@@ -23,6 +25,7 @@ export default async function TeachLayout({ children }: { children: ReactNode })
       userEmail={ctx.user.email}
       messenger={{ currentUserId: ctx.user.id, initialUnread: unreadMessages, timeZone }}
       notifications={{ currentUserId: ctx.user.id, initialUnread: unreadNotifications, timeZone }}
+      pendingGrading={pendingGrading}
     >
       {children}
     </AppShell>

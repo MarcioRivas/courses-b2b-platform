@@ -22,6 +22,7 @@ import { analyticsMessages } from "@/lib/messages/analytics"
 import { studentTranscriptMessages } from "@/lib/messages/student-transcript"
 import { auditMessages } from "@/lib/messages/audit"
 import type { Database } from "@/types/database.types"
+import type { NavBadgeKey } from "./nav-badges"
 
 /** No org switcher (B7): a "platform admin" is not org-scoped, everyone else has one role. */
 export type AppRole = "PLATFORM_ADMIN" | Database["public"]["Enums"]["membership_role"]
@@ -32,6 +33,8 @@ export interface NavItem {
   icon?: LucideIcon
   /** Role root: highlighted only on its exact path so children don't double-match. */
   exact?: boolean
+  /** Red counter next to the item, fed by the shell's NavBadges provider. */
+  badge?: NavBadgeKey
 }
 
 /** Sections render with a divider between them and no title (user decision). */
@@ -72,7 +75,7 @@ export const NAV_SECTIONS: Record<AppRole, NavSection[]> = {
       items: [
         { label: messages.nav.professor, href: "/teach", icon: GraduationCapIcon, exact: true },
         { label: courseMessages.nav.courses, href: "/teach/courses", icon: BookOpenIcon },
-        { label: teachAssessmentMessages.nav.grading, href: "/teach/grading", icon: ClipboardCheckIcon },
+        { label: teachAssessmentMessages.nav.grading, href: "/teach/grading", icon: ClipboardCheckIcon, badge: "grading" },
         { label: studentTranscriptMessages.nav, href: "/teach/students", icon: UsersIcon },
       ],
     },
