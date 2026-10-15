@@ -1154,6 +1154,67 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          entity_id: string
+          id: string
+          offering_id: string | null
+          organization_id: string
+          payload: Json
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          id?: string
+          offering_id?: string | null
+          organization_id: string
+          payload?: Json
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          id?: string
+          offering_id?: string | null
+          organization_id?: string
+          payload?: Json
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "course_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offering_module_schedules: {
         Row: {
           available_from: string | null
@@ -1937,6 +1998,10 @@ export type Database = {
         Returns: undefined
       }
       assessment_module_id: { Args: { p_assessment: string }; Returns: string }
+      assessment_module_open: {
+        Args: { p_assessment: string; p_offering: string }
+        Returns: boolean
+      }
       assessment_score_distribution: {
         Args: { p_assessment: string }
         Returns: {
@@ -2059,6 +2124,10 @@ export type Database = {
       delete_content_block: { Args: { p_block: string }; Returns: undefined }
       delete_lesson: { Args: { p_lesson: string }; Returns: undefined }
       delete_module: { Args: { p_module: string }; Returns: undefined }
+      enrollment_module_done: {
+        Args: { p_enrollment: string; p_module: string }
+        Returns: boolean
+      }
       enrollment_module_summary: {
         Args: { p_enrollment: string }
         Returns: {
@@ -2196,8 +2265,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_conversation_read: {
         Args: { p_conversation: string; p_up_to?: string }
+        Returns: undefined
+      }
+      mark_notification_read: {
+        Args: { p_notification: string }
         Returns: undefined
       }
       module_unlock_state: {
@@ -2246,6 +2320,19 @@ export type Database = {
           total_blocks: number
         }[]
       }
+      my_notifications: {
+        Args: { p_before?: string; p_before_id?: string; p_limit?: number }
+        Returns: {
+          created_at: string
+          entity_id: string
+          id: string
+          offering_id: string
+          payload: Json
+          read_at: string
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at: string
+        }[]
+      }
       my_task_submission: {
         Args: { p_assessment: string; p_enrollment: string }
         Returns: {
@@ -2261,7 +2348,27 @@ export type Database = {
         }[]
       }
       my_unread_message_count: { Args: never; Returns: number }
+      my_unread_notification_count: { Args: never; Returns: number }
       normalize_dni: { Args: { p_dni: string }; Returns: string }
+      notifiable_enrollments: {
+        Args: never
+        Returns: {
+          course_title: string
+          enrollment_id: string
+          offering_id: string
+          organization_id: string
+          time_zone: string
+          user_id: string
+        }[]
+      }
+      notify_offering_professors: {
+        Args: {
+          p_assessment: string
+          p_count: number
+          p_type: Database["public"]["Enums"]["notification_type"]
+        }
+        Returns: undefined
+      }
       offering_id_of_assessment: {
         Args: { p_assessment: string }
         Returns: string
@@ -2588,6 +2695,11 @@ export type Database = {
           removed_paths: string[]
         }[]
       }
+      sweep_exam_today_notifications: {
+        Args: { p_now?: string }
+        Returns: undefined
+      }
+      sweep_time_based_notifications: { Args: never; Returns: undefined }
       sync_group_offerings: { Args: { p_group: string }; Returns: undefined }
       sync_offering_enrollments: {
         Args: { p_offering: string }
@@ -2634,6 +2746,18 @@ export type Database = {
         Args: { p_attempt: string; p_feedback: string }
         Returns: undefined
       }
+      upsert_notification: {
+        Args: {
+          p_bump: boolean
+          p_entity: string
+          p_offering: string
+          p_org: string
+          p_payload: Json
+          p_type: Database["public"]["Enums"]["notification_type"]
+          p_user: string
+        }
+        Returns: undefined
+      }
       user_org_role: {
         Args: { p_org: string }
         Returns: Database["public"]["Enums"]["membership_role"]
@@ -2667,6 +2791,15 @@ export type Database = {
       enrollment_status: "ACTIVE" | "COMPLETED" | "CANCELLED"
       membership_role: "ADMIN" | "PROFESSOR" | "STUDENT"
       membership_status: "ACTIVE" | "INACTIVE"
+      notification_type:
+        | "MODULE_OPENED"
+        | "MODULE_CLOSING_SOON"
+        | "ASSESSMENT_GRADED"
+        | "ASSESSMENT_DUE_SOON"
+        | "TASK_READY_TO_GRADE"
+        | "LATE_SUBMISSIONS"
+        | "ATTEMPT_NEEDS_GRADING"
+        | "EXAM_TODAY"
       offering_kind: "GROUP" | "OPEN"
       offering_status: "ACTIVE" | "CANCELLED"
       org_status: "ACTIVE" | "INACTIVE"
@@ -2820,6 +2953,16 @@ export const Constants = {
       enrollment_status: ["ACTIVE", "COMPLETED", "CANCELLED"],
       membership_role: ["ADMIN", "PROFESSOR", "STUDENT"],
       membership_status: ["ACTIVE", "INACTIVE"],
+      notification_type: [
+        "MODULE_OPENED",
+        "MODULE_CLOSING_SOON",
+        "ASSESSMENT_GRADED",
+        "ASSESSMENT_DUE_SOON",
+        "TASK_READY_TO_GRADE",
+        "LATE_SUBMISSIONS",
+        "ATTEMPT_NEEDS_GRADING",
+        "EXAM_TODAY",
+      ],
       offering_kind: ["GROUP", "OPEN"],
       offering_status: ["ACTIVE", "CANCELLED"],
       org_status: ["ACTIVE", "INACTIVE"],
