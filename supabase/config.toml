@@ -236,12 +236,12 @@ otp_expiry = 600
 # Login and registration use the 6-digit code (OTP), not the link. Newer
 # GoTrue default templates only contain the link, so pin templates with the code.
 [auth.email.template.magic_link]
-subject = "Tu código de acceso"
+subject = "Tu código de acceso a Kururu"
 content_path = "./supabase/templates/otp-code.html"
 
 [auth.email.template.confirmation]
-subject = "Tu código de acceso"
-content_path = "./supabase/templates/otp-code.html"
+subject = "Confirmá tu cuenta en Kururu"
+content_path = "./supabase/templates/signup-code.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

@@ -15,7 +15,7 @@ test.afterAll(async () => {
 })
 
 function e2eEmail(label: string): string {
-  const email = `test+e2e-${label}-${Date.now()}@enecourses.test`
+  const email = `test+e2e-${label}-${Date.now()}@kururu.test`
   createdEmails.push(email)
   return email
 }

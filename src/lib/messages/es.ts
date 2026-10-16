@@ -5,7 +5,7 @@
  */
 export const messages = {
   common: {
-    appName: "ENECourses",
+    appName: "Kururu",
     breadcrumbLabel: "Ruta de navegación",
     loading: "Cargando…",
     logout: "Cerrar sesión",

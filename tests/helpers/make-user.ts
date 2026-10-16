@@ -25,7 +25,7 @@ const TEST_EMAIL_PREFIX = "test+"
 
 /** Unique throwaway email, always prefixed so cleanup/reset can find it. */
 export function testEmail(label: string): string {
-  return `${TEST_EMAIL_PREFIX}${label}-${randomUUID().slice(0, 8)}@enecourses.test`
+  return `${TEST_EMAIL_PREFIX}${label}-${randomUUID().slice(0, 8)}@kururu.test`
 }
 
 /**

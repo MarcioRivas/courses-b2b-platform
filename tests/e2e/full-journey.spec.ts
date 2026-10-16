@@ -21,7 +21,7 @@ test("full student journey: register → progress → quiz unlocks module 2 → 
   browser,
 }) => {
   const courseTitle = `Curso Jornada ${Date.now()}`
-  const studentEmail = `test+journey-student-${Date.now()}@enecourses.test`
+  const studentEmail = `test+journey-student-${Date.now()}@kururu.test`
 
   const admin = await makeUser("journey-admin", { organizationId: JOURNEY_ORG, role: "ADMIN" })
   const professor = await makeUser("journey-prof", { organizationId: JOURNEY_ORG, role: "PROFESSOR" })

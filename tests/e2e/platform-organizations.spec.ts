@@ -3,7 +3,7 @@ import { loginViaOtp, expectRouteRenders } from "../helpers/e2e-login"
 import { supabaseAdmin } from "../helpers/supabase-admin"
 
 // The only seeded platform admin; no other spec file logs in as this address.
-const SUPER_ADMIN_EMAIL = "super@enecourses.test"
+const SUPER_ADMIN_EMAIL = "super@kururu.test"
 
 const orgSlug = `club-e2e-${Date.now()}`
 const orgName = `Club E2E ${Date.now()}`

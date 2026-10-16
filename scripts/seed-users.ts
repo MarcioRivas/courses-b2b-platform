@@ -31,7 +31,7 @@ interface SeedUser {
   groupId?: string
 }
 
-const SUPER_ADMIN_EMAIL = "super@enecourses.test"
+const SUPER_ADMIN_EMAIL = "super@kururu.test"
 
 const SEED_USERS: SeedUser[] = [
   { email: "admin@club-a.test", firstName: "Ana", lastName: "Admin", role: "ADMIN", organizationId: ORG_A },

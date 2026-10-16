@@ -1,5 +1,5 @@
 {
-  "name": "enecourses",
+  "name": "kururu",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,7 +15,8 @@
     "db:new": "supabase migration new",
     "gen:types": "supabase gen types typescript --local > src/types/database.types.ts",
     "seed:demo": "tsx scripts/seed-demo-courses.ts",
-    "admin:create": "tsx scripts/create-platform-admin.ts"
+    "admin:create": "tsx scripts/create-platform-admin.ts",
+    "seed:showcase": "tsx scripts/seed-demo-showcase.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

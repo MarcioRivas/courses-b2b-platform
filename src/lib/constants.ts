@@ -1,5 +1,5 @@
 /** D21: single source of truth for the platform's working name. */
-export const APP_NAME = "ENECourses"
+export const APP_NAME = "Kururu"
 
 export const APP_DESCRIPTION = "Plataforma de formación deportiva multi-organización"
 
