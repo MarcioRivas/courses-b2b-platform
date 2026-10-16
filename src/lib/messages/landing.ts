@@ -3,7 +3,11 @@
  * `icon` keys are resolved to Lucide components inside each landing component.
  */
 export const landingMessages = {
-  meta: { title: "Formación para clubes y federaciones" },
+  meta: {
+    title: "Formación para clubes y federaciones",
+    description:
+      "Kururu es la plataforma de formación para clubes, federaciones y academias deportivas: cursos, evaluaciones y seguimiento del progreso en un solo lugar.",
+  },
   header: {
     login: "Iniciar sesión",
     navLabel: "Secciones",

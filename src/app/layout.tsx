@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Poppins, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
-import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants"
+import { APP_NAME, APP_DESCRIPTION, BASE_OPEN_GRAPH, SITE_URL } from "@/lib/constants"
 import "./globals.css"
 
 const poppins = Poppins({
@@ -17,8 +17,12 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: APP_NAME,
+  metadataBase: new URL(SITE_URL),
+  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
+  openGraph: BASE_OPEN_GRAPH,
+  twitter: { card: "summary_large_image" },
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

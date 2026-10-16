@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import { EmailForm } from "@/features/auth/components/email-form"
 import { messages } from "@/lib/messages/es"
+
+export const metadata: Metadata = {
+  title: messages.login.title,
+  alternates: { canonical: "/login" },
+}
 
 export default function LoginPage() {
   return (
