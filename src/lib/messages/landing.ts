@@ -4,9 +4,9 @@
  */
 export const landingMessages = {
   meta: {
-    title: "Formación para clubes y federaciones",
+    title: "Formación para organizaciones y sus estudiantes",
     description:
-      "Kururu es la plataforma de formación para clubes, federaciones y academias deportivas: cursos, evaluaciones y seguimiento del progreso en un solo lugar.",
+      "Kururu es la plataforma de formación para organizaciones: cursos, evaluaciones y seguimiento del progreso de tus estudiantes en un solo lugar.",
   },
   header: {
     login: "Iniciar sesión",
@@ -14,11 +14,11 @@ export const landingMessages = {
     nav: { features: "Funcionalidades", experience: "Experiencia", how: "Cómo funciona", roles: "Roles" },
   },
   hero: {
-    eyebrow: "Para clubes, federaciones y academias",
-    titleStart: "Formá a tu club con cursos que",
+    eyebrow: "Para organizaciones que forman",
+    titleStart: "Formá a tus estudiantes con cursos que",
     titleHighlight: "se completan",
     subtitle:
-      "Cursos, evaluaciones y seguimiento en un solo lugar. Tus profesores enseñan, tus deportistas avanzan a su ritmo y vos ves el progreso de toda la organización.",
+      "Cursos, evaluaciones y seguimiento en un solo lugar. Tus profesores enseñan, tus estudiantes avanzan a su ritmo y vos ves el progreso de toda la organización.",
     ctaPrimary: "Ingresar a la plataforma",
     ctaSecondary: "Ver funcionalidades",
     mock: {
@@ -26,7 +26,7 @@ export const landingMessages = {
       subtitle: "Resumen de esta semana",
       // `value` is animated as a counter; `suffix` stays static next to it.
       stats: [
-        { label: "Deportistas activos", value: 248, suffix: "", delta: "+12" },
+        { label: "Estudiantes activos", value: 248, suffix: "", delta: "+12" },
         { label: "Cursos publicados", value: 16, suffix: "", delta: "+3" },
         { label: "Evaluaciones aprobadas", value: 91, suffix: " %", delta: "+4 %" },
       ],
@@ -37,13 +37,13 @@ export const landingMessages = {
   },
   features: {
     eyebrow: "Funcionalidades",
-    title: "Todo lo que necesita una organización deportiva para formar",
-    lead: "Pensado para clubes, federaciones y academias que quieren enseñar mejor y medir resultados.",
+    title: "Todo lo que necesita una organización para formar",
+    lead: "Pensado para organizaciones que quieren enseñar mejor y medir resultados.",
     items: [
       {
         icon: "organizations",
         title: "Un espacio por organización",
-        description: "Cada club o federación trabaja con sus propios miembros, grupos y cursos, completamente aislados del resto.",
+        description: "Cada organización trabaja con sus propios miembros, grupos y cursos, completamente aislados del resto.",
       },
       {
         icon: "courses",
@@ -73,7 +73,7 @@ export const landingMessages = {
     ],
   },
   experience: {
-    eyebrow: "Para tus deportistas",
+    eyebrow: "Para tus estudiantes",
     title: "Una experiencia que dan ganas de completar",
     lead: "Lecciones cortas, videos con preguntas, progreso siempre visible y un reconocimiento cada vez que terminan algo.",
     points: [
@@ -97,7 +97,7 @@ export const landingMessages = {
     steps: [
       {
         title: "Creá tu organización",
-        description: "Definí tu club o federación, invitá administradores y compartí links de registro con tu comunidad.",
+        description: "Configurá tu espacio, invitá administradores y compartí links de registro con tu comunidad.",
       },
       {
         title: "Publicá cursos y evaluaciones",
@@ -105,7 +105,7 @@ export const landingMessages = {
       },
       {
         title: "Seguí el progreso",
-        description: "Mirá las estadísticas por edición, corregí entregas y acompañá a cada deportista hasta el final.",
+        description: "Mirá las estadísticas por edición, corregí entregas y acompañá a cada estudiante hasta el final.",
       },
     ],
   },
@@ -128,7 +128,7 @@ export const landingMessages = {
       },
       {
         icon: "student",
-        title: "Deportista",
+        title: "Estudiante",
         description: "Aprendé a tu ritmo desde cualquier dispositivo.",
         bullets: ["Tus cursos y progreso por módulo", "Quizzes y exámenes con autoguardado", "Resultados y devoluciones"],
       },
@@ -144,7 +144,7 @@ export const landingMessages = {
     ],
   },
   finalCta: {
-    title: "Llevá la formación de tu club al siguiente nivel",
+    title: "Llevá la formación de tu organización al siguiente nivel",
     description: "Ingresá con tu correo: sin contraseñas y con los datos de tu organización siempre aislados.",
     action: "Ingresar a la plataforma",
   },

@@ -3,10 +3,10 @@
  * Kept apart from `es.ts` so frozen auth/E2E strings never drift.
  */
 export const authBrandMessages = {
-  tagline: "Plataforma para organizaciones deportivas",
+  tagline: "Plataforma de formación para organizaciones",
   headline: "Formá a tu equipo desde un solo lugar",
   subheadline:
-    "Cursos, evaluaciones y seguimiento para clubes, federaciones y academias.",
+    "Cursos, evaluaciones y seguimiento para organizaciones y sus estudiantes.",
   valueProps: [
     {
       title: "Acceso seguro sin contraseñas",

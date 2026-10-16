@@ -1,7 +1,7 @@
 /** D21: single source of truth for the platform's working name. */
 export const APP_NAME = "Kururu"
 
-export const APP_DESCRIPTION = "Plataforma de formación deportiva multi-organización"
+export const APP_DESCRIPTION = "Plataforma de formación para organizaciones y sus estudiantes"
 
 /** Shared Open Graph fields; pages that set `openGraph` must spread it (Next replaces, not merges). */
 export const BASE_OPEN_GRAPH = { type: "website", siteName: APP_NAME, locale: "es_UY" } as const
